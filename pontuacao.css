@@ -1,0 +1,186 @@
+/* ========================================
+   RECYNET 2.0 - PÁGINA DE PONTUAÇÃO
+   ======================================== */
+
+/* === RESUMO DE PONTOS === */
+.points-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.summary-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-xl);
+  background: linear-gradient(135deg, var(--color-accent-light), var(--color-accent-lightest));
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-base);
+}
+
+.summary-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+
+.summary-icon {
+  font-size: var(--font-size-4xl);
+}
+
+.summary-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.summary-value {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  line-height: 1;
+  margin-bottom: var(--spacing-xs);
+}
+
+.summary-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  font-weight: var(--font-weight-medium);
+}
+
+/* === BADGES DE PONTOS === */
+.points-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--spacing-xs) var(--spacing-md);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-base);
+}
+
+.points-high {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: var(--color-white);
+}
+
+.points-medium {
+  background: linear-gradient(135deg, var(--color-info), #64B5F6);
+  color: var(--color-white);
+}
+
+.points-low {
+  background: linear-gradient(135deg, var(--color-secondary), var(--color-secondary-light));
+  color: var(--color-white);
+}
+
+.material-icon {
+  font-size: var(--font-size-2xl);
+}
+
+/* === CALCULADORA === */
+.calculator-box {
+  margin-top: var(--spacing-2xl);
+  padding: var(--spacing-xl);
+  background: var(--color-accent-lightest);
+  border-radius: var(--radius-lg);
+  border: 2px dashed var(--color-primary);
+}
+
+.calculator-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.calculator-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  margin-bottom: var(--spacing-lg);
+}
+
+.calculator-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.calculator-result {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-success);
+  margin-top: var(--spacing-md);
+}
+
+.result-icon {
+  font-size: var(--font-size-3xl);
+}
+
+.result-text {
+  font-size: var(--font-size-lg);
+  color: var(--color-gray-700);
+}
+
+.result-text strong {
+  color: var(--color-primary);
+  font-size: var(--font-size-2xl);
+}
+
+/* === DICAS === */
+.tips-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tips-list li {
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  line-height: var(--line-height-relaxed);
+  border-left: 4px solid var(--color-success);
+  transition: all var(--transition-base);
+}
+
+.tips-list li:hover {
+  transform: translateX(8px);
+  box-shadow: var(--shadow-sm);
+}
+
+.tips-list li:last-child {
+  margin-bottom: 0;
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 768px) {
+  .points-summary {
+    grid-template-columns: 1fr;
+  }
+  
+  .summary-card {
+    padding: var(--spacing-md);
+  }
+  
+  .summary-icon {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .summary-value {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .calculator-box {
+    padding: var(--spacing-md);
+  }
+  
+  .table-container {
+    overflow-x: auto;
+  }
+}

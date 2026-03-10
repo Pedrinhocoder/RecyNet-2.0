@@ -1,0 +1,12 @@
+{
+  "name": "recycnet",
+  "version": "1.0.0",
+  "description": "RecyNet - Sistema de Reciclagem e Recompensas",
+  "main": "index.html",
+  "scripts": {
+    "start": "echo 'Abra index.html no navegador'"
+  },
+  "keywords": ["reciclagem", "sustentabilidade", "recompensas"],
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RecyNet - Teste Relatório</title>
+</head>
+<body>
+  <h1>Teste de Scripts RecyNet</h1>
+  <div id="resultado"></div>
+
+  <script src="database.js"></script>
+  <script src="auth.js"></script>
+  <script src="ranking_system.js"></script>
+  <script>
+    const resultado = document.getElementById('resultado');
+    let html = '<h2>Verificação de Sistemas:</h2>';
+
+    // 1. Verificar RecyNetDB
+    if (typeof RecyNetDB !== 'undefined') {
+      html += '<p>✅ RecyNetDB carregado</p>';
+      
+      // Testar métodos
+      try {
+        const usuarios = RecyNetDB.getUsuarios();
+        html += `<p>✅ getUsuarios(): ${usuarios.length} usuários encontrados</p>`;
+      } catch (e) {
+        html += `<p>❌ Erro em getUsuarios(): ${e.message}</p>`;
+      }
+      
+      try {
+        const catalogo = RecyNetDB.getCatalogoRecompensas();
+        html += `<p>✅ getCatalogoRecompensas(): ${catalogo.length} itens</p>`;
+      } catch (e) {
+        html += `<p>❌ Erro em getCatalogoRecompensas(): ${e.message}</p>`;
+      }
+    } else {
+      html += '<p>❌ RecyNetDB NÃO carregado</p>';
+    }
+
+    // 2. Verificar RecyNetAuth
+    if (typeof RecyNetAuth !== 'undefined') {
+      html += '<p>✅ RecyNetAuth carregado</p>';
+    } else {
+      html += '<p>❌ RecyNetAuth NÃO carregado</p>';
+    }
+
+    // 3. Verificar RankingSystem
+    if (typeof RankingSystem !== 'undefined') {
+      html += '<p>✅ RankingSystem carregado</p>';
+      
+      try {
+        const ranking = RankingSystem.carregarRanking();
+        html += `<p>✅ carregarRanking(): ${ranking.length} usuários no ranking</p>`;
+      } catch (e) {
+        html += `<p>❌ Erro em carregarRanking(): ${e.message}</p>`;
+      }
+    } else {
+      html += '<p>❌ RankingSystem NÃO carregado</p>';
+    }
+
+    // 4. Verificar Chart.js
+    if (typeof Chart !== 'undefined') {
+      html += '<p>✅ Chart.js carregado</p>';
+    } else {
+      html += '<p>⚠️ Chart.js NÃO carregado (necessário para gráficos)</p>';
+    }
+
+    resultado.innerHTML = html;
+  </script>
+</body>
+</html>

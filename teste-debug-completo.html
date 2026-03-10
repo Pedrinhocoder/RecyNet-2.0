@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>🧪 Teste de Debug - RecyNet</title>
+  <link rel="stylesheet" href="design-system.css" />
+  <link rel="stylesheet" href="components.css" />
+  <style>
+    body {
+      padding: 2rem;
+      background: #f5f5f5;
+    }
+    .test-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .test-section {
+      margin: 2rem 0;
+      padding: 1.5rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+    }
+    .test-section.running {
+      border-color: #2196f3;
+      background: #e3f2fd;
+    }
+    .test-section.success {
+      border-color: #4caf50;
+      background: #e8f5e9;
+    }
+    .test-section.error {
+      border-color: #f44336;
+      background: #ffebee;
+    }
+    .test-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+      color: #000;
+    }
+    .test-result {
+      font-family: monospace;
+      background: #f5f5f5;
+      padding: 1rem;
+      border-radius: 4px;
+      white-space: pre-wrap;
+      font-size: 0.9rem;
+      color: #000;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .test-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    .stat-card {
+      padding: 1rem;
+      border-radius: 8px;
+      text-align: center;
+    }
+    .stat-card.total {
+      background: #e3f2fd;
+      border: 2px solid #2196f3;
+    }
+    .stat-card.passed {
+      background: #e8f5e9;
+      border: 2px solid #4caf50;
+    }
+    .stat-card.failed {
+      background: #ffebee;
+      border: 2px solid #f44336;
+    }
+    .stat-card.skipped {
+      background: #fff3e0;
+      border: 2px solid #ff9800;
+    }
+    .stat-number {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #000;
+    }
+    .stat-label {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 0.5rem;
+    }
+    .btn-test {
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      margin: 0.5rem;
+      transition: all 0.3s;
+    }
+    .btn-test.primary {
+      background: #2196f3;
+      color: white;
+    }
+    .btn-test.primary:hover {
+      background: #1976d2;
+    }
+    .btn-test.success {
+      background: #4caf50;
+      color: white;
+    }
+    .btn-test.danger {
+      background: #f44336;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-container">
+    <h1 style="color: #000; margin-bottom: 1rem;">🧪 Teste de Debug - RecyNet</h1>
+    <p style="color: #666; margin-bottom: 2rem;">
+      Modo DEBUG ativado. Verificando se as correções aplicadas não criaram bugs.
+    </p>
+
+    <div class="test-stats">
+      <div class="stat-card total">
+        <div class="stat-number" id="totalTests">0</div>
+        <div class="stat-label">Total de Testes</div>
+      </div>
+      <div class="stat-card passed">
+        <div class="stat-number" id="passedTests">0</div>
+        <div class="stat-label">✅ Passou</div>
+      </div>
+      <div class="stat-card failed">
+        <div class="stat-number" id="failedTests">0</div>
+        <div class="stat-label">❌ Falhou</div>
+      </div>
+      <div class="stat-card skipped">
+        <div class="stat-number" id="skippedTests">0</div>
+        <div class="stat-label">⏭️ Pulou</div>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin: 2rem 0;">
+      <button class="btn-test primary" onclick="runAllTests()">▶️ Executar Todos os Testes</button>
+      <button class="btn-test danger" onclick="clearResults()">🗑️ Limpar Resultados</button>
+      <button class="btn-test success" onclick="exportResults()">📄 Exportar Relatório</button>
+    </div>
+
+    <div id="testResults"></div>
+  </div>
+
+  <script src="database.js"></script>
+  <script src="auth.js"></script>
+  <script src="utils.js"></script>
+  <script src="ranking_system.js"></script>
+
+  <script>
+    let totalTests = 0;
+    let passedTests = 0;
+    let failedTests = 0;
+    let skippedTests = 0;
+    let testResults = [];
+
+    function updateStats() {
+      document.getElementById('totalTests').textContent = totalTests;
+      document.getElementById('passedTests').textContent = passedTests;
+      document.getElementById('failedTests').textContent = failedTests;
+      document.getElementById('skippedTests').textContent = skippedTests;
+    }
+
+    function addTestSection(title, description) {
+      const container = document.getElementById('testResults');
+      const section = document.createElement('div');
+      section.className = 'test-section running';
+      section.id = `test-${totalTests}`;
+      section.innerHTML = `
+        <div class="test-title">${totalTests + 1}. ${title}</div>
+        <p style="color: #666; margin-bottom: 1rem;">${description}</p>
+        <div class="test-result" id="result-${totalTests}">🔄 Executando...</div>
+      `;
+      container.appendChild(section);
+      return totalTests++;
+    }
+
+    function updateTestResult(testId, passed, result) {
+      const section = document.getElementById(`test-${testId}`);
+      const resultDiv = document.getElementById(`result-${testId}`);
+      
+      if (passed) {
+        section.className = 'test-section success';
+        resultDiv.textContent = `✅ PASSOU\n\n${result}`;
+        passedTests++;
+      } else {
+        section.className = 'test-section error';
+        resultDiv.textContent = `❌ FALHOU\n\n${result}`;
+        failedTests++;
+      }
+      
+      updateStats();
+      testResults.push({ testId, passed, result });
+    }
+
+    // === TESTE 1: Sistema de Logging ===
+    async function test1_Logger() {
+      const testId = addTestSection(
+        'Sistema de Logging (Logger)',
+        'Verificar se o Logger está funcionando corretamente'
+      );
+
+      try {
+        let result = '';
+
+        // Verificar se Logger existe
+        if (typeof Logger === 'undefined') {
+          throw new Error('Logger não está definido globalmente');
+        }
+        result += '✓ Logger está definido\n';
+
+        // Verificar métodos
+        const methods = ['log', 'error', 'warn', 'info'];
+        methods.forEach(method => {
+          if (typeof Logger[method] !== 'function') {
+            throw new Error(`Logger.${method} não é uma função`);
+          }
+          result += `✓ Logger.${method} existe\n`;
+        });
+
+        // Testar logs (devem aparecer no console)
+        Logger.log('Teste de log');
+        Logger.error('Teste de erro');
+        Logger.warn('Teste de aviso');
+        Logger.info('Teste de info');
+        result += '✓ Todos os logs executaram sem erro\n';
+
+        result += '\n✅ Sistema de logging funcionando perfeitamente!';
+        updateTestResult(testId, true, result);
+      } catch (error) {
+        updateTestResult(testId, false, `Erro: ${error.message}\n\nStack: ${error.stack}`);
+      }
+    }
+
+    // === TESTE 2: Funções Utils ===
+    async function test2_Utils() {
+      const testId = addTestSection(
+        'Funções Utilitárias (Utils)',
+        'Verificar se Utils e RecyNetUtils estão funcionando'
+      );
+
+      try {
+        let result = '';
+
+        // Verificar se Utils existe
+        if (typeof Utils === 'undefined') {
+          throw new Error('Utils não está definido');
+        }
+        result += '✓ Utils está definido\n';
+
+        // Verificar se RecyNetUtils existe
+        if (typeof RecyNetUtils === 'undefined') {
+          throw new Error('RecyNetUtils não está definido');
+        }
+        result += '✓ RecyNetUtils está definido\n';
+
+        // Verificar se são o mesmo objeto
+        if (Utils !== RecyNetUtils) {
+          throw new Error('Utils e RecyNetUtils não são o mesmo objeto');
+        }
+        result += '✓ Utils e RecyNetUtils são aliases\n';
+
+        // Testar formatNumber
+        const testNum = 1234.56;
+        const formatted = Utils.formatNumber(testNum);
+        if (!formatted.includes('1') || !formatted.includes('234')) {
+          throw new Error(`formatNumber falhou: ${formatted}`);
+        }
+        result += `✓ Utils.formatNumber(${testNum}) = "${formatted}"\n`;
+
+        // Testar formatCurrency
+        const currency = Utils.formatCurrency(100.50);
+        if (!currency.includes('100') || !currency.includes('50')) {
+          throw new Error(`formatCurrency falhou: ${currency}`);
+        }
+        result += `✓ Utils.formatCurrency(100.50) = "${currency}"\n`;
+
+        // Testar localStorage
+        Utils.setLocalStorage('test_key', { value: 'test' });
+        const retrieved = Utils.getLocalStorage('test_key');
+        if (!retrieved || retrieved.value !== 'test') {
+          throw new Error('getLocalStorage/setLocalStorage falharam');
+        }
+        result += '✓ Utils.getLocalStorage e setLocalStorage funcionando\n';
+        localStorage.removeItem('test_key');
+
+        result += '\n✅ Todas as funções Utils funcionando!';
+        updateTestResult(testId, true, result);
+      } catch (error) {
+        updateTestResult(testId, false, `Erro: ${error.message}\n\nStack: ${error.stack}`);
+      }
+    }
+
+    // === TESTE 3: Validação de Senha ===
+    async function test3_PasswordValidation() {
+      const testId = addTestSection(
+        'Validação de Senha Robusta',
+        'Testar se senhas fracas são rejeitadas e fortes são aceitas'
+      );
+
+      try {
+        let result = '';
+
+        // Verificar se RecyNetAuth existe
+        if (typeof RecyNetAuth === 'undefined') {
+          throw new Error('RecyNetAuth não está definido');
+        }
+        result += '✓ RecyNetAuth está definido\n\n';
+
+        // Testar senhas fracas
+        const weakPasswords = [
+          { senha: '123456', motivo: 'Muito curta' },
+          { senha: 'password', motivo: 'Sem maiúscula, número e especial' },
+          { senha: 'Password1', motivo: 'Sem caractere especial' },
+          { senha: 'password1!', motivo: 'Sem letra maiúscula' },
+          { senha: 'PASSWORD1!', motivo: 'Sem letra minúscula' }
+        ];
+
+        result += 'TESTANDO SENHAS FRACAS:\n';
+        for (const { senha, motivo } of weakPasswords) {
+          const validation = RecyNetAuth.validarSenha(senha);
+          if (validation.valido) {
+            throw new Error(`Senha fraca aceita: "${senha}" (${motivo})`);
+          }
+          result += `✓ "${senha}" rejeitada: ${validation.erro}\n`;
+        }
+
+        // Testar senhas fortes
+        const strongPasswords = ['Password1!', 'Admin@2026', 'Teste#123', 'Recynet$2026'];
+
+        result += '\nTESTANDO SENHAS FORTES:\n';
+        for (const senha of strongPasswords) {
+          const validation = RecyNetAuth.validarSenha(senha);
+          if (!validation.valido) {
+            throw new Error(`Senha forte rejeitada: "${senha}" - ${validation.erro}`);
+          }
+          result += `✓ "${senha}" aceita\n`;
+        }
+
+        result += '\n✅ Validação de senha funcionando perfeitamente!';
+        updateTestResult(testId, true, result);
+      } catch (error) {
+        updateTestResult(testId, false, `Erro: ${error.message}\n\nStack: ${error.stack}`);
+      }
+    }
+
+    // === TESTE 4: Cadastro e Login ===
+    async function test4_AuthSystem() {
+      const testId = addTestSection(
+        'Sistema de Autenticação',
+        'Testar cadastro, hash de senha e login'
+      );
+
+      try {
+        let result = '';
+
+        // Limpar qualquer usuário de teste existente
+        const usuarios = RecyNetDB.getUsuarios();
+        const testUserIndex = usuarios.findIndex(u => u.email === 'test@debug.com');
+        if (testUserIndex !== -1) {
+          usuarios.splice(testUserIndex, 1);
+          localStorage.setItem('RecyNet_usuarios', JSON.stringify(usuarios));
+        }
+
+        // Testar cadastro
+        result += 'TESTANDO CADASTRO:\n';
+        const cadastroResult = await RecyNetAuth.cadastrar(
+          'Usuário Teste',
+          'test@debug.com',
+          'Teste@123',
+          'Teste@123'
+        );
+
+        if (!cadastroResult.sucesso) {
+          throw new Error(`Cadastro falhou: ${cadastroResult.erro}`);
+        }
+        result += '✓ Cadastro realizado com sucesso\n';
+
+        // Verificar se senha foi hasheada
+        const usuariosCadastrados = RecyNetDB.getUsuarios();
+        const usuarioTeste = usuariosCadastrados.find(u => u.email === 'test@debug.com');
+        if (!usuarioTeste) {
+          throw new Error('Usuário não foi salvo no banco');
+        }
+        result += '✓ Usuário salvo no banco\n';
+
+        if (usuarioTeste.senha === 'Teste@123') {
+          throw new Error('Senha NÃO foi hasheada! FALHA CRÍTICA!');
+        }
+        result += `✓ Senha hasheada: ${usuarioTeste.senha.substring(0, 16)}...\n`;
+
+        // Testar login
+        result += '\nTESTANDO LOGIN:\n';
+        const loginResult = await RecyNetAuth.login('test@debug.com', 'Teste@123');
+        if (!loginResult.sucesso) {
+          throw new Error(`Login falhou: ${loginResult.erro}`);
+        }
+        result += '✓ Login realizado com sucesso\n';
+
+        // Verificar sessão
+        const sessao = RecyNetAuth.obterSessao();
+        if (!sessao || sessao.email !== 'test@debug.com') {
+          throw new Error('Sessão não foi criada corretamente');
+        }
+        result += '✓ Sessão criada corretamente\n';
+
+        // Logout
+        RecyNetAuth.logout();
+        const sessaoDepois = RecyNetAuth.obterSessao();
+        if (sessaoDepois) {
+          throw new Error('Logout não funcionou');
+        }
+        result += '✓ Logout funcionando\n';
+
+        // Limpar usuário de teste
+        const usuariosAposLogout = RecyNetDB.getUsuarios();
+        const indexTeste = usuariosAposLogout.findIndex(u => u.email === 'test@debug.com');
+        if (indexTeste !== -1) {
+          usuariosAposLogout.splice(indexTeste, 1);
+          localStorage.setItem('RecyNet_usuarios', JSON.stringify(usuariosAposLogout));
+        }
+
+        result += '\n✅ Sistema de autenticação funcionando perfeitamente!';
+        updateTestResult(testId, true, result);
+      } catch (error) {
+        updateTestResult(testId, false, `Erro: ${error.message}\n\nStack: ${error.stack}`);
+      }
+    }
+
+    // === TESTE 5: Banco de Dados ===
+    async function test5_Database() {
+      const testId = addTestSection(
+        'Banco de Dados (RecyNetDB)',
+        'Verificar se o banco de dados está funcionando'
+      );
+
+      try {
+        let result = '';
+
+        // Verificar se RecyNetDB existe
+        if (typeof RecyNetDB === 'undefined') {
+          throw new Error('RecyNetDB não está definido');
+        }
+        result += '✓ RecyNetDB está definido\n';
+
+        // Testar funções básicas
+        const usuarios = RecyNetDB.getUsuarios();
+        if (!Array.isArray(usuarios)) {
+          throw new Error('getUsuarios() não retornou um array');
+        }
+        result += `✓ getUsuarios() retornou ${usuarios.length} usuários\n`;
+
+        const coletas = RecyNetDB.getColetas();
+        if (!Array.isArray(coletas)) {
+          throw new Error('getColetas() não retornou um array');
+        }
+        result += `✓ getColetas() retornou ${coletas.length} coletas\n`;
+
+        const recompensas = RecyNetDB.getRecompensas();
+        if (!Array.isArray(recompensas)) {
+          throw new Error('getRecompensas() não retornou um array');
+        }
+        result += `✓ getRecompensas() retornou ${recompensas.length} recompensas\n`;
+
+        result += '\n✅ Banco de dados funcionando!';
+        updateTestResult(testId, true, result);
+      } catch (error) {
+        updateTestResult(testId, false, `Erro: ${error.message}\n\nStack: ${error.stack}`);
+      }
+    }
+
+    // === TESTE 6: Sistema de Ranking ===
+    async function test6_RankingSystem() {
+      const testId = addTestSection(
+        'Sistema de Ranking',
+        'Verificar se o sistema de ranking está funcionando'
+      );
+
+      try {
+        let result = '';
+
+        // Verificar se RankingSystem existe
+        if (typeof RankingSystem === 'undefined') {
+          throw new Error('RankingSystem não está definido');
+        }
+        result += '✓ RankingSystem está definido\n';
+
+        // Carregar ranking
+        const ranking = RankingSystem.carregarRanking();
+        if (!Array.isArray(ranking)) {
+          throw new Error('carregarRanking() não retornou um array');
+        }
+        result += `✓ carregarRanking() retornou ${ranking.length} usuários\n`;
+
+        // Verificar posições
+        if (ranking.length > 0) {
+          const primeiro = ranking[0];
+          if (!primeiro.posicao || primeiro.posicao !== 1) {
+            throw new Error('Primeiro lugar não tem posição 1');
+          }
+          result += `✓ Primeiro lugar: ${primeiro.nome} (${primeiro.peso}kg)\n`;
+        }
+
+        result += '\n✅ Sistema de ranking funcionando!';
+        updateTestResult(testId, true, result);
+      } catch (error) {
+        updateTestResult(testId, false, `Erro: ${error.message}\n\nStack: ${error.stack}`);
+      }
+    }
+
+    // === EXECUTAR TODOS OS TESTES ===
+    async function runAllTests() {
+      // Limpar resultados anteriores
+      totalTests = 0;
+      passedTests = 0;
+      failedTests = 0;
+      skippedTests = 0;
+      testResults = [];
+      document.getElementById('testResults').innerHTML = '';
+      updateStats();
+
+      console.log('='.repeat(50));
+      console.log('🧪 INICIANDO TESTES DE DEBUG');
+      console.log('='.repeat(50));
+
+      await test1_Logger();
+      await test2_Utils();
+      await test3_PasswordValidation();
+      await test4_AuthSystem();
+      await test5_Database();
+      await test6_RankingSystem();
+
+      console.log('='.repeat(50));
+      console.log('✅ TESTES CONCLUÍDOS');
+      console.log(`Total: ${totalTests} | Passou: ${passedTests} | Falhou: ${failedTests}`);
+      console.log('='.repeat(50));
+
+      // Mostrar toast com resultado
+      if (failedTests === 0) {
+        if (typeof Utils !== 'undefined' && Utils.showToast) {
+          Utils.showToast(`✅ Todos os ${totalTests} testes passaram!`, 'success');
+        } else {
+          alert(`✅ Todos os ${totalTests} testes passaram!`);
+        }
+      } else {
+        if (typeof Utils !== 'undefined' && Utils.showToast) {
+          Utils.showToast(`❌ ${failedTests} de ${totalTests} testes falharam!`, 'error');
+        } else {
+          alert(`❌ ${failedTests} de ${totalTests} testes falharam!`);
+        }
+      }
+    }
+
+    function clearResults() {
+      totalTests = 0;
+      passedTests = 0;
+      failedTests = 0;
+      skippedTests = 0;
+      testResults = [];
+      document.getElementById('testResults').innerHTML = '';
+      updateStats();
+      console.clear();
+      if (typeof Utils !== 'undefined' && Utils.showToast) {
+        Utils.showToast('Resultados limpos', 'info');
+      }
+    }
+
+    function exportResults() {
+      const report = {
+        data: new Date().toISOString(),
+        total: totalTests,
+        passou: passedTests,
+        falhou: failedTests,
+        pulou: skippedTests,
+        testes: testResults
+      };
+
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `relatorio-debug-${Date.now()}.json`;
+      a.click();
+
+      if (typeof Utils !== 'undefined' && Utils.showToast) {
+        Utils.showToast('Relatório exportado!', 'success');
+      }
+    }
+
+    // Executar automaticamente ao carregar
+    window.addEventListener('DOMContentLoaded', () => {
+      console.log('Página de testes carregada. Clique em "Executar Todos os Testes" para começar.');
+    });
+  </script>
+</body>
+</html>

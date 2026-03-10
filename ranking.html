@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RecyNet - Ranking Global</title>
+  <link rel="stylesheet" href="design-system.css" />
+  <link rel="stylesheet" href="components.css" />
+  <link rel="stylesheet" href="relatorio.css" />
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="cooperado.html" class="navbar-logo">♻ RecyNet</a>
+      
+      <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle menu">
+        ☰
+      </button>
+      
+      <div class="navbar-menu" id="navbarMenu">
+        <a href="locais.html" class="nav-link">Locais de Coleta</a>
+        <a href="relatorio.html" class="nav-link">Relatório</a>
+        <a href="ranking.html" class="nav-link active">Ranking</a>
+        <a href="pontuacao.html" class="nav-link">Pontuação</a>
+        <a href="noticias.html" class="nav-link">Notícias</a>
+        <a href="recompensas.html" class="nav-link">Recompensas</a>
+      </div>
+      
+      <div class="navbar-actions" id="navbarActions">
+        <a href="cooperado.html">Home</a>
+        <a href="perfil.html">Perfil</a>
+        <a href="index.html">Sobre Nós</a>
+        <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="main-content">
+    <div class="container fade-in-up">
+      <div class="page-header">
+        <h1 class="page-title">🏆 Ranking Global</h1>
+        <p class="page-subtitle">Os maiores recicladores da RecyNet</p>
+      </div>
+
+      <div class="card card-success fade-in-up" style="margin-bottom: var(--spacing-2xl);">
+        <div class="card-header">
+          <h2 class="card-title">Pódio de Honra</h2>
+        </div>
+        <div class="card-body">
+          <div id="full-podio-container"></div>
+        </div>
+      </div>
+
+      <div class="card fade-in-up">
+        <div class="card-header">
+          <h2 class="card-title">Classificação Completa</h2>
+        </div>
+        <div class="card-body">
+          <div id="full-ranking-container"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 RecyNet - Plataforma Sustentável</p>
+  </footer>
+
+  <script src="database.js"></script>
+  <script src="auth.js"></script>
+  <script src="ranking_system.js"></script>
+  <script src="utils.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const usuarioLogado = RecyNetAuth.protegerPagina();
+      if (!usuarioLogado) return;
+
+      RankingSystem.renderizarPodio('full-podio-container');
+      RankingSystem.renderizarRanking('full-ranking-container', usuarioLogado.id);
+    });
+  </script>
+</body>
+</html>

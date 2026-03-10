@@ -1,0 +1,1475 @@
+openapi: 3.0.3
+info:
+  title: RecyNet API
+  description: |
+    API REST para o sistema RecyNet - Plataforma de gerenciamento de reciclagem com gamificação.
+    
+    ## Funcionalidades
+    - 🔐 Autenticação e autorização
+    - 👤 Gerenciamento de usuários e perfis
+    - ♻️ Registro e histórico de coletas
+    - 🏆 Sistema de ranking e gamificação
+    - 🎁 Catálogo e resgate de recompensas
+    - 👨‍💼 Painel administrativo completo
+    
+    ## Autenticação
+    A maioria dos endpoints requer autenticação via Bearer Token (JWT).
+    
+    **Fluxo:**
+    1. Fazer login em `/auth/login`
+    2. Receber token JWT
+    3. Enviar token no header: `Authorization: Bearer {token}`
+    
+    ## Níveis e Gamificação
+    - Usuários ganham pontos e XP ao registrar coletas
+    - Sistema de 10 níveis (Bronze I → Diamante)
+    - Ranking global baseado em peso total (kg)
+  version: 1.0.0
+  contact:
+    name: Equipe RecyNet
+    email: contato@recynet.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.recynet.com/v1
+    description: Servidor de Produção
+  - url: https://staging-api.recynet.com/v1
+    description: Servidor de Staging
+  - url: http://localhost:3000/v1
+    description: Servidor de Desenvolvimento Local
+
+tags:
+  - name: Auth
+    description: Autenticação e gerenciamento de sessão
+  - name: Users
+    description: Gerenciamento de usuários e perfis
+  - name: Collections
+    description: Registro e histórico de coletas
+  - name: Ranking
+    description: Sistema de ranking e gamificação
+  - name: Rewards
+    description: Catálogo e resgate de recompensas
+  - name: Admin
+    description: Endpoints administrativos (requer permissão de admin)
+
+paths:
+  # ============================================
+  # AUTH - AUTENTICAÇÃO
+  # ============================================
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Cadastrar novo usuário
+      description: Cria uma nova conta de usuário no sistema
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - nome
+                - email
+                - senha
+                - cpf
+                - telefone
+              properties:
+                nome:
+                  type: string
+                  minLength: 3
+                  example: João Silva
+                email:
+                  type: string
+                  format: email
+                  example: joao.silva@email.com
+                senha:
+                  type: string
+                  format: password
+                  minLength: 8
+                  description: Mínimo 8 caracteres, deve conter maiúscula, minúscula, número e caractere especial
+                  example: Senha@123
+                cpf:
+                  type: string
+                  pattern: '^\d{11}$'
+                  example: "12345678900"
+                telefone:
+                  type: string
+                  pattern: '^\d{10,11}$'
+                  example: "11987654321"
+                endereco:
+                  type: string
+                  example: Rua das Flores, 123, São Paulo - SP
+      responses:
+        '201':
+          description: Usuário cadastrado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: boolean
+                    example: true
+                  mensagem:
+                    type: string
+                    example: Cadastro realizado com sucesso!
+                  usuario:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    description: JWT token para autenticação
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email ou CPF já cadastrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Fazer login
+      description: Autentica usuário e retorna token JWT
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - senha
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: joao.silva@email.com
+                senha:
+                  type: string
+                  format: password
+                  example: Senha@123
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: boolean
+                    example: true
+                  mensagem:
+                    type: string
+                    example: Login realizado com sucesso!
+                  usuario:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Fazer logout
+      description: Invalida o token JWT atual
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Logout realizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: boolean
+                    example: true
+                  mensagem:
+                    type: string
+                    example: Logout realizado com sucesso!
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: Renovar token
+      description: Gera um novo token JWT antes do atual expirar
+      operationId: refreshToken
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Token renovado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  expiresIn:
+                    type: integer
+                    description: Tempo de expiração em segundos
+                    example: 3600
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============================================
+  # USERS - USUÁRIOS
+  # ============================================
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Obter perfil do usuário autenticado
+      description: Retorna dados completos do perfil do usuário logado
+      operationId: getMyProfile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Perfil retornado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags: [Users]
+      summary: Atualizar perfil
+      description: Atualiza dados do perfil do usuário autenticado
+      operationId: updateMyProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  type: string
+                  example: João Silva Santos
+                telefone:
+                  type: string
+                  example: "11987654321"
+                endereco:
+                  type: string
+                  example: Rua das Flores, 456, São Paulo - SP
+                email:
+                  type: string
+                  format: email
+                  example: joao.novo@email.com
+      responses:
+        '200':
+          description: Perfil atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: boolean
+                    example: true
+                  mensagem:
+                    type: string
+                    example: Perfil atualizado com sucesso!
+                  usuario:
+                    $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/me/password:
+    put:
+      tags: [Users]
+      summary: Alterar senha
+      description: Permite ao usuário alterar sua própria senha
+      operationId: changePassword
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - senhaAtual
+                - senhaNova
+              properties:
+                senhaAtual:
+                  type: string
+                  format: password
+                  example: SenhaAntiga@123
+                senhaNova:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: SenhaNova@456
+      responses:
+        '200':
+          description: Senha alterada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: boolean
+                    example: true
+                  mensagem:
+                    type: string
+                    example: Senha alterada com sucesso!
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /users/me/stats:
+    get:
+      tags: [Users]
+      summary: Obter estatísticas do usuário
+      description: Retorna estatísticas detalhadas (coletas, pontos, kg) do usuário
+      operationId: getMyStats
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Estatísticas retornadas com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalColetas:
+                    type: integer
+                    example: 25
+                  totalKg:
+                    type: number
+                    format: float
+                    example: 150.5
+                  totalPontos:
+                    type: integer
+                    example: 1505
+                  nivel:
+                    type: object
+                    properties:
+                      atual:
+                        type: integer
+                        example: 5
+                      nome:
+                        type: string
+                        example: Prata II
+                      progresso:
+                        type: number
+                        format: float
+                        description: Porcentagem de progresso para próximo nível
+                        example: 65.5
+                      xpAtual:
+                        type: integer
+                        example: 1505
+                      xpProximo:
+                        type: integer
+                        example: 2000
+                  materiaisMaisColetados:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        material:
+                          type: string
+                          example: Plástico
+                        quantidade:
+                          type: number
+                          example: 45.2
+                        unidade:
+                          type: string
+                          example: kg
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============================================
+  # COLLECTIONS - COLETAS
+  # ============================================
+  /collections:
+    get:
+      tags: [Collections]
+      summary: Listar coletas do usuário
+      description: Retorna histórico de coletas do usuário autenticado
+      operationId: getMyCollections
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Número da página (paginação)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Itens por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: material
+          in: query
+          description: Filtrar por tipo de material
+          schema:
+            type: string
+            enum: [Plástico, Vidro, Papel, Metal, Eletrônico, Orgânico]
+        - name: startDate
+          in: query
+          description: Data inicial (formato YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: endDate
+          in: query
+          description: Data final (formato YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Lista de coletas retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coletas:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Collection'
+                  paginacao:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    post:
+      tags: [Collections]
+      summary: Registrar nova coleta
+      description: Registra uma nova coleta de material reciclável
+      operationId: createCollection
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - material
+                - peso
+              properties:
+                material:
+                  type: string
+                  enum: [Plástico, Vidro, Papel, Metal, Eletrônico, Orgânico]
+                  example: Plástico
+                peso:
+                  type: number
+                  format: float
+                  minimum: 0.1
+                  description: Peso em quilogramas (kg)
+                  example: 5.5
+                observacao:
+                  type: string
+                  maxLength: 500
+                  example: Garrafas PET limpas e sem rótulo
+      responses:
+        '201':
+          description: Coleta registrada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: boolean
+                    example: true
+                  mensagem:
+                    type: string
+                    example: Coleta registrada com sucesso!
+                  coleta:
+                    $ref: '#/components/schemas/Collection'
+                  recompensas:
+                    type: object
+                    description: Recompensas recebidas pela coleta
+                    properties:
+                      pontosGanhos:
+                        type: integer
+                        example: 55
+                      nivelAnterior:
+                        type: integer
+                        example: 4
+                      nivelAtual:
+                        type: integer
+                        example: 5
+                      subiumNivel:
+                        type: boolean
+                        example: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /collections/{id}:
+    get:
+      tags: [Collections]
+      summary: Obter detalhes de uma coleta
+      description: Retorna informações detalhadas de uma coleta específica
+      operationId: getCollectionById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID da coleta
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Coleta encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Collection'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Collections]
+      summary: Deletar coleta
+      description: Remove uma coleta (apenas se não foi aprovada ainda)
+      operationId: deleteCollection
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID da coleta
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Coleta deletada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: boolean
+                    example: true
+                  mensagem:
+                    type: string
+                    example: Coleta deletada com sucesso!
+        '400':
+          description: Não é possível deletar coleta aprovada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ============================================
+  # RANKING - GAMIFICAÇÃO
+  # ============================================
+  /ranking:
+    get:
+      tags: [Ranking]
+      summary: Obter ranking global
+      description: Retorna ranking de usuários ordenado por peso total coletado
+      operationId: getRanking
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Ranking retornado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ranking:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RankingEntry'
+                  minhasPosicao:
+                    type: object
+                    description: Posição do usuário autenticado
+                    properties:
+                      posicao:
+                        type: integer
+                        example: 15
+                      percentil:
+                        type: number
+                        format: float
+                        description: Top X% dos usuários
+                        example: 5.2
+                  paginacao:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /ranking/me:
+    get:
+      tags: [Ranking]
+      summary: Obter minha posição no ranking
+      description: Retorna a posição do usuário autenticado no ranking global
+      operationId: getMyRank
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Posição retornada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  posicao:
+                    type: integer
+                    example: 15
+                  totalUsuarios:
+                    type: integer
+                    example: 1250
+                  percentil:
+                    type: number
+                    format: float
+                    example: 1.2
+                  proximoUsuario:
+                    $ref: '#/components/schemas/RankingEntry'
+                  usuarioAnterior:
+                    $ref: '#/components/schemas/RankingEntry'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============================================
+  # REWARDS - RECOMPENSAS
+  # ============================================
+  /rewards:
+    get:
+      tags: [Rewards]
+      summary: Listar catálogo de recompensas
+      description: Retorna todas as recompensas disponíveis para resgate
+      operationId: getRewards
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: categoria
+          in: query
+          description: Filtrar por categoria
+          schema:
+            type: string
+            enum: [Desconto, Produto, Voucher, Experiência]
+      responses:
+        '200':
+          description: Catálogo retornado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  recompensas:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Reward'
+                  saldoUsuario:
+                    type: integer
+                    description: Pontos disponíveis do usuário
+                    example: 1500
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /rewards/{id}/redeem:
+    post:
+      tags: [Rewards]
+      summary: Resgatar recompensa
+      description: Realiza o resgate de uma recompensa usando pontos do usuário
+      operationId: redeemReward
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID da recompensa
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Recompensa resgatada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: boolean
+                    example: true
+                  mensagem:
+                    type: string
+                    example: Recompensa resgatada com sucesso!
+                  resgate:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: res_123abc
+                      recompensa:
+                        $ref: '#/components/schemas/Reward'
+                      codigoResgate:
+                        type: string
+                        description: Código único para usar a recompensa
+                        example: RCN-A5B8-92F3
+                      dataResgate:
+                        type: string
+                        format: date-time
+                      dataExpiracao:
+                        type: string
+                        format: date-time
+                  saldoRestante:
+                    type: integer
+                    example: 1200
+        '400':
+          description: Saldo insuficiente ou recompensa indisponível
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /rewards/my-redeems:
+    get:
+      tags: [Rewards]
+      summary: Listar minhas recompensas resgatadas
+      description: Retorna histórico de resgates do usuário
+      operationId: getMyRedeems
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Histórico de resgates retornado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  resgates:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        recompensa:
+                          $ref: '#/components/schemas/Reward'
+                        codigoResgate:
+                          type: string
+                        dataResgate:
+                          type: string
+                          format: date-time
+                        dataExpiracao:
+                          type: string
+                          format: date-time
+                        usado:
+                          type: boolean
+                        dataUso:
+                          type: string
+                          format: date-time
+                          nullable: true
+                  paginacao:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # ============================================
+  # ADMIN - ADMINISTRAÇÃO
+  # ============================================
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: Listar todos os usuários
+      description: Retorna lista completa de usuários (admin only)
+      operationId: adminGetUsers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          description: Buscar por nome, email ou CPF
+          schema:
+            type: string
+        - name: tipoUsuario
+          in: query
+          schema:
+            type: string
+            enum: [cooperado, cooperativa, empresa, admin]
+      responses:
+        '200':
+          description: Lista de usuários retornada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usuarios:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  paginacao:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/users/{id}:
+    get:
+      tags: [Admin]
+      summary: Obter detalhes de usuário
+      operationId: adminGetUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Usuário encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      tags: [Admin]
+      summary: Deletar usuário
+      operationId: adminDeleteUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Usuário deletado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: boolean
+                    example: true
+                  mensagem:
+                    type: string
+                    example: Usuário deletado com sucesso!
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/users/{id}/points:
+    put:
+      tags: [Admin]
+      summary: Ajustar pontos de usuário
+      operationId: adminAdjustPoints
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - pontos
+              properties:
+                pontos:
+                  type: integer
+                  description: Valor a adicionar (positivo) ou remover (negativo)
+                  example: 100
+                motivo:
+                  type: string
+                  example: Ajuste manual por solicitação
+      responses:
+        '200':
+          description: Pontos ajustados com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: boolean
+                    example: true
+                  mensagem:
+                    type: string
+                  saldoAnterior:
+                    type: integer
+                    example: 1000
+                  saldoAtual:
+                    type: integer
+                    example: 1100
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/collections:
+    get:
+      tags: [Admin]
+      summary: Listar todas as coletas
+      operationId: adminGetCollections
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pendente, aprovada, rejeitada]
+        - name: material
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de coletas retornada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  coletas:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/Collection'
+                        - type: object
+                          properties:
+                            usuario:
+                              $ref: '#/components/schemas/User'
+                  paginacao:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /admin/collections/{id}/approve:
+    post:
+      tags: [Admin]
+      summary: Aprovar coleta
+      operationId: adminApproveCollection
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Coleta aprovada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: boolean
+                    example: true
+                  mensagem:
+                    type: string
+                    example: Coleta aprovada com sucesso!
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/collections/{id}/reject:
+    post:
+      tags: [Admin]
+      summary: Rejeitar coleta
+      operationId: adminRejectCollection
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - motivo
+              properties:
+                motivo:
+                  type: string
+                  example: Peso informado inconsistente com imagem
+      responses:
+        '200':
+          description: Coleta rejeitada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sucesso:
+                    type: boolean
+                    example: true
+                  mensagem:
+                    type: string
+                    example: Coleta rejeitada com sucesso!
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /admin/stats:
+    get:
+      tags: [Admin]
+      summary: Obter estatísticas gerais do sistema
+      operationId: adminGetStats
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Estatísticas retornadas com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usuarios:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 1250
+                      novosUltimos7Dias:
+                        type: integer
+                        example: 45
+                      ativos:
+                        type: integer
+                        description: Usuários com coleta nos últimos 30 dias
+                        example: 890
+                  coletas:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                        example: 15340
+                      ultimoMes:
+                        type: integer
+                        example: 1204
+                      pendentes:
+                        type: integer
+                        example: 23
+                  materiais:
+                    type: object
+                    properties:
+                      totalKg:
+                        type: number
+                        format: float
+                        example: 78452.5
+                      porTipo:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            material:
+                              type: string
+                            quantidade:
+                              type: number
+                            percentual:
+                              type: number
+                  recompensas:
+                    type: object
+                    properties:
+                      totalResgates:
+                        type: integer
+                        example: 3450
+                      pontosGastos:
+                        type: integer
+                        example: 125600
+                  graficoColetas:
+                    type: array
+                    description: Coletas por dia nos últimos 30 dias
+                    items:
+                      type: object
+                      properties:
+                        data:
+                          type: string
+                          format: date
+                        quantidade:
+                          type: integer
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+# ============================================
+# COMPONENTS - SCHEMAS REUTILIZÁVEIS
+# ============================================
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Token JWT obtido no login.
+        
+        **Exemplo:** `Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          example: usr_123abc
+        nome:
+          type: string
+          example: João Silva
+        email:
+          type: string
+          format: email
+          example: joao.silva@email.com
+        cpf:
+          type: string
+          example: "12345678900"
+        telefone:
+          type: string
+          example: "11987654321"
+        endereco:
+          type: string
+          example: Rua das Flores, 123, São Paulo - SP
+        tipoUsuario:
+          type: string
+          enum: [cooperado, cooperativa, empresa, admin]
+          example: cooperado
+        nivel:
+          type: integer
+          minimum: 1
+          maximum: 10
+          example: 5
+        nomeNivel:
+          type: string
+          example: Prata II
+        pontos:
+          type: integer
+          example: 1505
+        totalKg:
+          type: number
+          format: float
+          example: 150.5
+        totalColetas:
+          type: integer
+          example: 25
+        dataCadastro:
+          type: string
+          format: date-time
+          example: "2026-01-15T10:30:00Z"
+        ultimaColeta:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2026-03-01T14:20:00Z"
+
+    Collection:
+      type: object
+      properties:
+        id:
+          type: string
+          example: col_456def
+        usuarioId:
+          type: string
+          example: usr_123abc
+        material:
+          type: string
+          enum: [Plástico, Vidro, Papel, Metal, Eletrônico, Orgânico]
+          example: Plástico
+        peso:
+          type: number
+          format: float
+          example: 5.5
+        pontosGanhos:
+          type: integer
+          example: 55
+        observacao:
+          type: string
+          nullable: true
+          example: Garrafas PET limpas
+        dataRegistro:
+          type: string
+          format: date-time
+          example: "2026-03-01T14:20:00Z"
+        status:
+          type: string
+          enum: [pendente, aprovada, rejeitada]
+          default: pendente
+          example: aprovada
+        dataAprovacao:
+          type: string
+          format: date-time
+          nullable: true
+
+    Reward:
+      type: object
+      properties:
+        id:
+          type: string
+          example: rew_789ghi
+        titulo:
+          type: string
+          example: Desconto 10% em produtos sustentáveis
+        descricao:
+          type: string
+          example: Cupom de desconto válido em todas as lojas parceiras
+        categoria:
+          type: string
+          enum: [Desconto, Produto, Voucher, Experiência]
+          example: Desconto
+        custoEmPontos:
+          type: integer
+          example: 500
+        disponivel:
+          type: boolean
+          example: true
+        estoque:
+          type: integer
+          nullable: true
+          description: null = ilimitado
+          example: 100
+        imagemUrl:
+          type: string
+          format: uri
+          example: https://cdn.recynet.com/rewards/desconto-10.jpg
+        validadeEmDias:
+          type: integer
+          description: Dias de validade após resgate
+          example: 30
+
+    RankingEntry:
+      type: object
+      properties:
+        posicao:
+          type: integer
+          example: 1
+        usuario:
+          type: object
+          properties:
+            id:
+              type: string
+            nome:
+              type: string
+            nivel:
+              type: integer
+            nomeNivel:
+              type: string
+        totalKg:
+          type: number
+          format: float
+          example: 523.8
+        totalColetas:
+          type: integer
+          example: 156
+        badge:
+          type: string
+          nullable: true
+          enum: [🥇 Top 1, 🥈 Top 2, 🥉 Top 3, ⭐ Top 10]
+          example: "🥇 Top 1"
+
+    Pagination:
+      type: object
+      properties:
+        paginaAtual:
+          type: integer
+          example: 1
+        totalPaginas:
+          type: integer
+          example: 15
+        totalItens:
+          type: integer
+          example: 289
+        itensPorPagina:
+          type: integer
+          example: 20
+
+    Error:
+      type: object
+      properties:
+        sucesso:
+          type: boolean
+          example: false
+        erro:
+          type: string
+          example: Mensagem de erro detalhada
+        codigo:
+          type: string
+          example: EMAIL_JA_CADASTRADO
+
+  responses:
+    BadRequest:
+      description: Requisição inválida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            sucesso: false
+            erro: Dados inválidos fornecidos
+            codigo: VALIDATION_ERROR
+
+    Unauthorized:
+      description: Não autenticado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            sucesso: false
+            erro: Token inválido ou expirado
+            codigo: UNAUTHORIZED
+
+    Forbidden:
+      description: Sem permissão
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            sucesso: false
+            erro: Você não tem permissão para acessar este recurso
+            codigo: FORBIDDEN
+
+    NotFound:
+      description: Recurso não encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            sucesso: false
+            erro: Recurso não encontrado
+            codigo: NOT_FOUND

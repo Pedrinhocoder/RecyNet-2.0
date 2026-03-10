@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utilitários Admin - RecyNet</title>
+    <link rel="stylesheet" href="design-system.css">
+    <link rel="stylesheet" href="components.css">
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        .navbar-admin {
+            background: linear-gradient(135deg, #b91c1c, #991b1b) !important;
+        }
+        .admin-header {
+            background: linear-gradient(90deg, #ef4444, #b91c1c);
+            padding: var(--spacing-2xl) 0;
+            text-align: center;
+            color: white !important;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .admin-header h1 {
+            color: white !important;
+            font-weight: var(--font-weight-bold);
+        }
+        
+        .admin-header p {
+            color: white !important;
+            opacity: 1 !important;
+        }
+        
+        /* Garantir que o navbar tenha textos brancos */
+        .navbar-admin .navbar-logo,
+        .navbar-admin .nav-link,
+        .navbar-admin .admin-badge,
+        .navbar-admin a {
+            color: white !important;
+        }
+        
+        /* Responsividade adicional */
+        @media (max-width: 768px) {
+            .utils-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .admin-container {
+                padding: var(--spacing-md);
+            }
+        }
+        .utils-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: var(--spacing-xl);
+            margin-bottom: var(--spacing-2xl);
+        }
+        .util-card {
+            border-left: 6px solid #ef4444;
+            height: 100%;
+        }
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+        .form-label {
+            display: block;
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--spacing-xs);
+            color: #000000;
+        }
+        .form-control {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--color-gray-300);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+        }
+        .btn-danger-soft {
+            background: #fee2e2;
+            color: #b91c1c;
+        }
+        .btn-danger-soft:hover {
+            background: #fecaca;
+        }
+        .user-list-compact {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid var(--color-gray-200);
+            border-radius: var(--radius-md);
+            margin-top: var(--spacing-md);
+        }
+        .user-item-compact {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-bottom: 1px solid var(--color-gray-100);
+        }
+        .user-item-compact:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar Admin -->
+    <nav class="navbar navbar-admin" role="navigation" aria-label="Navegação administrativa">
+        <div class="navbar-container">
+            <a href="admin.html" class="navbar-logo">♻ RecyNet Admin</a>
+            <button class="navbar-toggle" id="navbarToggle" type="button" aria-label="Abrir menu">☰</button>
+            <div class="navbar-menu" id="navbarMenu">
+                <a href="admin.html" class="nav-link">Dashboard</a>
+                <a href="perfil-admin.html" class="nav-link">Perfil</a>
+                <a href="utilidades-admin.html" class="nav-link active">Utilidades</a>
+            </div>
+            <div class="navbar-actions" id="navbarActions">
+                <span class="admin-badge">ADMIN</span>
+                <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="container">
+            <h1>🛠️ Utilitários do Sistema</h1>
+            <p>Ferramentas avançadas de gerenciamento de dados</p>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <div class="utils-grid">
+            <!-- Modificar KG e Material -->
+            <div class="card util-card fade-in-up">
+                <div class="card-header">
+                    <h2 style="color: #b91c1c;">⚖️ Ajustar KG e Material</h2>
+                </div>
+                <div class="card-body">
+                    <form id="formAjustarKg">
+                        <div class="form-group">
+                            <label class="form-label">Usuário</label>
+                            <select id="userSelectKg" class="form-control" required>
+                                <option value="">Selecione um usuário...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Material (Opcional)</label>
+                            <select id="materialSelectKg" class="form-control">
+                                <option value="">Geral (apenas total)</option>
+                                <option value="papel">Papel</option>
+                                <option value="vidro">Vidro</option>
+                                <option value="plastico">Plástico</option>
+                                <option value="metal">Metal</option>
+                                <option value="eletronico">Eletrônico</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Valor (kg)</label>
+                            <input type="number" id="kgValue" class="form-control" step="0.1" placeholder="Ex: 5.5 ou -2.0" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Motivo</label>
+                            <input type="text" id="kgReason" class="form-control" placeholder="Motivo do ajuste" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Aplicar Ajuste</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modificar Pontos e Nível -->
+            <div class="card util-card fade-in-up">
+                <div class="card-header">
+                    <h2 style="color: #b91c1c;">⭐ Ajustar Pontos e Nível</h2>
+                </div>
+                <div class="card-body">
+                    <form id="formAjustarPontos">
+                        <div class="form-group">
+                            <label class="form-label">Usuário</label>
+                            <select id="userSelectPoints" class="form-control" required>
+                                <option value="">Selecione um usuário...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Pontos a Adicionar/Remover</label>
+                            <input type="number" id="pointsValue" class="form-control" placeholder="Ex: 100 ou -50" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Motivo</label>
+                            <input type="text" id="pointsReason" class="form-control" placeholder="Motivo do ajuste" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Ajustar Pontos</button>
+                    </form>
+                    <hr style="margin: var(--spacing-lg) 0; border: 0; border-top: 1px solid var(--color-gray-200);">
+                    <p class="text-sm text-gray mb-sm">O nível é calculado automaticamente com base no total de KG. Para mudar o nível, ajuste o KG do usuário.</p>
+                </div>
+            </div>
+
+            <!-- Gerenciamento de Contas -->
+            <div class="card util-card fade-in-up">
+                <div class="card-header">
+                    <h2 style="color: #b91c1c;">👤 Gerenciar Contas</h2>
+                </div>
+                <div class="card-body">
+                    <label class="form-label">Excluir Conta Manualmente</label>
+                    <div class="user-list-compact" id="userListDelete">
+                        <!-- Usuários carregados via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup e Limpeza -->
+            <div class="card util-card fade-in-up">
+                <div class="card-header">
+                    <h2 style="color: #b91c1c;">💾 Sistema</h2>
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-outline btn-full mb-md" onclick="exportarDados()">💾 Exportar Backup (JSON)</button>
+                    <button class="btn btn-danger-soft btn-full mb-md" onclick="limparUsuarios()">🗑️ Limpar Todos Usuários</button>
+                    <button class="btn btn-primary btn-full" onclick="window.location.href='admin.html'">← Voltar Dashboard</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 RecyNet - Painel Administrativo</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="database.js"></script>
+    <script src="auth.js"></script>
+    <script src="utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const admin = RecyNetAuth.protegerPagina();
+            if (!admin || admin.tipo !== 'admin') return;
+
+            carregarUsuarios();
+
+            // Form Ajustar KG
+            document.getElementById('formAjustarKg').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const userId = document.getElementById('userSelectKg').value;
+                const material = document.getElementById('materialSelectKg').value;
+                const value = parseFloat(document.getElementById('kgValue').value);
+                const reason = document.getElementById('kgReason').value;
+
+                if (!userId) {
+                    RecyNetUtils.showToast('Selecione um usuário!', 'warning');
+                    return;
+                }
+
+                const resultado = RecyNetDB.ajustarKgUsuario(userId, value, material, reason);
+                if (resultado.sucesso) {
+                    RecyNetUtils.showToast('KG ajustado com sucesso!', 'success');
+                    this.reset();
+                    // Opcional: recarregar contadores no dashboard se necessário
+                } else {
+                    RecyNetUtils.showToast(resultado.erro || 'Erro ao ajustar KG', 'error');
+                }
+            });
+
+            // Form Ajustar Pontos
+            document.getElementById('formAjustarPontos').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const userId = document.getElementById('userSelectPoints').value;
+                const value = parseInt(document.getElementById('pointsValue').value);
+                const reason = document.getElementById('pointsReason').value;
+
+                if (!userId) {
+                    RecyNetUtils.showToast('Selecione um usuário!', 'warning');
+                    return;
+                }
+
+                const resultado = RecyNetDB.ajustarPontosUsuario(userId, value, reason);
+                if (resultado.sucesso) {
+                    RecyNetUtils.showToast('Pontos ajustados com sucesso!', 'success');
+                    this.reset();
+                } else {
+                    RecyNetUtils.showToast(resultado.erro || 'Erro ao ajustar pontos', 'error');
+                }
+            });
+        });
+
+        function carregarUsuarios() {
+            try {
+                const usuarios = RecyNetDB.getUsuarios().filter(u => u.tipo === 'user');
+                const selectKg = document.getElementById('userSelectKg');
+                const selectPoints = document.getElementById('userSelectPoints');
+                const listDelete = document.getElementById('userListDelete');
+
+                if (!selectKg || !selectPoints || !listDelete) return;
+
+                selectKg.innerHTML = '<option value="">Selecione um usuário...</option>';
+                selectPoints.innerHTML = '<option value="">Selecione um usuário...</option>';
+                listDelete.innerHTML = '';
+
+                usuarios.forEach(u => {
+                    const option = `<option value="${u.id}">${u.nome} (${u.email})</option>`;
+                    selectKg.innerHTML += option;
+                    selectPoints.innerHTML += option;
+
+                    const item = `
+                        <div class="user-item-compact">
+                            <div>
+                                <strong>${u.nome}</strong><br>
+                                <span class="text-xs text-gray">${u.email}</span>
+                            </div>
+                            <button class="btn btn-sm btn-danger-soft" onclick="deletarUsuario('${u.id}', '${u.nome}')">Excluir</button>
+                        </div>
+                    `;
+                    listDelete.innerHTML += item;
+                });
+            } catch (e) {
+                console.error('Erro ao carregar usuários:', e);
+            }
+        }
+
+        function deletarUsuario(id, nome) {
+            if (confirm(`Deseja realmente excluir a conta de ${nome}? Esta ação não pode ser desfeita.`)) {
+                if (RecyNetDB.deletarUsuario(id)) {
+                    RecyNetUtils.showToast('Usuário excluído!', 'success');
+                    carregarUsuarios();
+                }
+            }
+        }
+
+        function exportarDados() {
+            const data = JSON.stringify(RecyNetDB.getUsuarios(), null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `recynet-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            RecyNetUtils.showToast('Backup gerado com sucesso!', 'success');
+        }
+
+        function limparUsuarios() {
+            if (confirm('⚠️ ATENÇÃO: Deseja apagar TODOS os usuários (exceto admin)?')) {
+                const admin = RecyNetDB.getUsuarios().find(u => u.tipo === 'admin');
+                localStorage.setItem('recynet_usuarios', JSON.stringify([admin]));
+                RecyNetUtils.showToast('Sistema limpo!', 'success');
+                carregarUsuarios();
+            }
+        }
+    </script>
+</body>
+</html>

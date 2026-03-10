@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RecyNet - Pontuação</title>
+  <link rel="stylesheet" href="design-system.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="pontuacao.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="cooperado.html" class="navbar-logo">♻ RecyNet</a>
+      
+      <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle menu">
+        ☰
+      </button>
+      
+      <div class="navbar-menu" id="navbarMenu">
+        <a href="locais.html" class="nav-link">Locais de Coleta</a>
+        <a href="relatorio.html" class="nav-link">Relatório</a>
+        <a href="ranking.html" class="nav-link">Ranking</a>
+        <a href="pontuacao.html" class="nav-link active">Pontuação</a>
+        <a href="noticias.html" class="nav-link">Notícias</a>
+        <a href="recompensas.html" class="nav-link">Recompensas</a>
+      </div>
+      
+      <div class="navbar-actions" id="navbarActions">
+        <a href="cooperado.html">Home</a>
+        <a href="perfil.html">Perfil</a>
+        <a href="index.html">Sobre Nós</a>
+        <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Conteúdo Principal -->
+  <main class="main-content">
+    <div class="container fade-in-up">
+
+      <!-- Header -->
+      <div class="page-header fade-in-up">
+        <h1 class="page-title">⭐ Sistema de Pontuação</h1>
+        <p class="page-subtitle">Veja quanto vale cada material reciclado</p>
+      </div>
+      
+      <!-- Barra de Nível (compacta) -->
+      <div id="level-bar-container" class="mb-md"></div>
+
+      <!-- Resumo de Pontos -->
+      <div class="points-summary">
+        <div class="summary-card fade-in-up">
+          <span class="summary-icon">🏆</span>
+          <div class="summary-content">
+            <span class="summary-value" id="totalPoints">0</span>
+            <span class="summary-label">Pontos Totais</span>
+          </div>
+        </div>
+        
+        <div class="summary-card fade-in-up">
+          <span class="summary-icon">📅</span>
+          <div class="summary-content">
+            <span class="summary-value" id="monthPoints">0</span>
+            <span class="summary-label">Este Mês</span>
+          </div>
+        </div>
+        
+        <div class="summary-card fade-in-up">
+          <span class="summary-icon">🔥</span>
+          <div class="summary-content">
+            <span class="summary-value" id="streak">0</span>
+            <span class="summary-label">Dias Seguidos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela de Pontuação -->
+      <div class="card fade-in-up">
+        <div class="card-header">
+          <h2 class="card-title">💰 Tabela de Pontos por Material</h2>
+        </div>
+        <div class="card-body">
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Material</th>
+                  <th>Pontos por kg</th>
+                  <th>Ícone</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Eletrônico</strong></td>
+                  <td><span class="points-badge points-high">20 pontos</span></td>
+                  <td><span class="material-icon">📱</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Metal</strong></td>
+                  <td><span class="points-badge points-medium">12 pontos</span></td>
+                  <td><span class="material-icon">🥫</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Plástico</strong></td>
+                  <td><span class="points-badge points-medium">8 pontos</span></td>
+                  <td><span class="material-icon">🥤</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Vidro</strong></td>
+                  <td><span class="points-badge points-low">6 pontos</span></td>
+                  <td><span class="material-icon">🍾</span></td>
+                </tr>
+                <tr>
+                  <td><strong>Papel</strong></td>
+                  <td><span class="points-badge points-low">5 pontos</span></td>
+                  <td><span class="material-icon">📄</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Calculadora -->
+          <div class="calculator-box">
+            <h3 class="calculator-title">🧮 Calculadora de Pontos</h3>
+            <p class="calculator-subtitle">Calcule quantos pontos você vai ganhar</p>
+            
+            <div class="calculator-form">
+              <div class="form-group">
+                <label for="materialSelect" class="form-label">Escolha o material:</label>
+                <select id="materialSelect" class="form-select">
+                  <option value="eletronico">Eletrônico (20 pts/kg)</option>
+                  <option value="metal">Metal (12 pts/kg)</option>
+                  <option value="plastico">Plástico (8 pts/kg)</option>
+                  <option value="vidro">Vidro (6 pts/kg)</option>
+                  <option value="papel">Papel (5 pts/kg)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="quantityInput" class="form-label">Quantidade (kg):</label>
+                <input type="number" id="quantityInput" class="form-input" placeholder="Ex: 10" min="0" step="0.1">
+              </div>
+
+              <button class="btn btn-primary btn-full" onclick="calcularPontos()">Calcular</button>
+
+              <div class="calculator-result" id="calculatorResult">
+                <span class="result-icon">✨</span>
+                <span class="result-text">Você ganhará <strong id="resultPoints">0</strong> pontos!</span>
+              </div>
+            </div>
+
+            <!-- Botão para Registrar Coleta -->
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+              <button class="btn btn-success btn-full" onclick="registrarColeta()" id="btnRegistrar">
+                📦 Registrar Esta Coleta
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dicas -->
+      <div class="card card-success fade-in-up">
+        <div class="card-header">
+          <h2 class="card-title">💡 Dicas para Ganhar Mais Pontos</h2>
+        </div>
+        <div class="card-body">
+          <ul class="tips-list">
+            <li>📱 <strong>Eletrônicos valem mais!</strong> Reciclando 1kg de eletrônicos você ganha o mesmo que 4kg de papel.</li>
+            <li>🔥 <strong>Mantenha a sequência:</strong> Recicle todos os dias para ganhar bônus de streak!</li>
+            <li>📦 <strong>Separe corretamente:</strong> Materiais limpos e separados são aceitos mais facilmente.</li>
+            <li>🎁 <strong>Acumule pontos:</strong> Guarde pontos para resgatar recompensas maiores!</li>
+            <li>🏆 <strong>Participe do ranking:</strong> Compete com amigos e ganhe badges especiais!</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="footer">
+    <p>© 2026 RecyNet - Plataforma Sustentável</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="database.js"></script>
+  <script src="auth.js"></script>
+  <script src="ranking_system.js"></script>
+  <script src="level-bar.js"></script>
+  <script src="utils.js"></script>
+  <script>
+    // Proteção de página e carregamento
+    RecyNetAuth.protegerPagina();
+    const usuarioLogado = RecyNetAuth.getUsuarioLogado();
+    if (!usuarioLogado) {
+      window.location.href = 'recynet.html';
+      throw new Error('Usuário não autenticado');
+    }
+
+    // Tabela de pontos correta (database.js)
+    const PONTOS_POR_KG = {
+      papel: 5,
+      vidro: 6,
+      plastico: 8,
+      metal: 12,
+      eletronico: 20
+    };
+
+    // Renderizar barra de nível
+    function renderizarBarraNivel() {
+      const container = document.getElementById('level-bar-container');
+      if (!container) {
+        console.error('Container level-bar-container não encontrado');
+        return;
+      }
+      
+      if (typeof LevelBar === 'undefined') {
+        console.error('LevelBar não carregado');
+        return;
+      }
+      
+      // DISCRETA para pontuacao
+      container.innerHTML = LevelBar.renderCompact(usuarioLogado);
+    }
+
+    // Carregar dados do usuário
+    function carregarDadosUsuario() {
+      const usuarioSessao = RecyNetAuth.getUsuarioLogado();
+      if (!usuarioSessao) return;
+
+      const usuario = RecyNetDB.getUsuarioPorId(usuarioSessao.id) || usuarioSessao;
+
+      // Pontos totais
+      document.getElementById('totalPoints').textContent = 
+        RecyNetUtils.formatNumber(usuario.totalPontosGanhos || 0);
+
+      // Pontos do mês
+      const pontosDoMes = calcularPontosDoMes(usuario.id);
+      document.getElementById('monthPoints').textContent = 
+        RecyNetUtils.formatNumber(pontosDoMes);
+
+      // Streak
+      const streak = calcularStreak(usuario.id);
+      document.getElementById('streak').textContent = streak;
+    }
+
+    // Calcular pontos do mês atual
+    function calcularPontosDoMes(usuarioId) {
+      const coletas = RecyNetDB.getColetasUsuario(usuarioId);
+      if (!coletas || coletas.length === 0) return 0;
+
+      const dataAtual = new Date();
+      const mesAtual = dataAtual.getMonth();
+      const anoAtual = dataAtual.getFullYear();
+
+      return coletas
+        .filter(c => {
+          const dataColeta = new Date(c.data);
+          return dataColeta.getMonth() === mesAtual && 
+                 dataColeta.getFullYear() === anoAtual;
+        })
+        .reduce((total, c) => total + (c.pontos || 0), 0);
+    }
+
+    // Calcular streak (dias seguidos)
+    function calcularStreak(usuarioId) {
+      const coletas = RecyNetDB.getColetasUsuario(usuarioId);
+      if (!coletas || coletas.length === 0) return 0;
+
+      // Ordenar por data (mais recente primeiro)
+      const coletasOrdenadas = [...coletas].sort((a, b) => 
+        new Date(b.data) - new Date(a.data)
+      );
+
+      let streak = 0;
+      let dataEsperada = new Date();
+      dataEsperada.setHours(0, 0, 0, 0);
+
+      for (const coleta of coletasOrdenadas) {
+        const dataColeta = new Date(coleta.data);
+        dataColeta.setHours(0, 0, 0, 0);
+
+        // Se for o mesmo dia ou dia anterior
+        const diffDias = Math.floor((dataEsperada - dataColeta) / (1000 * 60 * 60 * 24));
+        
+        if (diffDias === 0 || diffDias === 1) {
+          if (diffDias === 0 && streak > 0) continue; // Múltiplas coletas no mesmo dia
+          streak++;
+          dataEsperada.setDate(dataEsperada.getDate() - 1);
+        } else {
+          break;
+        }
+      }
+
+      return streak;
+    }
+
+    // Calculadora de pontos
+    function calcularPontos() {
+      const materialKey = document.getElementById('materialSelect').value;
+      const quantidade = parseFloat(document.getElementById('quantityInput').value);
+
+      if (!quantidade || quantidade <= 0) {
+        RecyNetUtils.showToast('Digite uma quantidade válida!', 'warning');
+        return;
+      }
+
+      const pontosKg = PONTOS_POR_KG[materialKey];
+      const gramas = Math.floor(quantidade * 1000);
+      const total = Math.floor((gramas / 1000) * pontosKg);
+
+      document.getElementById('resultPoints').textContent = RecyNetUtils.formatNumber(total);
+      
+      const result = document.getElementById('calculatorResult');
+      result.style.display = 'flex';
+      result.classList.add('fade-in-up');
+
+      // Exibir o pop-out (Toast) no canto superior direito
+      if (typeof RecyNetUtils !== 'undefined' && RecyNetUtils.showToast) {
+        RecyNetUtils.showToast(`✨ Estimativa: ${RecyNetUtils.formatNumber(total)} pontos ganhos!`, 'info');
+      }
+    }
+
+    // Registrar coleta
+    function registrarColeta() {
+      const materialKey = document.getElementById('materialSelect').value;
+      const quantidade = parseFloat(document.getElementById('quantityInput').value);
+
+      if (!quantidade || quantidade <= 0) {
+        RecyNetUtils.showToast('Digite uma quantidade válida para registrar!', 'warning');
+        return;
+      }
+
+      const gramas = Math.floor(quantidade * 1000);
+
+      try {
+        const resultado = RecyNetDB.registrarColeta(
+          usuarioLogado.id,
+          materialKey,
+          gramas
+        );
+
+        if (resultado.sucesso) {
+          RecyNetUtils.showToast(
+            `Coleta registrada! +${RecyNetUtils.formatNumber(resultado.pontosGanhos)} pontos`,
+            'success'
+          );
+
+          // Recarregar dados
+          setTimeout(() => {
+            carregarDadosUsuario();
+            renderizarBarraNivel();
+            
+            // Limpar formulário
+            document.getElementById('quantityInput').value = '';
+            document.getElementById('calculatorResult').style.display = 'none';
+          }, 1000);
+        } else {
+          RecyNetUtils.showToast(resultado.mensagem || 'Erro ao registrar coleta', 'error');
+        }
+      } catch (erro) {
+        console.error('Erro ao registrar coleta:', erro);
+        RecyNetUtils.showToast('Erro ao registrar coleta', 'error');
+      }
+    }
+
+    // Inicialização
+    window.addEventListener('DOMContentLoaded', () => {
+      carregarDadosUsuario();
+      renderizarBarraNivel();
+    });
+  </script>
+</body>
+</html>

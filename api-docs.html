@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RecyNet API - Documentação</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    /* === HEADER CUSTOMIZADO === */
+    .api-header {
+      background: linear-gradient(90deg, #7cbf64, #4c9141);
+      color: white;
+      padding: 2rem 0;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .api-header h1 {
+      margin: 0 0 0.5rem 0;
+      font-size: 2.5rem;
+      font-weight: 700;
+    }
+
+    .api-header p {
+      margin: 0;
+      font-size: 1.1rem;
+      opacity: 0.95;
+    }
+
+    .api-header .version-badge {
+      display: inline-block;
+      background: rgba(255,255,255,0.25);
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      margin-top: 1rem;
+      font-weight: 600;
+      border: 2px solid rgba(255,255,255,0.4);
+    }
+
+    /* === LINKS RÁPIDOS === */
+    .quick-links {
+      background: #f4fdf4;
+      padding: 1.5rem;
+      text-align: center;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .quick-links a {
+      display: inline-block;
+      margin: 0 1rem;
+      padding: 0.6rem 1.5rem;
+      background: white;
+      color: #4c9141;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      border: 2px solid #7cbf64;
+      transition: all 0.3s ease;
+    }
+
+    .quick-links a:hover {
+      background: #7cbf64;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(124, 191, 100, 0.3);
+    }
+
+    /* === CONTAINER SWAGGER === */
+    #swagger-ui {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 2rem 1rem;
+    }
+
+    /* === CUSTOMIZAÇÃO SWAGGER === */
+    .swagger-ui .topbar {
+      display: none; /* Remove a topbar padrão */
+    }
+
+    .swagger-ui .info .title {
+      color: #4c9141;
+    }
+
+    .swagger-ui .scheme-container {
+      background: #f4fdf4;
+      border: 2px solid #7cbf64;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+
+    .swagger-ui .opblock.opblock-post {
+      border-color: #7cbf64;
+      background: rgba(124, 191, 100, 0.05);
+    }
+
+    .swagger-ui .opblock.opblock-post .opblock-summary {
+      border-color: #7cbf64;
+    }
+
+    .swagger-ui .opblock.opblock-get {
+      border-color: #61affe;
+      background: rgba(97, 175, 254, 0.05);
+    }
+
+    .swagger-ui .opblock.opblock-put {
+      border-color: #fca130;
+      background: rgba(252, 161, 48, 0.05);
+    }
+
+    .swagger-ui .opblock.opblock-delete {
+      border-color: #f93e3e;
+      background: rgba(249, 62, 62, 0.05);
+    }
+
+    .swagger-ui .btn.authorize {
+      background: #7cbf64 !important;
+      border-color: #4c9141 !important;
+    }
+
+    .swagger-ui .btn.authorize:hover {
+      background: #4c9141 !important;
+    }
+
+    /* === FOOTER === */
+    .api-footer {
+      background: #2d3748;
+      color: white;
+      padding: 2rem;
+      text-align: center;
+      margin-top: 3rem;
+    }
+
+    .api-footer p {
+      margin: 0.5rem 0;
+    }
+
+    .api-footer a {
+      color: #7cbf64;
+      text-decoration: none;
+    }
+
+    .api-footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* === RESPONSIVIDADE === */
+    @media (max-width: 768px) {
+      .api-header h1 {
+        font-size: 1.8rem;
+      }
+
+      .api-header p {
+        font-size: 1rem;
+      }
+
+      .quick-links a {
+        display: block;
+        margin: 0.5rem auto;
+        max-width: 300px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="api-header">
+    <h1>🌿 RecyNet API</h1>
+    <p>Documentação Interativa da API REST</p>
+    <span class="version-badge">v1.0.0</span>
+  </header>
+
+  <!-- QUICK LINKS -->
+  <nav class="quick-links">
+    <a href="#auth">🔐 Autenticação</a>
+    <a href="#users">👤 Usuários</a>
+    <a href="#collections">♻️ Coletas</a>
+    <a href="#ranking">🏆 Ranking</a>
+    <a href="#rewards">🎁 Recompensas</a>
+    <a href="#admin">👨‍💼 Admin</a>
+  </nav>
+
+  <!-- SWAGGER UI -->
+  <div id="swagger-ui"></div>
+
+  <!-- FOOTER -->
+  <footer class="api-footer">
+    <p><strong>RecyNet API Documentation</strong></p>
+    <p>Versão 1.0.0 | OpenAPI 3.0.3 | Formato YAML</p>
+    <p>
+      <a href="api-spec.yaml" download>📥 Download Especificação YAML</a> |
+      <a href="README-API.md">📖 Guia de Uso</a>
+    </p>
+    <p style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.8;">
+      © 2026 RecyNet - Plataforma de Gestão de Reciclagem
+    </p>
+  </footer>
+
+  <!-- SWAGGER UI JS -->
+  <script src="https://unpkg.com/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-bundle.js"></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5.10.5/swagger-ui-standalone-preset.js"></script>
+  <script>
+    window.onload = async function() {
+      // Tentar carregar o YAML do arquivo local
+      let spec;
+      
+      try {
+        const response = await fetch('./api-spec.yaml');
+        if (!response.ok) throw new Error('Arquivo não encontrado');
+        const yamlText = await response.text();
+        spec = jsyaml.load(yamlText);
+      } catch (error) {
+        console.error('❌ Erro ao carregar api-spec.yaml:', error);
+        console.log('⚠️ Usando especificação inline como fallback');
+        
+        // FALLBACK: Instrução para usuário
+        document.getElementById('swagger-ui').innerHTML = `
+          <div style="max-width: 800px; margin: 3rem auto; padding: 2rem; background: #fff3cd; border: 2px solid #ffc107; border-radius: 12px;">
+            <h2 style="color: #856404; margin-bottom: 1rem;">⚠️ Servidor Local Necessário</h2>
+            <p style="color: #856404; line-height: 1.6; margin-bottom: 1rem;">
+              O navegador bloqueou o carregamento do arquivo <code>api-spec.yaml</code> por questões de segurança (CORS).
+            </p>
+            <h3 style="color: #856404; margin: 1.5rem 0 1rem;">✅ Solução (escolha uma):</h3>
+            <div style="background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+              <h4 style="color: #4c9141; margin-bottom: 0.5rem;">1️⃣ Usar http-server (Recomendado):</h4>
+              <pre style="background: #2d3748; color: #fff; padding: 1rem; border-radius: 6px; overflow-x: auto;">npm install -g http-server
+http-server -p 8080
+# Acesse: http://localhost:8080/api-docs.html</pre>
+            </div>
+            <div style="background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+              <h4 style="color: #4c9141; margin-bottom: 0.5rem;">2️⃣ Usar Python (se instalado):</h4>
+              <pre style="background: #2d3748; color: #fff; padding: 1rem; border-radius: 6px; overflow-x: auto;">python -m http.server 8080
+# Acesse: http://localhost:8080/api-docs.html</pre>
+            </div>
+            <div style="background: white; padding: 1.5rem; border-radius: 8px;">
+              <h4 style="color: #4c9141; margin-bottom: 0.5rem;">3️⃣ Usar Live Server (VSCode):</h4>
+              <p style="color: #555; margin: 0;">Instale a extensão "Live Server" e clique com botão direito em <code>api-docs.html</code> → "Open with Live Server"</p>
+            </div>
+            <p style="color: #856404; margin-top: 1.5rem; font-weight: 600;">
+              📌 Após iniciar um servidor, recarregue esta página.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      const ui = SwaggerUIBundle({
+        spec: spec,
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout",
+        
+        // Configurações de idioma e display
+        defaultModelsExpandDepth: 1,
+        defaultModelExpandDepth: 3,
+        displayRequestDuration: true,
+        filter: true,
+        showExtensions: true,
+        showCommonExtensions: true,
+        tryItOutEnabled: true,
+        
+        // Persistência de autorização
+        persistAuthorization: true,
+        
+        // Customizações visuais
+        docExpansion: 'list', // 'none', 'list', ou 'full'
+        tagsSorter: 'alpha',
+        operationsSorter: 'alpha',
+        
+        // Mensagens customizadas
+        requestInterceptor: (request) => {
+          console.log('📤 Requisição:', request);
+          return request;
+        },
+        responseInterceptor: (response) => {
+          console.log('📥 Resposta:', response);
+          return response;
+        },
+        
+        // Validação de respostas
+        validatorUrl: null, // Desabilita validação online
+      });
+
+      window.ui = ui;
+    };
+
+    // === HELPER: SCROLL PARA TAGS ===
+    document.querySelectorAll('.quick-links a').forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tag = link.getAttribute('href').substring(1);
+        
+        // Aguarda o Swagger UI carregar
+        setTimeout(() => {
+          const tagElement = document.querySelector(`[data-tag="${tag}"]`);
+          if (tagElement) {
+            tagElement.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 500);
+      });
+    });
+
+    // === ANALYTICS: LOG DE INTERAÇÕES ===
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🌿 RecyNet API Docs carregada com sucesso!');
+      console.log('📝 Especificação: api-spec.yaml');
+      console.log('🔧 Framework: Swagger UI 5.10.5');
+      console.log('📚 Total de Endpoints: 27+');
+    });
+  </script>
+</body>
+</html>

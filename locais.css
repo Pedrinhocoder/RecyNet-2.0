@@ -1,0 +1,201 @@
+/* ========================================
+   RECYNET 2.0 - PÁGINA DE LOCAIS
+   ======================================== */
+
+/* === BUSCA E FILTROS === */
+.search-section {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.search-box {
+  margin-bottom: var(--spacing-lg);
+}
+
+.search-box input {
+  width: 100%;
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-lg);
+}
+
+.filters-box {
+  background: var(--color-white);
+  padding: var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.filters-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.filters-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.filter-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  background: var(--color-accent-lightest);
+  border: 2px solid transparent;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  user-select: none;
+}
+
+.filter-checkbox:hover {
+  background: var(--color-secondary-lightest);
+  border-color: var(--color-primary);
+}
+
+.filter-checkbox input[type="checkbox"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  cursor: pointer;
+}
+
+.filter-checkbox input[type="checkbox"]:checked {
+  accent-color: var(--color-primary);
+}
+
+.filter-checkbox span {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-700);
+}
+
+/* === LISTA DE LOCAIS === */
+.locations-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xl);
+}
+
+/* === CARD DE LOCAL === */
+.location-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.location-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: var(--spacing-lg);
+  gap: var(--spacing-md);
+}
+
+.location-name {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  margin: 0;
+  flex: 1;
+}
+
+.location-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* === INFORMAÇÕES === */
+.location-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) 0;
+  line-height: var(--line-height-relaxed);
+}
+
+.info-icon {
+  font-size: var(--font-size-xl);
+  flex-shrink: 0;
+}
+
+.info-item span:last-child {
+  color: var(--color-gray-700);
+  font-size: var(--font-size-base);
+}
+
+/* === MAPA === */
+.location-map {
+  width: 100%;
+  height: 100%;
+  min-height: 250px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.location-map iframe {
+  display: block;
+}
+
+/* === FOOTER DO CARD === */
+.location-footer {
+  display: flex;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.location-footer .btn {
+  flex: 1;
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 768px) {
+  .location-body {
+    grid-template-columns: 1fr;
+  }
+  
+  .location-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .filters-grid {
+    gap: var(--spacing-sm);
+  }
+  
+  .filter-checkbox {
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-md);
+  }
+  
+  .location-footer {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-box input {
+    font-size: var(--font-size-base);
+  }
+  
+  .filters-box {
+    padding: var(--spacing-md);
+  }
+  
+  .filters-grid {
+    flex-direction: column;
+  }
+  
+  .filter-checkbox {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}

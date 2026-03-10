@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RecyNet - Relatório</title>
+  <link rel="stylesheet" href="design-system.css" />
+  <link rel="stylesheet" href="components.css" />
+  <link rel="stylesheet" href="relatorio.css" />
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="cooperado.html" class="navbar-logo">♻ RecyNet</a>
+      
+      <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle menu">
+        ☰
+      </button>
+      
+      <div class="navbar-menu" id="navbarMenu">
+        <a href="locais.html" class="nav-link">Locais de Coleta</a>
+        <a href="relatorio.html" class="nav-link active">Relatório</a>
+        <a href="ranking.html" class="nav-link">Ranking</a>
+        <a href="pontuacao.html" class="nav-link">Pontuação</a>
+        <a href="noticias.html" class="nav-link">Notícias</a>
+        <a href="recompensas.html" class="nav-link">Recompensas</a>
+      </div>
+      
+      <div class="navbar-actions" id="navbarActions">
+        <a href="cooperado.html">Home</a>
+        <a href="perfil.html">Perfil</a>
+        <a href="index.html">Sobre Nós</a>
+        <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Conteúdo Principal -->
+  <main class="main-content">
+    <div class="container fade-in-up">
+
+      <!-- Header -->
+      <div class="page-header fade-in-up">
+        <h1 class="page-title">📊 Seu Relatório</h1>
+        <p class="page-subtitle">Acompanhe sua jornada de reciclagem</p>
+      </div>
+      
+      <!-- Barra de Nível (DESTAQUE) -->
+      <div id="level-bar-container" class="level-bar-highlight-container"></div>
+
+      <!-- Resumo Estatístico -->
+      <div class="stats-overview">
+        <div class="stat-card">
+          <div class="stat-icon">🏆</div>
+          <div class="stat-data">
+            <span class="stat-value" id="overviewLevel">1</span>
+            <span class="stat-label">Nível Atual</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">⭐</div>
+          <div class="stat-data">
+            <span class="stat-value" id="overviewPoints">0</span>
+            <span class="stat-label">Pontos Disponíveis</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">♻️</div>
+          <div class="stat-data">
+            <span class="stat-value" id="overviewKg">0 kg</span>
+            <span class="stat-label">Total Reciclado</span>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon">🏅</div>
+          <div class="stat-data">
+            <span class="stat-value" id="overviewRank">-</span>
+            <span class="stat-label">Posição no Ranking</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grid Principal -->
+      <div class="report-grid">
+
+        <!-- Gráfico de Materiais -->
+        <div class="card fade-in-up">
+          <div class="card-header">
+            <h2 class="card-title">📦 Materiais Reciclados</h2>
+            <p class="card-subtitle">Distribuição por tipo de material (kg)</p>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="materialsChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráfico de Evolução Temporal -->
+        <div class="card fade-in-up">
+          <div class="card-header">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-sm);">
+              <h2 class="card-title">📈 Evolução da Reciclagem</h2>
+              <div class="temporal-filters">
+                <button class="filter-btn active" data-period="week">Semana</button>
+                <button class="filter-btn" data-period="month">Mês</button>
+                <button class="filter-btn" data-period="year">Ano</button>
+              </div>
+            </div>
+            <p class="card-subtitle">Total de KG reciclados ao longo do tempo</p>
+          </div>
+          <div class="card-body">
+            <div class="chart-container">
+              <canvas id="temporalChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        
+
+      </div>
+
+      <!-- Ranking Integrado -->
+      <div class="card card-success fade-in-up">
+        <div class="card-header">
+          <h2 class="card-title">🏆 Ranking de Recicladores</h2>
+          <p class="card-subtitle">Baseado no total de KG reciclados</p>
+        </div>
+        <div class="card-body">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--spacing-xl); align-items: start;">
+            <div style="text-align: center;">
+              <h3 class="card-subtitle" style="margin-bottom: var(--spacing-md); text-align: left;">Pódio</h3>
+              <div id="podio-container"></div>
+            </div>
+            <div>
+              <h3 class="card-subtitle" style="margin-bottom: var(--spacing-md);">Sua Posição</h3>
+              <div id="my-position-container"></div>
+            </div>
+          </div>
+          <h3 class="card-subtitle" style="margin-top: var(--spacing-xl); margin-bottom: var(--spacing-md);">Top 3 Recicladores</h3>
+          <div id="ranking-container"></div>
+        </div>
+      </div>
+
+      <!-- Histórico de Atividades -->
+      <div class="card fade-in-up">
+        <div class="card-header">
+          <h2 class="card-title">📜 Histórico de Atividades</h2>
+        </div>
+        <div class="card-body">
+          <div id="activity-timeline" class="activity-timeline"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="footer">
+    <p>© 2026 RecyNet - Plataforma Sustentável</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="database.js"></script>
+  <script src="auth.js"></script>
+  <script src="ranking_system.js"></script>
+  <script src="level-bar.js"></script>
+  <script src="utils.js"></script>
+  <script>
+    // ========================================
+    // INICIALIZAÇÃO DA PÁGINA
+    // ========================================
+    
+    let usuarioLogado = null;
+    let chartMaterials = null;
+    let chartTemporal = null;
+
+    // Configurações de cores para materiais
+    const MATERIAL_COLORS = {
+      plastico: '#3b82f6',
+      papel: '#10b981',
+      metal: '#6b7280',
+      vidro: '#f59e0b',
+      eletronico: '#8b5cf6'
+    };
+
+    const MATERIAL_LABELS = {
+      plastico: 'Plástico',
+      papel: 'Papel',
+      metal: 'Metal',
+      vidro: 'Vidro',
+      eletronico: 'Eletrônico'
+    };
+
+    const valueLabelPlugin = {
+      id: 'valueLabelPlugin',
+      afterDatasetsDraw(chart) {
+        if (chart.config.type !== 'bar') return;
+        const { ctx, data } = chart;
+        ctx.save();
+        
+        // Calcular o total de cada barra para mostrar o label no topo
+        const totals = new Array(data.labels.length).fill(0);
+        data.datasets.forEach(dataset => {
+          dataset.data.forEach((val, i) => {
+            totals[i] += (val || 0);
+          });
+        });
+
+        const meta = chart.getDatasetMeta(data.datasets.length - 1);
+        meta.data.forEach((elem, i) => {
+          const total = totals[i];
+          if (!isFinite(total) || total <= 0) return;
+          const x = elem.x;
+          const y = elem.y - 6;
+          ctx.fillStyle = '#065f46';
+          ctx.textAlign = 'center';
+          ctx.font = 'bold 12px Segoe UI';
+          ctx.fillText(`${total.toFixed(1)} kg`, x, Math.max(y, 12));
+        });
+        ctx.restore();
+      }
+    };
+    Chart.register(valueLabelPlugin);
+    Chart.defaults.animation = false;
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Proteger página
+      usuarioLogado = RecyNetAuth.getUsuarioLogado();
+      if (!usuarioLogado) {
+        window.location.href = 'recynet.html';
+        return;
+      }
+
+      // Carregar dados atualizados
+      const usuarioAtualizado = RecyNetDB.getUsuarioPorId(usuarioLogado.id);
+      if (usuarioAtualizado) {
+        usuarioLogado = usuarioAtualizado;
+        RecyNetAuth.setUsuarioLogado(usuarioAtualizado);
+      }
+
+      // Renderizar componentes
+      renderizarBarraNivel();
+      renderizarResumoEstatistico();
+      renderizarGraficoMateriais();
+      renderizarGraficoTemporal('week');
+      renderizarResumoRanking();
+      renderizarHistorico();
+      configurarFiltrosTemporal();
+    });
+
+    // ========================================
+    // RESUMO DO RANKING
+    // ========================================
+    
+    function renderizarResumoRanking() {
+      RankingSystem.renderizarPodio('podio-container');
+      RankingSystem.renderizarPosicaoUsuario('my-position-container', usuarioLogado.id);
+      RankingSystem.renderizarRankingResumo('ranking-container', usuarioLogado.id);
+    }
+
+    // ========================================
+    // BARRA DE NÍVEL (DESTAQUE)
+    // ========================================
+    
+    function renderizarBarraNivel() {
+      const container = document.getElementById('level-bar-container');
+      if (!container) {
+        console.error('Container level-bar-container não encontrado');
+        return;
+      }
+      
+      if (typeof LevelBar === 'undefined') {
+        console.error('LevelBar não carregado');
+        return;
+      }
+      
+      // Destaque para relatório (igual cooperado)
+      container.innerHTML = LevelBar.renderHighlight(usuarioLogado);
+    }
+
+    // ========================================
+    // RESUMO ESTATÍSTICO
+    // ========================================
+    
+    function renderizarResumoEstatistico() {
+      // Nível
+      document.getElementById('overviewLevel').textContent = usuarioLogado.nivel || 1;
+      
+      // Pontos
+      document.getElementById('overviewPoints').textContent = 
+        Math.floor(usuarioLogado.pontosDisponiveis || 0).toLocaleString('pt-BR');
+      
+      // Total KG
+      document.getElementById('overviewKg').textContent = 
+        `${(usuarioLogado.totalKg || 0).toFixed(2)} kg`;
+      
+      // Posição no Ranking
+      const posicao = RankingSystem.obterPosicaoUsuario(usuarioLogado.id);
+      document.getElementById('overviewRank').textContent = posicao ? `#${posicao}` : '-';
+    }
+
+    // ========================================
+    // GRÁFICO DE MATERIAIS
+    // ========================================
+    
+    function renderizarGraficoMateriais() {
+      const materiais = usuarioLogado.materiais || {
+        papel: 0,
+        plastico: 0,
+        metal: 0,
+        vidro: 0,
+        eletronico: 0
+      };
+
+     const canvas = document.getElementById('materialsChart');
+     if (!canvas) return;
+
+     const ctx = canvas.getContext('2d');
+ 
+      
+      // Destruir gráfico anterior se existir
+      if (chartMaterials) {
+        chartMaterials.destroy();
+      }
+
+      const dados = [
+        materiais.plastico || 0,
+        materiais.papel || 0,
+        materiais.metal || 0,
+        materiais.vidro || 0,
+        materiais.eletronico || 0
+      ];
+
+      const totalKg = dados.reduce((sum, val) => sum + val, 0);
+
+      if (totalKg === 0) {
+        // Mostrar mensagem vazia
+        ctx.canvas.parentElement.innerHTML = `
+          <div class="chart-empty">
+            <p>📊 Nenhum material reciclado ainda.</p>
+            <p>Registre suas primeiras coletas!</p>
+          </div>
+        `;
+        return;
+      }
+
+      chartMaterials = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Plástico', 'Papel', 'Metal', 'Vidro', 'Eletrônico'],
+          datasets: [{
+            data: dados,
+            backgroundColor: [
+              '#3b82f6',
+              '#10b981',
+              '#6b7280',
+              '#f59e0b',
+              '#8b5cf6'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          animation: false,
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  const percent = totalKg > 0 ? ((value / totalKg) * 100).toFixed(1) : '0.0';
+                  return `${label}: ${value.toFixed(2)} kg (${percent}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ========================================
+    // GRÁFICO TEMPORAL
+    // ========================================
+    
+    function renderizarGraficoTemporal(periodo) {
+      const canvas = document.getElementById('temporalChart');
+      if (!canvas) return;
+      const container = canvas.parentElement;
+      
+      const historico = usuarioLogado.historico || [];
+      const coletas = historico.filter(h => h.tipo === 'coleta');
+
+      if (coletas.length === 0) {
+        // Se já houver uma mensagem de vazio, não fazer nada além de configurar filtros
+        if (container.querySelector('.chart-empty')) {
+          configurarFiltrosTemporal();
+          return;
+        }
+        
+        // Criar elemento de mensagem mantendo o canvas oculto
+        canvas.style.display = 'none';
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'chart-empty';
+        emptyDiv.innerHTML = '<p>📅 Nenhuma coleta registrada ainda.</p>';
+        container.appendChild(emptyDiv);
+        configurarFiltrosTemporal();
+        return;
+      }
+
+      // Se houver dados, garantir que o canvas esteja visível e remover mensagem
+      canvas.style.display = 'block';
+      const emptyDiv = container.querySelector('.chart-empty');
+      if (emptyDiv) emptyDiv.remove();
+
+      const ctx = canvas.getContext('2d');
+      
+      // Destruir gráfico anterior
+      if (chartTemporal) {
+        chartTemporal.destroy();
+      }
+
+      const agora = new Date();
+      agora.setHours(23, 59, 59, 999);
+
+      let labels = [];
+      let datasIntervalos = []; // Para armazenar {inicio, fim} de cada barra
+
+      if (periodo === 'week') {
+        for (let i = 6; i >= 0; i--) {
+          const dataFim = new Date(agora);
+          dataFim.setDate(dataFim.getDate() - i);
+          const dataInicio = new Date(dataFim);
+          dataInicio.setHours(0, 0, 0, 0);
+          
+          labels.push(dataFim.toLocaleDateString('pt-BR', { weekday: 'short' }));
+          datasIntervalos.push({ inicio: dataInicio, fim: dataFim });
+        }
+      } else if (periodo === 'month') {
+        for (let i = 3; i >= 0; i--) {
+          const dataFim = new Date(agora);
+          dataFim.setDate(dataFim.getDate() - (i * 7));
+          const dataInicio = new Date(dataFim);
+          dataInicio.setDate(dataInicio.getDate() - 6);
+          dataInicio.setHours(0, 0, 0, 0);
+          
+          labels.push(`Sem ${4 - i}`);
+          datasIntervalos.push({ inicio: dataInicio, fim: dataFim });
+        }
+      } else if (periodo === 'year') {
+        for (let i = 11; i >= 0; i--) {
+          const dataRef = new Date(agora);
+          dataRef.setMonth(dataRef.getMonth() - i);
+          
+          const dataInicio = new Date(dataRef.getFullYear(), dataRef.getMonth(), 1, 0, 0, 0, 0);
+          const dataFim = new Date(dataRef.getFullYear(), dataRef.getMonth() + 1, 0, 23, 59, 59, 999);
+          
+          labels.push(dataRef.toLocaleDateString('pt-BR', { month: 'short' }));
+          datasIntervalos.push({ inicio: dataInicio, fim: dataFim });
+        }
+      }
+
+      // Preparar datasets por material
+      const materiaisKeys = Object.keys(MATERIAL_COLORS);
+      const datasets = materiaisKeys.map(key => {
+        const dataMaterial = datasIntervalos.map(intervalo => {
+          return coletas
+            .filter(c => {
+              const d = new Date(c.data);
+              return d >= intervalo.inicio && d <= intervalo.fim && c.material === key;
+            })
+            .reduce((sum, c) => sum + (c.kg || 0), 0);
+        });
+
+        return {
+          label: MATERIAL_LABELS[key],
+          data: dataMaterial,
+          backgroundColor: MATERIAL_COLORS[key],
+          borderRadius: 4,
+          stack: 'stack0' // Empilhar no mesmo grupo
+        };
+      });
+
+      // Calcular o total máximo para escala do gráfico
+      const totaisPorBarra = datasIntervalos.map((_, i) => 
+        datasets.reduce((sum, ds) => sum + ds.data[i], 0)
+      );
+      
+      const maxV = Math.max(...totaisPorBarra, 1);
+      const step = maxV <= 2 ? 0.5 : maxV <= 10 ? 1 : maxV <= 50 ? 5 : 10;
+      const niceMax = Math.ceil(maxV / step) * step * 1.2;
+
+      chartTemporal = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { 
+              display: true,
+              position: 'top',
+              labels: {
+                usePointStyle: true,
+                padding: 15,
+                font: { size: 11 }
+              }
+            },
+            tooltip: {
+              mode: 'index',
+              intersect: false,
+              callbacks: {
+                label: (context) => `${context.dataset.label}: ${context.parsed.y.toFixed(2)} kg`
+              }
+            }
+          },
+          scales: {
+            y: {
+              stacked: true, // Habilitar empilhamento no eixo Y
+              beginAtZero: true,
+              max: niceMax,
+              ticks: { callback: v => v.toFixed(1) + ' kg' }
+            },
+            x: { 
+              stacked: true, // Habilitar empilhamento no eixo X
+              grid: { display: false } 
+            }
+          }
+        }
+      });
+    }
+
+    function configurarFiltrosTemporal() {
+      // Selecionar apenas os botões dentro do card de evolução
+      const filtersContainer = document.querySelector('.temporal-filters');
+      if (!filtersContainer) return;
+      
+      const botoes = filtersContainer.querySelectorAll('.filter-btn');
+      botoes.forEach(btn => {
+        // Remover listener anterior se existir (cloneNode limpa listeners)
+        const novoBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(novoBtn, btn);
+        
+        novoBtn.addEventListener('click', function() {
+          const period = this.dataset.period;
+          const todosBotoes = filtersContainer.querySelectorAll('.filter-btn');
+          todosBotoes.forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+          renderizarGraficoTemporal(period);
+        });
+      });
+    }
+
+    // ========================================
+    // HISTÓRICO DE ATIVIDADES
+    // ========================================
+    
+    function renderizarHistorico() {
+      const container = document.getElementById('activity-timeline');
+      const historico = usuarioLogado.historico || [];
+      
+      if (historico.length === 0) {
+        container.innerHTML = `
+          <div class="activities-empty" style="text-align: center; padding: var(--spacing-2xl); color: var(--color-gray-500);">
+            <div style="font-size: 48px; margin-bottom: var(--spacing-md);">📋</div>
+            <p><strong>Nenhuma atividade registrada ainda.</strong></p>
+            <p>Comece a reciclar para ver seu histórico e ganhar pontos!</p>
+          </div>
+        `;
+        return;
+      }
+
+      // Pegar últimas 10 atividades
+      const ultimas = historico.slice(-10).reverse();
+      
+      let html = '';
+      
+      ultimas.forEach(atividade => {
+        const data = new Date(atividade.data);
+        const dataFormatada = data.toLocaleDateString('pt-BR', { 
+          day: '2-digit', 
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        let icone = '📌';
+        let pontosBadge = '';
+        let titulo = 'Atividade registrada';
+        
+        if (atividade.tipo === 'coleta') {
+          icone = '♻️';
+          const kg = atividade.kg || 0;
+          const pontos = Math.floor(atividade.pontosGanhos || 0);
+          titulo = `Reciclou ${kg.toFixed(2)}kg de ${atividade.material || 'material'}`;
+          pontosBadge = `<span class="activity-points">+${pontos} pontos</span>`;
+        } else if (atividade.tipo === 'resgate') {
+          icone = '🎁';
+          const custo = Math.floor(atividade.custo || 0);
+          titulo = `Resgatou ${atividade.recompensa || 'uma recompensa'}`;
+          pontosBadge = `<span class="activity-points negative">-${custo} pontos</span>`;
+        } else if (atividade.tipo === 'nivel') {
+          icone = '🏆';
+          titulo = `Subiu para nível ${atividade.novoNivel || ''}`;
+          pontosBadge = '<span class="activity-badge">Conquista!</span>';
+        } else if (atividade.tipo === 'ajuste') {
+          icone = '⚙️';
+          const pontos = Math.floor(atividade.pontos || 0);
+          const sinal = pontos >= 0 ? '+' : '';
+          titulo = atividade.motivo || 'Ajuste de pontos';
+          pontosBadge = `<span class="activity-points">${sinal}${pontos} pontos</span>`;
+        } else if (atividade.tipo === 'ajuste_kg') {
+          icone = '⚖️';
+          const kg = atividade.kg || 0;
+          titulo = atividade.motivo || `Ajuste de ${kg.toFixed(2)}kg`;
+        }
+        
+        html += `
+          <div class="activity-item">
+            <div class="activity-icon">${icone}</div>
+            <div class="activity-content">
+              <p class="activity-title">${titulo}</p>
+              ${pontosBadge}
+              <span class="activity-date">${dataFormatada}</span>
+            </div>
+          </div>
+        `;
+      });
+      
+      container.innerHTML = html;
+    }
+
+  </script>
+
+</body>
+</html>

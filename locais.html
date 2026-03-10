@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RecyNet - Locais de Coleta</title>
+  <link rel="stylesheet" href="design-system.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="locais.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="cooperado.html" class="navbar-logo">♻ RecyNet</a>
+      
+      <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle menu">
+        ☰
+      </button>
+      
+      <div class="navbar-menu" id="navbarMenu">
+        <a href="locais.html" class="nav-link active">Locais de Coleta</a>
+        <a href="relatorio.html" class="nav-link">Relatório</a>
+        <a href="ranking.html" class="nav-link">Ranking</a>
+        <a href="pontuacao.html" class="nav-link">Pontuação</a>
+        <a href="noticias.html" class="nav-link">Notícias</a>
+        <a href="recompensas.html" class="nav-link">Recompensas</a>
+      </div>
+      
+      <div class="navbar-actions" id="navbarActions">
+        <a href="cooperado.html">Home</a>
+        <a href="perfil.html">Perfil</a>
+        <a href="index.html">Sobre Nós</a>
+        <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Conteúdo Principal -->
+  <main class="main-content">
+    <div class="container fade-in-up">
+
+      <!-- Header -->
+      <div class="page-header fade-in-up">
+        <h1 class="page-title">📍 Locais de Coleta</h1>
+        <p class="page-subtitle">Encontre pontos de coleta próximos a você</p>
+      </div>
+      
+      <!-- Barra de Nível (compacta) -->
+      <div id="level-bar-container" class="mb-md"></div>
+
+      <!-- Busca e Filtros -->
+      <div class="search-section fade-in-up">
+        <div class="search-box">
+          <input type="search" class="form-input" id="searchInput" placeholder="🔍 Buscar por bairro, cidade ou material...">
+        </div>
+
+        <div class="filters-box fade-in-up">
+          <h3 class="filters-title">Filtrar por material:</h3>
+          <div class="filters-grid">
+            <label class="filter-checkbox">
+              <input type="checkbox" value="papel">
+              <span>📄 Papel</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" value="plastico">
+              <span>🥤 Plástico</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" value="metal">
+              <span>🥫 Metal</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" value="vidro">
+              <span>🍾 Vidro</span>
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" value="aberto">
+              <span>🕐 Aberto agora</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista de Locais -->
+      <div class="locations-list">
+        
+        <!-- Os locais serão renderizados dinamicamente pelo locais.js -->
+
+        <div class="empty-state" style="display: none;">
+          <div class="empty-state-icon">📍</div>
+          <h3 class="empty-state-title">Nenhum local encontrado</h3>
+          <p class="empty-state-text">Tente ajustar os filtros ou buscar em outra região</p>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="footer">
+    <p>© 2026 RecyNet - Plataforma Sustentável</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="database.js"></script>
+  <script src="auth.js"></script>
+  <script src="level-bar.js"></script>
+  <script src="locais.js"></script>
+  <script src="utils.js"></script>
+  <script>
+    // Proteção da página e inicialização
+    document.addEventListener('DOMContentLoaded', function() {
+      RecyNetAuth.protegerPagina();
+      const usuarioLogado = RecyNetAuth.getUsuarioLogado();
+      if (!usuarioLogado) {
+        window.location.href = 'recynet.html';
+        return;
+      }
+      
+      renderizarBarraNivel();
+      // resto da lógica
+    });
+
+    // Renderizar Barra de Nível DISCRETA
+    function renderizarBarraNivel() {
+      const container = document.getElementById('level-bar-container');
+      if (!container) {
+        console.error('Container level-bar-container não encontrado');
+        return;
+      }
+      
+      if (typeof LevelBar === 'undefined') {
+        console.error('LevelBar não carregado');
+        return;
+      }
+      
+      const usuarioLogado = RecyNetAuth.getUsuarioLogado();
+      if (!usuarioLogado) {
+        console.error('Usuário não logado');
+        return;
+      }
+      
+      // DISCRETA para locais
+      container.innerHTML = LevelBar.renderCompact(usuarioLogado);
+    }
+
+    function compartilhar(nomeLocal) {
+      if (navigator.share) {
+        navigator.share({
+          title: 'RecyNet - Local de Coleta',
+          text: `Confira ${nomeLocal} no RecyNet!`,
+          url: window.location.href
+        }).catch(() => {});
+      } else {
+        RecyNetUtils.showToast('Link copiado para área de transferência!', 'success');
+      }
+    }
+  </script>
+</body>
+</html>

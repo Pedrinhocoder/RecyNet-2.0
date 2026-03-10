@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil do Administrador - RecyNet</title>
+    <link rel="stylesheet" href="design-system.css">
+    <link rel="stylesheet" href="components.css">
+    <link rel="stylesheet" href="admin.css">
+    <style>
+        /* Ajustes específicos para manter o design do admin.html */
+        .navbar-admin {
+            background: linear-gradient(135deg, #b91c1c, #991b1b) !important;
+        }
+        .admin-header {
+            background: linear-gradient(90deg, #ef4444, #b91c1c);
+            padding: var(--spacing-2xl) 0;
+            text-align: center;
+            color: white !important;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .admin-header h1 {
+            color: white !important;
+            font-weight: var(--font-weight-bold);
+        }
+        
+        .admin-header p {
+            color: white !important;
+            opacity: 1 !important;
+        }
+        
+        /* Garantir que o navbar tenha textos brancos */
+        .navbar-admin .navbar-logo,
+        .navbar-admin .nav-link,
+        .navbar-admin .admin-badge,
+        .navbar-admin a {
+            color: white !important;
+        }
+        
+        /* Responsividade adicional */
+        @media (max-width: 768px) {
+            .profile-card {
+                margin: 0 var(--spacing-md) var(--spacing-xl);
+            }
+            
+            .profile-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid-profile {
+                grid-template-columns: 1fr;
+            }
+        }
+        .profile-card {
+            max-width: 800px;
+            margin: 0 auto var(--spacing-xl);
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .profile-banner {
+            height: 120px;
+            background: linear-gradient(45deg, #fee2e2, #fecaca);
+        }
+        .profile-content {
+            padding: var(--spacing-xl);
+            margin-top: -60px;
+            text-align: center;
+        }
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+            background: white;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            margin: 0 auto var(--spacing-md);
+            box-shadow: var(--shadow-md);
+            border: 4px solid white;
+        }
+        .profile-info h1 {
+            font-size: var(--font-size-2xl);
+            color: var(--color-gray-900);
+            margin-bottom: var(--spacing-xs);
+        }
+        .admin-badge-large {
+            display: inline-block;
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: var(--spacing-xs) var(--spacing-md);
+            border-radius: var(--radius-full);
+            font-weight: var(--font-weight-bold);
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--spacing-md);
+        }
+        .profile-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+            text-align: left;
+            background: var(--color-gray-50);
+            padding: var(--spacing-lg);
+            border-radius: var(--radius-md);
+        }
+        .detail-item label {
+            display: block;
+            font-weight: var(--font-weight-semibold);
+            color: #000000;
+            font-size: var(--font-size-sm);
+            margin-bottom: var(--spacing-xs);
+        }
+        .detail-item span {
+            color: #000000;
+            font-weight: var(--font-weight-medium);
+        }
+        .detail-item-label {
+            font-size: var(--font-size-xs);
+            color: #000000;
+            text-transform: uppercase;
+            font-weight: var(--font-weight-bold);
+            margin-bottom: 4px;
+        }
+        .detail-item-value {
+            font-size: var(--font-size-base);
+            color: #000000;
+            font-weight: var(--font-weight-semibold);
+        }
+        .activity-list {
+            list-style: none;
+        }
+        .activity-item {
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--color-gray-100);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-gray-100);
+            flex-shrink: 0;
+        }
+        .activity-content {
+            flex-grow: 1;
+        }
+        .activity-time {
+            font-size: var(--font-size-xs);
+            color: #000000;
+            font-weight: var(--font-weight-semibold);
+        }
+        .stat-card-profile {
+            background: white;
+            border-left: 6px solid #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar Admin -->
+    <nav class="navbar navbar-admin" role="navigation" aria-label="Navegação administrativa">
+        <div class="navbar-container">
+            <a href="admin.html" class="navbar-logo">♻ RecyNet Admin</a>
+            <button class="navbar-toggle" id="navbarToggle" type="button" aria-label="Abrir menu">☰</button>
+            <div class="navbar-menu" id="navbarMenu">
+                <a href="admin.html" class="nav-link">Dashboard</a>
+                <a href="perfil-admin.html" class="nav-link active">Perfil</a>
+                <a href="utilidades-admin.html" class="nav-link">Utilidades</a>
+            </div>
+            <div class="navbar-actions" id="navbarActions">
+                <span class="admin-badge">ADMIN</span>
+                <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="container">
+            <h1>Meu Perfil</h1>
+            <p>Gerencie suas informações administrativas</p>
+        </div>
+    </header>
+
+    <div class="admin-container">
+        <!-- Perfil Principal -->
+        <div class="profile-card fade-in-up">
+            <div class="profile-banner"></div>
+            <div class="profile-content">
+                <div class="profile-avatar">👨‍💼</div>
+                <div class="profile-info">
+                    <h1 id="adminNome">Carregando...</h1>
+                    <span class="admin-badge-large">🔐 ADMINISTRADOR DO SISTEMA</span>
+                    
+                    <div class="profile-details">
+                        <div class="detail-item">
+                            <label>E-mail</label>
+                            <span id="adminEmail">...</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Membro desde</label>
+                            <span id="adminSince">...</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Último Acesso</label>
+                            <span id="adminLastAccess">...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Rápidos -->
+        <div class="stats-grid">
+            <div class="stat-card stat-card-profile fade-in-up">
+                <div class="stat-icon">👥</div>
+                <div class="stat-data">
+                    <span class="stat-value" id="statUsuarios">0</span>
+                    <span class="stat-label">Usuários Ativos</span>
+                </div>
+            </div>
+            
+            <div class="stat-card stat-card-profile fade-in-up">
+                <div class="stat-icon">♻️</div>
+                <div class="stat-data">
+                    <span class="stat-value" id="statKg">0 kg</span>
+                    <span class="stat-label">Total Gerenciado</span>
+                </div>
+            </div>
+            
+            <div class="stat-card stat-card-profile fade-in-up">
+                <div class="stat-icon">📦</div>
+                <div class="stat-data">
+                    <span class="stat-value" id="statColetas">0</span>
+                    <span class="stat-label">Coletas Registradas</span>
+                </div>
+            </div>
+            
+            <div class="stat-card stat-card-profile fade-in-up">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-data">
+                    <span class="stat-value" id="statPontos">0</span>
+                    <span class="stat-label">Pontos em Circulação</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Atividades Recentes -->
+        <div class="card fade-in-up" style="border-left: 6px solid #ef4444; margin-top: var(--spacing-xl);">
+            <div class="card-header">
+                <h2 style="color: #b91c1c;">📜 Atividades Recentes do Sistema</h2>
+            </div>
+            <div class="card-body">
+                <div id="adminActivities" class="activity-list">
+                    <p style="text-align: center; color: #000000; padding: var(--spacing-xl); font-weight: 600;">
+                        Carregando atividades...
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 RecyNet - Painel Administrativo</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="database.js"></script>
+    <script src="auth.js"></script>
+    <script src="utils.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const admin = RecyNetAuth.protegerPagina();
+            if (!admin || admin.tipo !== 'admin') return;
+
+            carregarPerfil(admin);
+            carregarEstatisticas();
+            carregarAtividades();
+        });
+
+        function carregarPerfil(admin) {
+            document.getElementById('adminNome').textContent = admin.nome;
+            document.getElementById('adminEmail').textContent = admin.email;
+            
+            const dataCriacao = admin.dataCadastro ? new Date(admin.dataCadastro) : new Date();
+            document.getElementById('adminSince').textContent = dataCriacao.toLocaleDateString('pt-BR');
+            
+            const ultimoAcesso = admin.ultimoAcesso ? new Date(admin.ultimoAcesso) : new Date();
+            document.getElementById('adminLastAccess').textContent = ultimoAcesso.toLocaleString('pt-BR');
+        }
+
+        function carregarEstatisticas() {
+            const stats = RecyNetDB.getEstatisticasGerais();
+            document.getElementById('statUsuarios').textContent = stats.totalUsuarios;
+            document.getElementById('statKg').textContent = stats.totalKg.toFixed(1) + ' kg';
+            document.getElementById('statColetas').textContent = stats.totalColetas;
+            document.getElementById('statPontos').textContent = Math.floor(stats.totalPontos);
+        }
+
+        function carregarAtividades() {
+            const stats = RecyNetDB.getEstatisticasGerais();
+            const container = document.getElementById('adminActivities');
+            
+            if (stats.coletasRecentes.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #000000; padding: var(--spacing-xl); font-weight: 600;">Nenhuma atividade registrada ainda.</p>';
+                return;
+            }
+
+            let html = '';
+            stats.coletasRecentes.forEach(coleta => {
+                const data = new Date(coleta.data).toLocaleString('pt-BR', {
+                    day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+                });
+                
+                html += `
+                    <div class="activity-item">
+                        <div class="activity-icon">♻️</div>
+                        <div class="activity-content">
+                            <strong>${coleta.usuarioNome}</strong> registrou 
+                            <strong>${coleta.kg.toFixed(2)} kg</strong> de 
+                            <strong>${coleta.material}</strong>
+                            <div class="activity-time">${data}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+    </script>
+</body>
+</html>

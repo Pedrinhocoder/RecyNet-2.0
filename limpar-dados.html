@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Limpar Dados RecyNet</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #2e7d32, #43a047);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+    h1 {
+      color: #2e7d32;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .warning {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+    .info {
+      background: #d1ecf1;
+      border-left: 4px solid #0dcaf0;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+    .success {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      display: none;
+    }
+    button {
+      width: 100%;
+      padding: 15px;
+      font-size: 16px;
+      font-weight: bold;
+      color: white;
+      background: #2e7d32;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 15px;
+      transition: all 0.3s;
+    }
+    button:hover {
+      background: #1b5e20;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    button.danger {
+      background: #dc3545;
+    }
+    button.danger:hover {
+      background: #c82333;
+    }
+    .stats {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .stat-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #dee2e6;
+    }
+    .stat-row:last-child {
+      border-bottom: none;
+    }
+    .stat-label {
+      font-weight: 600;
+    }
+    .stat-value {
+      color: #2e7d32;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🗑️ Limpar Usuários Fantasmas</h1>
+    
+    <div class="warning">
+      <strong>⚠️ Atenção!</strong><br>
+      Você está vendo usuários fantasmas no ranking porque existem dados antigos no localStorage do seu navegador.
+    </div>
+
+    <div class="info">
+      <strong>ℹ️ O que será feito:</strong><br>
+      • Remover todos os usuários fantasmas (Edgar, Fabiana, etc.)<br>
+      • Manter o admin (admin@fortes.com.br)<br>
+      • Sistema ficará zerado e limpo<br>
+      • Pronto para cadastros reais
+    </div>
+
+    <div class="stats" id="statsBox">
+      <h3 style="margin-top: 0;">📊 Dados Atuais:</h3>
+      <div class="stat-row">
+        <span class="stat-label">Usuários cadastrados:</span>
+        <span class="stat-value" id="totalUsers">-</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Total reciclado:</span>
+        <span class="stat-value" id="totalKg">-</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Total de pontos:</span>
+        <span class="stat-value" id="totalPoints">-</span>
+      </div>
+    </div>
+
+    <div class="success" id="successBox">
+      <strong>✅ Sucesso!</strong><br>
+      Sistema limpo! Todos os usuários fantasmas foram removidos.<br>
+      Apenas o admin foi mantido.
+    </div>
+
+    <button onclick="atualizarStats()">🔄 Atualizar Estatísticas</button>
+    
+    <button class="danger" onclick="limparUsuarios()">🗑️ LIMPAR USUÁRIOS FANTASMAS</button>
+
+    <button onclick="voltarAdmin()">← Voltar</button>
+  </div>
+
+  <script>
+    function atualizarStats() {
+      try {
+        const usuarios = JSON.parse(localStorage.getItem('recynet_usuarios') || '[]');
+        const usuariosReais = usuarios.filter(u => u.tipo === 'user');
+        
+        const totalKg = usuariosReais.reduce((sum, u) => sum + (u.totalKg || 0), 0);
+        const totalPontos = usuariosReais.reduce((sum, u) => sum + (u.totalPontosGanhos || 0), 0);
+
+        document.getElementById('totalUsers').textContent = usuariosReais.length;
+        document.getElementById('totalKg').textContent = totalKg.toFixed(2) + ' kg';
+        document.getElementById('totalPoints').textContent = Math.round(totalPontos);
+
+        if (usuariosReais.length > 0) {
+          console.log('Usuários encontrados:');
+          usuariosReais.forEach(u => {
+            console.log(`- ${u.nome} (${u.email}): ${u.totalKg} kg, ${u.totalPontosGanhos} pts`);
+          });
+        }
+      } catch (error) {
+        alert('Erro ao carregar estatísticas: ' + error.message);
+      }
+    }
+
+    function limparUsuarios() {
+      const confirmar = confirm(
+        '⚠️ ATENÇÃO!\n\n' +
+        'Esta ação irá DELETAR todos os usuários fantasmas:\n' +
+        '- Edgar UVV\n' +
+        '- Fabiana Silva\n' +
+        '- Renato Costa\n' +
+        '- João Vyctor\n' +
+        '- Erick Dias\n' +
+        '- E qualquer outro usuário cadastrado\n\n' +
+        'O admin (admin@fortes.com.br) será mantido.\n\n' +
+        'Tem certeza que deseja continuar?'
+      );
+
+      if (!confirmar) return;
+
+      try {
+        const usuarios = JSON.parse(localStorage.getItem('recynet_usuarios') || '[]');
+        
+        // Manter apenas admin
+        const apenasAdmin = usuarios.filter(u => u.tipo === 'admin');
+        
+        // Se não houver admin, criar um
+        if (apenasAdmin.length === 0) {
+          apenasAdmin.push({
+            id: 'admin_' + Date.now(),
+            nome: 'Administrador',
+            email: 'admin@fortes.com.br',
+            senha: '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
+            tipo: 'admin',
+            dataCadastro: new Date().toISOString(),
+            ultimoAcesso: new Date().toISOString()
+          });
+        }
+        
+        localStorage.setItem('recynet_usuarios', JSON.stringify(apenasAdmin));
+        
+        document.getElementById('successBox').style.display = 'block';
+        atualizarStats();
+        
+        setTimeout(() => {
+          const irPara = confirm('✅ Usuários limpos!\n\nDeseja ir para o dashboard admin ou para a página de relatório?');
+          if (irPara) {
+            window.location.href = 'admin.html';
+          } else {
+            window.location.href = 'relatorio.html';
+          }
+        }, 1000);
+        
+      } catch (error) {
+        alert('❌ Erro ao limpar usuários: ' + error.message);
+      }
+    }
+
+    function voltarAdmin() {
+      const temAdmin = localStorage.getItem('usuarioLogado');
+      if (temAdmin) {
+        window.location.href = 'admin.html';
+      } else {
+        window.location.href = 'recynet.html';
+      }
+    }
+
+    // Carregar stats ao abrir
+    window.addEventListener('DOMContentLoaded', atualizarStats);
+  </script>
+</body>
+</html>

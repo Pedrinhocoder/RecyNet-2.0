@@ -1,0 +1,206 @@
+/* ========================================
+   RECYNET 2.0 - PÁGINA DE CADASTRO/LOGIN
+   Estilos para autenticação
+   ======================================== */
+
+/* === CONTAINER DE AUTENTICAÇÃO === */
+body {
+  background: linear-gradient(135deg, var(--color-secondary-lightest), var(--color-accent-lightest));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: var(--spacing-lg);
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 480px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.auth-card {
+  background: var(--color-white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: var(--spacing-2xl);
+  transition: all var(--transition-base);
+}
+
+.auth-card:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+/* === HEADER === */
+.auth-header {
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.auth-logo {
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-md);
+}
+
+.auth-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary-dark);
+  margin-bottom: var(--spacing-sm);
+}
+
+.auth-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-gray-600);
+  margin-bottom: 0;
+}
+
+/* === FORMULÁRIO === */
+.auth-form {
+  margin-bottom: var(--spacing-xl);
+}
+
+.auth-form .form-group:last-of-type {
+  margin-bottom: var(--spacing-lg);
+}
+
+.auth-form .form-checkbox {
+  margin-bottom: var(--spacing-lg);
+}
+
+/* === FOOTER === */
+.auth-footer {
+  text-align: center;
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.auth-footer p {
+  margin: 0;
+  color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+}
+
+.link-primary {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-semibold);
+  transition: color var(--transition-fast);
+}
+
+.link-primary:hover {
+  color: var(--color-primary-light);
+  text-decoration: underline;
+}
+
+/* === OPÇÕES DE LOGIN SOCIAL === */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: var(--spacing-xl) 0;
+  color: var(--color-gray-500);
+  font-size: var(--font-size-sm);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--color-gray-300);
+}
+
+.auth-divider::before {
+  margin-right: var(--spacing-md);
+}
+
+.auth-divider::after {
+  margin-left: var(--spacing-md);
+}
+
+.social-buttons {
+  display: flex;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+}
+
+.btn-social {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border: 2px solid var(--color-gray-300);
+  border-radius: var(--radius-md);
+  background: var(--color-white);
+  color: var(--color-gray-700);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-social:hover {
+  border-color: var(--color-primary);
+  background: var(--color-accent-lightest);
+}
+
+.btn-social.facebook {
+  border-color: #1877f2;
+  color: #1877f2;
+}
+
+.btn-social.facebook:hover {
+  background: #1877f2;
+  color: var(--color-white);
+}
+
+.btn-social.google {
+  border-color: #db4437;
+  color: #db4437;
+}
+
+.btn-social.google:hover {
+  background: #db4437;
+  color: var(--color-white);
+}
+
+/* === LEMBRAR-ME E ESQUECEU SENHA === */
+.form-options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-sm);
+}
+
+.form-options a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: var(--font-weight-medium);
+}
+
+.form-options a:hover {
+  text-decoration: underline;
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 480px) {
+  .auth-card {
+    padding: var(--spacing-xl);
+  }
+  
+  .auth-logo {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .auth-title {
+    font-size: var(--font-size-xl);
+  }
+  
+  .social-buttons {
+    flex-direction: column;
+  }
+}

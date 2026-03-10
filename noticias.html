@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RecyNet - Notícias</title>
+  <link rel="stylesheet" href="design-system.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="noticias.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="cooperado.html" class="navbar-logo">♻ RecyNet</a>
+      
+      <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle menu">
+        ☰
+      </button>
+      
+      <div class="navbar-menu" id="navbarMenu">
+        <a href="locais.html" class="nav-link">Locais de Coleta</a>
+        <a href="relatorio.html" class="nav-link">Relatório</a>
+        <a href="ranking.html" class="nav-link">Ranking</a>
+        <a href="pontuacao.html" class="nav-link">Pontuação</a>
+        <a href="noticias.html" class="nav-link active">Notícias</a>
+        <a href="recompensas.html" class="nav-link">Recompensas</a>
+      </div>
+      
+      <div class="navbar-actions" id="navbarActions">
+        <a href="cooperado.html">Home</a>
+        <a href="perfil.html">Perfil</a>
+        <a href="index.html">Sobre Nós</a>
+        <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Conteúdo Principal -->
+  <main class="main-content">
+    <div class="container fade-in-up">
+
+      <!-- Header -->
+      <div class="page-header fade-in-up">
+        <h1 class="page-title">📰 Notícias sobre Reciclagem</h1>
+        <p class="page-subtitle">Fique por dentro das últimas novidades sobre sustentabilidade</p>
+      </div>
+      
+      <!-- Barra de Nível (compacta) -->
+      <div id="level-bar-container" class="mb-md"></div>
+
+      <!-- Grid de Notícias -->
+      <div class="news-grid" id="newsGrid">
+        <!-- Renderizado dinamicamente -->
+      </div>
+
+      <!-- Call to Action -->
+      <div class="card card-primary cta-section">
+        <div class="card-body" style="text-align: center;">
+          <h2 class="card-title" style="margin-bottom: var(--spacing-md);">📬 Receba Notícias por Email</h2>
+          <p style="margin-bottom: var(--spacing-lg); color: var(--color-gray-700);">
+            Cadastre-se para receber as principais notícias sobre reciclagem e sustentabilidade
+          </p>
+          <div class="newsletter-form">
+            <input type="email" class="form-input" placeholder="Seu melhor email" id="newsletterEmail">
+            <button class="btn btn-primary" onclick="inscreverNewsletter()">Inscrever-se</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="footer">
+    <p>© 2026 RecyNet - Plataforma Sustentável</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="database.js"></script>
+  <script src="auth.js"></script>
+  <script src="level-bar.js"></script>
+  <script src="utils.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Proteção da página
+      RecyNetAuth.protegerPagina();
+      const usuarioLogado = RecyNetAuth.getUsuarioLogado();
+      if (!usuarioLogado) {
+        window.location.href = 'recynet.html';
+        return;
+      }
+      
+      // Renderizar barra de nível
+      renderizarBarraNivel();
+      
+      // Renderizar notícias
+      renderizarNoticias();
+    });
+
+    function renderizarNoticias() {
+      const grid = document.getElementById('newsGrid');
+      if (!grid) return;
+      
+      const noticias = RecyNetDB.getNoticias();
+      grid.innerHTML = '';
+      
+      noticias.forEach(noticia => {
+        const article = document.createElement('article');
+        article.className = 'news-card card fade-in-up';
+        
+        article.innerHTML = `
+          <div class="news-image">
+            <img src="${noticia.imagem}" alt="${noticia.titulo}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=800'">
+            <span class="news-badge ${noticia.badgeClasse}">${noticia.categoria}</span>
+          </div>
+          <div class="news-content">
+            <h2 class="news-title">${noticia.titulo}</h2>
+            <p class="news-excerpt">${noticia.resumo}</p>
+            <div class="news-footer">
+              <span class="news-date">📅 ${noticia.data}</span>
+              <a href="${noticia.url}" target="_blank" class="btn btn-primary btn-sm">
+                Ler matéria
+              </a>
+            </div>
+          </div>
+        `;
+        grid.appendChild(article);
+      });
+    }
+
+    function renderizarBarraNivel() {
+      const container = document.getElementById('level-bar-container');
+      if (!container) {
+        console.error('Container level-bar-container não encontrado');
+        return;
+      }
+      
+      if (typeof LevelBar === 'undefined') {
+        console.error('LevelBar não carregado');
+        return;
+      }
+      
+      const usuarioLogado = RecyNetAuth.getUsuarioLogado();
+      if (!usuarioLogado) {
+        console.error('Usuário não logado');
+        return;
+      }
+      
+      // DISCRETA para noticias
+      container.innerHTML = LevelBar.renderCompact(usuarioLogado);
+    }
+
+    function inscreverNewsletter() {
+      const email = document.getElementById('newsletterEmail').value;
+      
+      if (!email || !email.includes('@')) {
+        RecyNetUtils.showToast('Digite um email válido!', 'warning');
+        return;
+      }
+
+      RecyNetUtils.showToast('✅ Inscrito com sucesso! Em breve você receberá nossas notícias.', 'success');
+      document.getElementById('newsletterEmail').value = '';
+    }
+  </script>
+</body>
+</html>

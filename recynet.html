@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RecyNet - Login</title>
+  <link rel="stylesheet" href="design-system.css">
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="cadastro.css">
+  <link rel="stylesheet" href="recynet.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-logo">♻ RecyNet</div>
+        <h1 class="auth-title">Bem-vindo de volta!</h1>
+        <p class="auth-subtitle">Faça login para continuar</p>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <div class="form-group">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" id="email" class="form-input" placeholder="seu@email.com" required autocomplete="email" aria-required="true">
+        </div>
+
+        <div class="form-group">
+          <label for="senha" class="form-label">Senha</label>
+          <input type="password" id="senha" class="form-input" placeholder="Digite sua senha" required autocomplete="current-password" aria-required="true">
+        </div>
+
+        <div class="form-options">
+          <div class="form-checkbox">
+            <input type="checkbox" id="lembrar">
+            <label for="lembrar">Lembrar-me</label>
+          </div>
+          <a href="#" class="link-primary">Esqueceu a senha?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full btn-lg">Entrar</button>
+      </form>
+
+      <div class="auth-footer">
+        <p>Não tem uma conta? <a href="cadastro.html" class="link-primary">Criar conta</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container"></div>
+
+  <script src="database.js"></script>
+  <script src="auth.js"></script>
+  <script>
+    // Sistema de Toast
+    function mostrarToast(mensagem, tipo = 'info') {
+      const container = document.getElementById('toast-container') || criarToastContainer();
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${tipo}`;
+      toast.setAttribute('role', 'alert');
+      toast.textContent = mensagem;
+      
+      container.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.classList.add('toast-show');
+      }, 100);
+      
+      setTimeout(() => {
+        toast.classList.remove('toast-show');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    function criarToastContainer() {
+      const container = document.createElement('div');
+      container.id = 'toast-container';
+      container.className = 'toast-container';
+      container.setAttribute('aria-live', 'polite');
+      document.body.appendChild(container);
+      return container;
+    }
+
+    // Sistema de Login com Hash
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value.trim();
+      const senha = document.getElementById('senha').value;
+
+      if (!email || !senha) {
+        mostrarToast('Preencha todos os campos', 'error');
+        return;
+      }
+
+      // Validar formato de email
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        mostrarToast('Email inválido', 'error');
+        return;
+      }
+
+      try {
+        // Usar RecyNetAuth para login
+        const resultado = await RecyNetAuth.login(email, senha);
+        
+        if (resultado.sucesso) {
+          mostrarToast('Login realizado com sucesso!', 'success');
+          
+          // Redirecionar baseado no tipo de usuário
+          setTimeout(() => {
+            if (resultado.usuario.tipo === 'admin') {
+              window.location.href = 'admin.html';
+            } else {
+              window.location.href = 'cooperado.html';
+            }
+          }, 1000);
+        } else {
+          mostrarToast(resultado.erro || 'Erro ao fazer login', 'error');
+        }
+      } catch (error) {
+        console.error('Erro no login:', error);
+        mostrarToast('Erro inesperado ao fazer login', 'error');
+      }
+    });
+
+    // Estilos de toast agora estão em recynet.css
+  </script>
+</body>
+</html>

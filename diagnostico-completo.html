@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RecyNet - Diagnóstico Completo</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+    .section { background: white; padding: 20px; margin: 20px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .success { color: #10b981; }
+    .error { color: #ef4444; }
+    .warning { color: #f59e0b; }
+    h1 { color: #333; }
+    h2 { color: #666; margin-top: 0; }
+    pre { background: #f9f9f9; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    button { background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+    button:hover { background: #059669; }
+  </style>
+</head>
+<body>
+  <h1>🔍 RecyNet - Diagnóstico Completo</h1>
+
+  <div class="section">
+    <h2>1️⃣ Scripts Carregados</h2>
+    <div id="scripts-status"></div>
+  </div>
+
+  <div class="section">
+    <h2>2️⃣ Funções Disponíveis</h2>
+    <div id="functions-status"></div>
+  </div>
+
+  <div class="section">
+    <h2>3️⃣ LocalStorage</h2>
+    <div id="storage-status"></div>
+  </div>
+
+  <div class="section">
+    <h2>4️⃣ Ações de Teste</h2>
+    <button onclick="limparDados()">Limpar Dados</button>
+    <button onclick="criarUsuarioTeste()">Criar Usuário Teste</button>
+    <button onclick="registrarColetaTeste()">Registrar Coleta Teste</button>
+    <button onclick="verificarRanking()">Ver Ranking</button>
+    <div id="actions-result" style="margin-top: 15px;"></div>
+  </div>
+
+  <div class="section">
+    <h2>5️⃣ Console de Erros</h2>
+    <div id="console-errors"></div>
+  </div>
+
+  <script src="database.js"></script>
+  <script src="auth.js"></script>
+  <script src="ranking_system.js"></script>
+  <script src="level-bar.js"></script>
+  <script src="utils.js"></script>
+  
+  <script>
+    // Capturar erros
+    const errors = [];
+    window.onerror = function(msg, url, line, col, error) {
+      errors.push(`${msg} (linha ${line})`);
+      updateConsoleErrors();
+      return false;
+    };
+
+    function updateConsoleErrors() {
+      const div = document.getElementById('console-errors');
+      if (errors.length === 0) {
+        div.innerHTML = '<p class="success">✅ Nenhum erro detectado</p>';
+      } else {
+        div.innerHTML = '<p class="error">❌ Erros encontrados:</p>' + 
+          errors.map(e => `<pre class="error">${e}</pre>`).join('');
+      }
+    }
+
+    // 1. Verificar scripts
+    function checkScripts() {
+      const scripts = {
+        'RecyNetDB': typeof RecyNetDB !== 'undefined',
+        'RecyNetAuth': typeof RecyNetAuth !== 'undefined',
+        'RankingSystem': typeof RankingSystem !== 'undefined',
+        'LevelBar': typeof LevelBar !== 'undefined',
+        'RecyNetUtils': typeof RecyNetUtils !== 'undefined'
+      };
+
+      let html = '';
+      for (const [name, loaded] of Object.entries(scripts)) {
+        const status = loaded ? '<span class="success">✅</span>' : '<span class="error">❌</span>';
+        html += `<p>${status} <strong>${name}</strong></p>`;
+      }
+      document.getElementById('scripts-status').innerHTML = html;
+    }
+
+    // 2. Verificar funções
+    function checkFunctions() {
+      const functions = [];
+      
+      if (typeof RecyNetDB !== 'undefined') {
+        functions.push({
+          name: 'RecyNetDB.getUsuarios()',
+          test: () => {
+            const users = RecyNetDB.getUsuarios();
+            return { ok: true, result: `${users.length} usuários` };
+          }
+        });
+        functions.push({
+          name: 'RecyNetDB.getCatalogoRecompensas()',
+          test: () => {
+            const catalogo = RecyNetDB.getCatalogoRecompensas();
+            return { ok: true, result: `${catalogo.length} itens` };
+          }
+        });
+      }
+
+      if (typeof RankingSystem !== 'undefined') {
+        functions.push({
+          name: 'RankingSystem.carregarRanking()',
+          test: () => {
+            const ranking = RankingSystem.carregarRanking();
+            return { ok: true, result: `${ranking.length} usuários no ranking` };
+          }
+        });
+      }
+
+      if (typeof LevelBar !== 'undefined') {
+        functions.push({
+          name: 'LevelBar.renderHighlight()',
+          test: () => {
+            const usuario = { nome: 'Teste', nivel: 1, totalKg: 0 };
+            const html = LevelBar.renderHighlight(usuario);
+            return { ok: html.length > 0, result: `${html.length} caracteres` };
+          }
+        });
+      }
+
+      let html = '';
+      functions.forEach(fn => {
+        try {
+          const result = fn.test();
+          const status = result.ok ? '<span class="success">✅</span>' : '<span class="error">❌</span>';
+          html += `<p>${status} <strong>${fn.name}</strong>: ${result.result}</p>`;
+        } catch (e) {
+          html += `<p><span class="error">❌</span> <strong>${fn.name}</strong>: ${e.message}</p>`;
+        }
+      });
+      
+      document.getElementById('functions-status').innerHTML = html || '<p class="warning">⚠️ Nenhuma função testada</p>';
+    }
+
+    // 3. Verificar localStorage
+    function checkStorage() {
+      const usuarios = localStorage.getItem('recynet_usuarios');
+      const usuarioLogado = localStorage.getItem('usuarioLogado');
+      
+      let html = '';
+      if (usuarios) {
+        const parsed = JSON.parse(usuarios);
+        html += `<p class="success">✅ <strong>recynet_usuarios:</strong> ${parsed.length} usuários cadastrados</p>`;
+        html += `<pre>${JSON.stringify(parsed.map(u => ({nome: u.nome, email: u.email, tipo: u.tipo, nivel: u.nivel, totalKg: u.totalKg})), null, 2)}</pre>`;
+      } else {
+        html += `<p class="warning">⚠️ Nenhum usuário cadastrado ainda</p>`;
+      }
+      
+      if (usuarioLogado) {
+        const parsed = JSON.parse(usuarioLogado);
+        html += `<p class="success">✅ <strong>Usuário Logado:</strong> ${parsed.nome} (${parsed.email})</p>`;
+      } else {
+        html += `<p class="warning">⚠️ Nenhum usuário logado</p>`;
+      }
+      
+      document.getElementById('storage-status').innerHTML = html;
+    }
+
+    // Ações de teste
+    function limparDados() {
+      if (confirm('Tem certeza que deseja limpar TODOS os dados?')) {
+        localStorage.clear();
+        document.getElementById('actions-result').innerHTML = '<p class="success">✅ Dados limpos! Recarregando...</p>';
+        setTimeout(() => location.reload(), 1000);
+      }
+    }
+
+    function criarUsuarioTeste() {
+      const resultDiv = document.getElementById('actions-result');
+      
+      const nome = 'Usuário Teste';
+      const email = 'teste@recynet.com';
+      const senha = '123456';
+      
+      RecyNetAuth.cadastrar(nome, email, senha, senha).then(result => {
+        if (result.sucesso) {
+          resultDiv.innerHTML = `<p class="success">✅ Usuário criado: ${email}</p>`;
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          resultDiv.innerHTML = `<p class="error">❌ ${result.erro}</p>`;
+        }
+      });
+    }
+
+    function registrarColetaTeste() {
+      const resultDiv = document.getElementById('actions-result');
+      
+      const usuarioLogado = RecyNetAuth.getUsuarioLogado();
+      if (!usuarioLogado) {
+        resultDiv.innerHTML = '<p class="error">❌ Nenhum usuário logado! Faça login primeiro.</p>';
+        return;
+      }
+      
+      const gramas = 1000; // 1kg
+      const material = 'plastico';
+      
+      const resultado = RecyNetDB.registrarColeta(usuarioLogado.id, material, gramas);
+      
+      if (resultado.sucesso) {
+        resultDiv.innerHTML = `<p class="success">✅ Coleta registrada: 1kg de plástico (+${resultado.pontosGanhos} pontos)</p>`;
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        resultDiv.innerHTML = `<p class="error">❌ ${resultado.erro}</p>`;
+      }
+    }
+
+    function verificarRanking() {
+      const resultDiv = document.getElementById('actions-result');
+      
+      const ranking = RankingSystem.carregarRanking();
+      
+      if (ranking.length === 0) {
+        resultDiv.innerHTML = '<p class="warning">⚠️ Ranking vazio. Registre coletas primeiro!</p>';
+      } else {
+        let html = '<p class="success">✅ Ranking:</p><ol>';
+        ranking.forEach(user => {
+          html += `<li><strong>${user.nome}</strong>: ${user.totalKg.toFixed(2)} kg (${Math.floor(user.totalPontosGanhos)} pts)</li>`;
+        });
+        html += '</ol>';
+        resultDiv.innerHTML = html;
+      }
+    }
+
+    // Executar verificações
+    document.addEventListener('DOMContentLoaded', function() {
+      checkScripts();
+      checkFunctions();
+      checkStorage();
+      updateConsoleErrors();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - RecyNet</title>
+    <link rel="stylesheet" href="design-system.css">
+    <link rel="stylesheet" href="components.css">
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <!-- Navbar Admin (Vermelho) -->
+    <nav class="navbar navbar-admin" role="navigation" aria-label="Navegação administrativa">
+        <div class="navbar-container">
+            <a href="admin.html" class="navbar-logo">♻ RecyNet Admin</a>
+            <button class="navbar-toggle" id="navbarToggle" type="button" aria-label="Abrir menu">☰</button>
+            <div class="navbar-menu" id="navbarMenu">
+                <a href="admin.html" class="nav-link active">Dashboard</a>
+                <a href="perfil-admin.html" class="nav-link">Perfil</a>
+                <a href="utilidades-admin.html" class="nav-link">Utilidades</a>
+            </div>
+            <div class="navbar-actions" id="navbarActions">
+                <span class="admin-badge">ADMIN</span>
+                <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Container Principal -->
+    <div class="admin-container">
+        <!-- Header -->
+        <div class="admin-header fade-in-up">
+            <h1>Dashboard Administrativo</h1>
+            <p>Gerencie coletas, usuários e monitore o sistema RecyNet</p>
+        </div>
+
+        <!-- Stats do Sistema (4 cards) -->
+        <div class="stats-grid">
+            <div class="stat-card fade-in-up">
+                <div class="stat-icon">👥</div>
+                <div class="stat-data">
+                    <span class="stat-value" id="statUsuarios">0</span>
+                    <span class="stat-label">Usuários</span>
+                </div>
+            </div>
+            
+            <div class="stat-card fade-in-up">
+                <div class="stat-icon">♻️</div>
+                <div class="stat-data">
+                    <span class="stat-value" id="statKg">0 kg</span>
+                    <span class="stat-label">Total Reciclado</span>
+                </div>
+            </div>
+            
+            <div class="stat-card fade-in-up">
+                <div class="stat-icon">📦</div>
+                <div class="stat-data">
+                    <span class="stat-value" id="statColetas">0</span>
+                    <span class="stat-label">Coletas</span>
+                </div>
+            </div>
+            
+            <div class="stat-card fade-in-up">
+                <div class="stat-icon">⭐</div>
+                <div class="stat-data">
+                    <span class="stat-value" id="statPontos">0</span>
+                    <span class="stat-label">Pontos Totais</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulário de Registro de Coleta -->
+        <div class="card fade-in-up">
+            <div class="card-header">
+                <h2>♻️ Registrar Coleta para Usuário</h2>
+            </div>
+            <div class="card-body">
+                <form id="formRegistrarColeta">
+                    <div class="form-group">
+                        <label>Selecionar Usuário</label>
+                        <select id="selectUsuario" required>
+                            <option value="">Selecione um usuário...</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Material</label>
+                        <select id="selectMaterial" required>
+                            <option value="">Selecione o material...</option>
+                            <option value="papel">📄 Papel - 5 pts/kg</option>
+                            <option value="vidro">🍾 Vidro - 6 pts/kg</option>
+                            <option value="plastico">♻️ Plástico - 8 pts/kg</option>
+                            <option value="metal">🔩 Metal - 12 pts/kg</option>
+                            <option value="eletronico">💻 Eletrônico - 20 pts/kg</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Peso (kg)</label>
+                        <input type="number" id="inputPeso" min="0.1" step="0.1" placeholder="Ex: 2.5" required>
+                        <small>Mínimo: 100g (0.1kg)</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Data da Coleta</label>
+                        <input type="date" id="inputData" required>
+                    </div>
+                    
+                    <div id="previewColeta" style="display:none;">
+                        <h4>Preview:</h4>
+                        <p>Material: <strong id="previewMaterial">-</strong></p>
+                        <p>Peso: <strong id="previewPeso">-</strong></p>
+                        <p>Pontos: <strong id="previewPontos">-</strong></p>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Registrar Coleta</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Lista de Usuários -->
+        <div class="card fade-in-up">
+            <div class="card-header">
+                <h2>👥 Usuários Cadastrados</h2>
+            </div>
+            <div class="card-body">
+            <div class="admin-search">
+              <input id="buscaUsuario" type="search" class="form-input" placeholder="🔍 Buscar por nome ou email">
+            </div>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th scope="col">Nome</th>
+                                <th scope="col">Email</th>
+                                <th scope="col">Nível</th>
+                                <th scope="col">Total KG</th>
+                                <th scope="col">Pontos</th>
+                                <th scope="col">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaUsuarios">
+                            <tr>
+                                <td colspan="6" class="text-center">Carregando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Atividades Recentes -->
+        <div class="card fade-in-up">
+          <div class="card-header">
+            <h2>📜 Atividades Recentes</h2>
+          </div>
+          <div class="card-body">
+            <div id="adminRecentes"></div>
+          </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="database.js"></script>
+    <script src="auth.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Proteção admin
+            RecyNetAuth.protegerPagina();
+            const admin = RecyNetAuth.getUsuarioLogado();
+            
+            if (!admin || admin.tipo !== 'admin') {
+                window.location.href = 'recynet.html';
+                return;
+            }
+            
+            carregarStats();
+            carregarUsuarios();
+            configurarFormulario();
+        });
+
+        function carregarStats() {
+            const stats = RecyNetDB.getEstatisticasGerais();
+            
+            document.getElementById('statUsuarios').textContent = stats.totalUsuarios;
+            document.getElementById('statKg').textContent = stats.totalKg.toFixed(1) + ' kg';
+            document.getElementById('statColetas').textContent = stats.totalColetas;
+            document.getElementById('statPontos').textContent = Math.floor(stats.totalPontos);
+        }
+
+        function carregarUsuarios() {
+            const usuarios = RecyNetDB.getUsuarios().filter(u => u.tipo === 'user');
+            const tbody = document.getElementById('tabelaUsuarios');
+            const select = document.getElementById('selectUsuario');
+          const busca = document.getElementById('buscaUsuario');
+            
+            // Limpar select
+            select.innerHTML = '<option value="">Selecione um usuário...</option>';
+            
+            if (usuarios.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhum usuário cadastrado</td></tr>';
+                return;
+            }
+            
+            // Preencher select
+            usuarios.forEach(u => {
+                const option = document.createElement('option');
+                option.value = u.id;
+                option.textContent = `${u.nome} (${u.email})`;
+                select.appendChild(option);
+            });
+            
+            // Preencher tabela
+          function desenharTabela(lista) {
+            tbody.innerHTML = lista.map(u => `
+                <tr>
+                    <td>${u.nome}</td>
+                    <td>${u.email}</td>
+                    <td>${u.nivel || 1}</td>
+                    <td>${(u.totalKg || 0).toFixed(2)} kg</td>
+                    <td>${Math.floor(u.pontosDisponiveis || 0)}</td>
+                    <td>
+                        <button class="btn btn-sm" onclick="verHistorico('${u.id}')">Ver Histórico</button>
+                    </td>
+                </tr>
+            `).join('');
+          }
+          desenharTabela(usuarios);
+
+          // Filtro de busca
+          if (busca) {
+            busca.addEventListener('input', () => {
+              const q = busca.value.toLowerCase();
+              const filtrados = usuarios.filter(u => 
+                (u.nome || '').toLowerCase().includes(q) ||
+                (u.email || '').toLowerCase().includes(q)
+              );
+              desenharTabela(filtrados);
+            });
+          }
+        }
+
+        function configurarFormulario() {
+            const form = document.getElementById('formRegistrarColeta');
+            const materialSelect = document.getElementById('selectMaterial');
+            const pesoInput = document.getElementById('inputPeso');
+            const dataInput = document.getElementById('inputData');
+            
+            // Data padrão: hoje
+            dataInput.valueAsDate = new Date();
+            
+            // Preview ao digitar
+            function atualizarPreview() {
+                const material = materialSelect.value;
+                const peso = parseFloat(pesoInput.value) || 0;
+                
+                if (material && peso >= 0.1) {
+                    const PONTOS = { papel: 5, vidro: 6, plastico: 8, metal: 12, eletronico: 20 };
+                    const pontos = peso * PONTOS[material];
+                    
+                    document.getElementById('previewMaterial').textContent = material;
+                    document.getElementById('previewPeso').textContent = peso + ' kg';
+                    document.getElementById('previewPontos').textContent = pontos.toFixed(1) + ' pts';
+                    document.getElementById('previewColeta').style.display = 'block';
+                } else {
+                    document.getElementById('previewColeta').style.display = 'none';
+                }
+            }
+            
+            materialSelect.addEventListener('change', atualizarPreview);
+            pesoInput.addEventListener('input', atualizarPreview);
+            
+            // Submit
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const usuarioId = document.getElementById('selectUsuario').value;
+                const material = materialSelect.value;
+                const kg = parseFloat(pesoInput.value);
+                
+                if (!usuarioId || !material || kg < 0.1) {
+                    alert('Preencha todos os campos corretamente. Peso mínimo: 0.1kg');
+                    return;
+                }
+                
+                const gramas = kg * 1000;
+                const resultado = RecyNetDB.registrarColeta(usuarioId, material, gramas);
+                
+                if (resultado.sucesso) {
+                    alert(`Coleta registrada com sucesso! +${resultado.pontosGanhos} pontos`);
+                    form.reset();
+                    dataInput.valueAsDate = new Date();
+                    document.getElementById('previewColeta').style.display = 'none';
+                    carregarStats();
+                    carregarUsuarios();
+                } else {
+                    alert('Erro: ' + resultado.erro);
+                }
+            });
+        }
+
+        function verHistorico(usuarioId) {
+            const usuario = RecyNetDB.getUsuarioPorId(usuarioId);
+            if (!usuario) return;
+            
+            const historico = usuario.historico.filter(h => h.tipo === 'coleta');
+            
+            if (historico.length === 0) {
+                alert('Nenhuma coleta registrada para este usuário.');
+                return;
+            }
+            
+            let texto = `Histórico de ${usuario.nome}:\n\n`;
+            historico.forEach((h, i) => {
+                const data = new Date(h.data).toLocaleDateString('pt-BR');
+                texto += `${i+1}. ${data} - ${h.kg.toFixed(2)}kg de ${h.material} (+${Math.floor(h.pontosGanhos)} pts)\n`;
+            });
+            
+            alert(texto);
+        }
+
+        // Toggle navbar mobile
+        document.getElementById('navbarToggle').addEventListener('click', function() {
+            document.getElementById('navbarMenu').classList.toggle('active');
+            document.getElementById('navbarActions').classList.toggle('active');
+        });
+
+        // Atividades recentes agregadas
+        function carregarRecentes() {
+          const usuarios = RecyNetDB.getUsuarios().filter(u => u.tipo === 'user');
+          const atividades = [];
+          
+          usuarios.forEach(usuario => {
+            (usuario.historico || []).forEach(item => {
+              if (item.tipo === 'coleta' || item.tipo === 'resgate') {
+                atividades.push({
+                  tipo: item.tipo,
+                  usuario: usuario.nome,
+                  material: item.material || '',
+                  kg: item.kg || 0,
+                  pontos: item.pontosGanhos || item.custo || 0,
+                  recompensa: item.recompensa || '',
+                  data: item.data
+                });
+              }
+            });
+          });
+          
+          atividades.sort((a, b) => new Date(b.data) - new Date(a.data));
+          const recentes = atividades.slice(0, 12);
+          
+          const container = document.getElementById('adminRecentes');
+          if (!container) return;
+          
+          if (recentes.length === 0) {
+            container.innerHTML = '<div class="activities-empty"><p>Sem atividades recentes.</p></div>';
+            return;
+          }
+          
+          let html = '<div class="activities-list">';
+          recentes.forEach(ativ => {
+            const data = new Date(ativ.data).toLocaleString('pt-BR');
+            const icone = ativ.tipo === 'coleta' ? '♻️' : '🎁';
+            const texto = ativ.tipo === 'coleta'
+              ? `Coleta: ${ativ.kg.toFixed(2)}kg de ${ativ.material} — ${ativ.usuario}`
+              : `Resgate: ${ativ.recompensa} — ${ativ.usuario}`;
+            html += `
+              <div class="activity-item">
+                <span class="activity-icon">${icone}</span>
+                <span class="activity-text">${texto}</span>
+                <span class="activity-date">${data}</span>
+              </div>
+            `;
+          });
+          html += '</div>';
+          container.innerHTML = html;
+        }
+        // Carregar após tabela
+        carregarRecentes();
+    </script>
+</body>
+</html>

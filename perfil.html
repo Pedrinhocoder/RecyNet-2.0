@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RecyNet - Perfil</title>
+  <link rel="stylesheet" href="design-system.css" />
+  <link rel="stylesheet" href="components.css" />
+  <link rel="stylesheet" href="perfil.css" />
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="cooperado.html" class="navbar-logo">♻ RecyNet</a>
+      
+      <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle menu">
+        ☰
+      </button>
+      
+      <div class="navbar-menu" id="navbarMenu">
+        <a href="locais.html" class="nav-link">Locais de Coleta</a>
+        <a href="relatorio.html" class="nav-link">Relatório</a>
+        <a href="ranking.html" class="nav-link">Ranking</a>
+        <a href="pontuacao.html" class="nav-link">Pontuação</a>
+        <a href="noticias.html" class="nav-link">Notícias</a>
+        <a href="recompensas.html" class="nav-link">Recompensas</a>
+      </div>
+      
+      <div class="navbar-actions" id="navbarActions">
+        <a href="cooperado.html">Home</a>
+        <a href="perfil.html">Perfil</a>
+        <a href="index.html">Sobre Nós</a>
+        <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Conteúdo Principal -->
+  <main class="main-content">
+    <div class="container fade-in-up">
+
+      <!-- Header -->
+      <div class="page-header fade-in-up">
+        <h1 class="page-title">Meu Perfil</h1>
+      </div>
+
+      <!-- Grid de Perfil -->
+      <div class="profile-grid">
+        
+        <!-- Card de Informações Pessoais -->
+        <div class="card profile-card fade-in-up">
+          <div class="card-header">
+            <h2 class="card-title">Informações Pessoais</h2>
+          </div>
+          <div class="card-body">
+            <div class="profile-header">
+              <div class="profile-avatar">
+                <div class="avatar-circle" id="userAvatar">
+                  <span id="userInitials"></span>
+                </div>
+              </div>
+              <div class="profile-info">
+                <h1 id="userName">Carregando...</h1>
+                <p id="userEmail">email@example.com</p>
+                <p class="profile-since">Membro desde <span id="memberSince"></span></p>
+              </div>
+            </div>
+
+            <div class="profile-actions">
+              <button class="btn btn-primary btn-full" onclick="editarPerfil()">✏️ Editar Perfil</button>
+              <button class="btn btn-outline btn-full" onclick="trocarSenha()">🔒 Trocar Senha</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card de Estatísticas -->
+        <div class="card card-primary fade-in-up">
+          <div class="card-header">
+            <h2 class="card-title">📊 Minhas Estatísticas</h2>
+          </div>
+          <div class="card-body">
+            <div class="stats-grid">
+              <div class="stat-item">
+                <span class="stat-icon">🏆</span>
+                <span class="stat-value" id="userLevel">0</span>
+                <span class="stat-label">Nível</span>
+              </div>
+              
+              <div class="stat-item">
+                <span class="stat-icon">⭐</span>
+                <span class="stat-value" id="userPoints">0</span>
+                <span class="stat-label">Pontos</span>
+              </div>
+              
+              <div class="stat-item">
+                <span class="stat-icon">♻️</span>
+                <span class="stat-value" id="userKg">0 kg</span>
+                <span class="stat-label">Reciclado</span>
+              </div>
+              
+              <div class="stat-item">
+                <span class="stat-icon">🎁</span>
+                <span class="stat-value" id="userRedeems">0</span>
+                <span class="stat-label">Resgates</span>
+              </div>
+            </div>
+            
+            <!-- Barra de Progresso -->
+            <div class="level-progress">
+              <div class="progress-header">
+                <span id="progressLabel">Progresso para próximo nível</span>
+                <span><strong id="progressPercent">0%</strong></span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%"></div>
+              </div>
+              <p class="progress-text">Faltam <strong id="kgToNext">0 kg</strong> para o próximo nível</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Ranking Pessoal -->
+      <div class="card card-success fade-in-up">
+        <div class="card-header">
+          <h2 class="card-title">🏅 Minha Posição no Ranking</h2>
+        </div>
+        <div class="card-body">
+          <div id="ranking-position"></div>
+          <a href="relatorio.html" class="btn btn-primary">Ver Ranking Completo</a>
+        </div>
+      </div>
+
+      <!-- Conquistas -->
+      <div class="card fade-in-up">
+        <div class="card-header">
+          <h2 class="card-title">🏆 Conquistas</h2>
+        </div>
+        <div class="card-body">
+          <div class="achievements-grid" id="achievementsGrid"></div>
+        </div>
+      </div>
+
+      <!-- Histórico de Atividades -->
+      <div class="card fade-in-up">
+        <div class="card-header">
+          <h2 class="card-title">📜 Histórico de Atividades</h2>
+        </div>
+        <div class="card-body">
+          <div id="history-list"></div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="footer">
+    <p>© 2026 RecyNet - Plataforma Sustentável</p>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="database.js"></script>
+  <script src="auth.js"></script>
+  <script src="ranking_system.js"></script>
+  <script src="level-bar.js"></script>
+  <script src="utils.js"></script>
+  <script>
+    // Proteção de página e carregamento de dados
+    document.addEventListener('DOMContentLoaded', function() {
+      RecyNetAuth.protegerPagina();
+      const usuarioLogado = RecyNetAuth.getUsuarioLogado();
+      
+      if (!usuarioLogado) {
+        window.location.href = 'recynet.html';
+        return;
+      }
+      
+      // Atualizar dados do usuário do banco
+      const usuarioAtualizado = RecyNetDB.getUsuarioPorId(usuarioLogado.id);
+      if (usuarioAtualizado) {
+        RecyNetAuth.setUsuarioLogado(usuarioAtualizado);
+      }
+      
+      renderizarPerfil(usuarioAtualizado || usuarioLogado);
+    });
+
+    // Renderizar perfil completo
+    function renderizarPerfil(usuario) {
+      // Nome e email
+      document.getElementById('userName').textContent = usuario.nome;
+      document.getElementById('userEmail').textContent = usuario.email;
+      
+      // Iniciais no avatar
+      const iniciais = usuario.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+      document.getElementById('userInitials').textContent = iniciais;
+      
+      // Data de cadastro
+      const dataCadastro = new Date(usuario.dataCriacao || usuario.dataCadastro || Date.now());
+      document.getElementById('memberSince').textContent = dataCadastro.toLocaleDateString('pt-BR');
+      
+      // Stats principais
+      document.getElementById('userLevel').textContent = usuario.nivel || 1;
+      document.getElementById('userPoints').textContent = Math.floor(usuario.pontosDisponiveis || 0);
+      document.getElementById('userKg').textContent = (usuario.totalKg || 0).toFixed(2) + ' kg';
+      
+      // Contar resgates
+      const resgates = (usuario.historico || []).filter(h => h.tipo === 'resgate').length;
+      document.getElementById('userRedeems').textContent = resgates;
+      
+      // Barra de progresso
+      renderizarProgresso(usuario);
+      
+      // Ranking
+      renderizarRanking(usuario);
+      
+      // Conquistas
+      renderizarConquistas(usuario);
+      
+      // Histórico
+      renderizarHistorico(usuario);
+    }
+
+    // Renderizar barra de progresso
+    function renderizarProgresso(usuario) {
+      const totalKg = usuario.totalKg || 0;
+      const progresso = RecyNetDB.calcularProgressoNivel(totalKg);
+
+      document.getElementById('progressLabel').textContent = `Progresso para Nível ${progresso.proximoNivel}`;
+      document.getElementById('progressPercent').textContent = progresso.porcentagem.toFixed(0) + '%';
+      document.getElementById('progressBar').style.width = progresso.porcentagem + '%';
+      document.getElementById('kgToNext').textContent = progresso.kgFaltando.toFixed(2) + ' kg';
+    }
+
+
+    // Renderizar ranking
+    function renderizarRanking(usuario) {
+      const container = document.getElementById('ranking-position');
+      if (!container) {
+        console.error('Container ranking-position não encontrado');
+        return;
+      }
+      
+      if (typeof RankingSystem === 'undefined') {
+        console.error('RankingSystem não carregado');
+        container.innerHTML = '<p>Sistema de ranking não disponível.</p>';
+        return;
+      }
+      
+      const posicao = RankingSystem.obterPosicaoUsuario(usuario.id);
+      
+      if (!posicao) {
+        container.innerHTML = `
+          <div class="ranking-personal">
+            <p style="text-align: center; color: #666;">
+              Você ainda não está no ranking. Registre suas primeiras coletas!
+            </p>
+          </div>
+        `;
+        return;
+      }
+      
+      const badge = RankingSystem.obterBadge(posicao);
+      const percentil = RankingSystem.calcularPercentil(usuario.id);
+      
+      container.innerHTML = `
+        <div class="ranking-personal">
+          <div class="ranking-badge">
+            <span class="position-number">${badge.texto}</span>
+            <span class="position-label">Posição Geral</span>
+          </div>
+          <div class="ranking-info">
+            <p>Você está no <strong>top ${percentil}%</strong> dos recicladores!</p>
+            <p class="ranking-detail">${(usuario.totalKg || 0).toFixed(2)} kg reciclados</p>
+          </div>
+        </div>
+      `;
+    }
+
+    // Renderizar conquistas
+    function renderizarConquistas(usuario) {
+      const container = document.getElementById('achievementsGrid');
+      if (!container) return;
+      
+      const conquistas = [
+        { 
+          nome: 'Primeira Coleta', 
+          descricao: 'Primeira coleta registrada',
+          icone: '🌱',
+          desbloqueada: (usuario.totalKg || 0) > 0 
+        },
+        { 
+          nome: 'Iniciante', 
+          descricao: 'Alcançar Nível 2',
+          icone: '⭐',
+          desbloqueada: (usuario.nivel || 1) >= 2 
+        },
+        { 
+          nome: 'Compromisso Verde', 
+          descricao: '10 kg reciclados',
+          icone: '♻️',
+          desbloqueada: (usuario.totalKg || 0) >= 10 
+        },
+        { 
+          nome: 'Veterano', 
+          descricao: 'Alcançar Nível 5',
+          icone: '🔥',
+          desbloqueada: (usuario.nivel || 1) >= 5 
+        },
+        { 
+          nome: 'Centenário', 
+          descricao: '100 kg reciclados',
+          icone: '💯',
+          desbloqueada: (usuario.totalKg || 0) >= 100 
+        },
+        { 
+          nome: 'Mestre', 
+          descricao: 'Alcançar Nível 10',
+          icone: '🎯',
+          desbloqueada: (usuario.nivel || 1) >= 10 
+        },
+        { 
+          nome: 'Herói Ambiental', 
+          descricao: '1000 kg reciclados',
+          icone: '🌍',
+          desbloqueada: (usuario.totalKg || 0) >= 1000 
+        },
+        { 
+          nome: 'Lendário', 
+          descricao: 'Alcançar Nível 20',
+          icone: '👑',
+          desbloqueada: (usuario.nivel || 1) >= 20 
+        }
+      ];
+      
+      container.innerHTML = conquistas.map(c => `
+        <div class="achievement ${c.desbloqueada ? 'unlocked' : 'locked'}">
+          <span class="achievement-icon">${c.icone}</span>
+          <span class="achievement-name">${c.nome}</span>
+          <span class="achievement-desc">${c.descricao}</span>
+        </div>
+      `).join('');
+    }
+
+    // Renderizar histórico
+    function renderizarHistorico(usuario) {
+      const container = document.getElementById('history-list');
+      if (!container) return;
+      
+      const historico = usuario.historico || [];
+      
+      if (historico.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #666;">Nenhuma atividade registrada ainda.</p>';
+        return;
+      }
+      
+      const ultimas = historico.slice(-10).reverse();
+      
+      container.innerHTML = ultimas.map(ativ => {
+        const data = new Date(ativ.data).toLocaleDateString('pt-BR');
+        let texto = '';
+        let icone = '⭐';
+        
+        if (ativ.tipo === 'coleta') {
+          icone = '♻️';
+          texto = `Reciclou ${(ativ.kg || 0).toFixed(2)}kg de ${ativ.material || 'material'}`;
+        } else if (ativ.tipo === 'resgate') {
+          icone = '🎁';
+          texto = `Resgatou ${ativ.recompensa || 'uma recompensa'}`;
+        } else if (ativ.tipo === 'nivel') {
+          icone = '🏆';
+          texto = `Subiu para nível ${ativ.novoNivel || (usuario.nivel || 1)}`;
+        } else {
+          texto = ativ.descricao || 'Atividade registrada';
+        }
+        
+        return `
+          <div class="history-item">
+            <span class="history-icon">${icone}</span>
+            <div class="history-content">
+              <span class="history-text">${texto}</span>
+              <span class="history-date">${data}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Funções de ação
+    function editarPerfil() {
+      if (typeof RecyNetUtils !== 'undefined' && RecyNetUtils.showToast) {
+        RecyNetUtils.showToast('Funcionalidade em desenvolvimento', 'info');
+      } else {
+        alert('Funcionalidade em desenvolvimento');
+      }
+    }
+
+    function trocarSenha() {
+      if (typeof RecyNetUtils !== 'undefined' && RecyNetUtils.showToast) {
+        RecyNetUtils.showToast('Funcionalidade em desenvolvimento', 'info');
+      } else {
+        alert('Funcionalidade em desenvolvimento');
+      }
+    }
+  </script>
+</body>
+</html>

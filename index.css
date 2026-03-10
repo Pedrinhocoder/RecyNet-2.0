@@ -1,0 +1,172 @@
+/* ========================================
+   RECYNET 2.0 - PÁGINA INICIAL
+   Estilos específicos da landing page
+   ======================================== */
+
+/* === CONTAINER PRINCIPAL === */
+.home-container {
+  max-width: var(--max-width-lg);
+  margin: 0 auto;
+  padding: var(--spacing-2xl) var(--spacing-lg);
+}
+
+/* === HERO SECTION === */
+.hero-section {
+  text-align: center;
+  padding: var(--spacing-3xl) var(--spacing-md);
+  margin-bottom: var(--spacing-2xl);
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.hero-title {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-lg);
+  line-height: var(--line-height-tight);
+  animation: fadeInUp 1s ease-out;
+}
+
+.hero-subtitle {
+  font-size: var(--font-size-lg);
+  color: var(--color-gray-700);
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: var(--line-height-relaxed);
+  animation: fadeInUp 1.2s ease-out;
+}
+
+/* === SECTIONS === */
+.content-section {
+  margin-bottom: var(--spacing-2xl);
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.content-section:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.content-section:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+.content-section:nth-child(4) {
+  animation-delay: 0.6s;
+}
+
+/* === CARD BODY CONTENT === */
+.card-body p {
+  margin-bottom: var(--spacing-md);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-gray-700);
+}
+
+.card-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* === PROJECT LIST === */
+.project-list {
+  list-style: none;
+  padding: 0;
+}
+
+.project-list li {
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  background: var(--color-accent-lightest);
+  border-radius: var(--radius-md);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-gray-700);
+  transition: all var(--transition-base);
+}
+
+.project-list li:hover {
+  background: var(--color-secondary-lightest);
+  transform: translateX(8px);
+}
+
+.project-list li:last-child {
+  margin-bottom: 0;
+}
+
+/* === IMPACT STATS === */
+.impact-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-xl);
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: var(--spacing-lg);
+  background: linear-gradient(135deg, var(--color-accent-light), var(--color-accent-lightest));
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-base);
+}
+
+.stat-item:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+.stat-number {
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  margin-bottom: var(--spacing-sm);
+  display: block;
+}
+
+.stat-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+  line-height: var(--line-height-normal);
+  font-weight: var(--font-weight-medium);
+}
+
+/* === SCROLL SUAVE === */
+html {
+  scroll-behavior: smooth;
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 768px) {
+  .home-container {
+    padding: var(--spacing-xl) var(--spacing-md);
+  }
+  
+  .hero-section {
+    padding: var(--spacing-2xl) var(--spacing-sm);
+  }
+  
+  .hero-title {
+    font-size: var(--font-size-3xl);
+  }
+  
+  .hero-subtitle {
+    font-size: var(--font-size-base);
+  }
+  
+  .impact-stats {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+  
+  .stat-number {
+    font-size: var(--font-size-3xl);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: var(--font-size-2xl);
+  }
+  
+  .stat-number {
+    font-size: var(--font-size-2xl);
+  }
+}

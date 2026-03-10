@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RecyNet - Cadastro</title>
+  <link rel="stylesheet" href="design-system.css" />
+  <link rel="stylesheet" href="components.css" />
+  <link rel="stylesheet" href="cadastro.css"/>
+</head>
+<body>
+
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">♻ RecyNet</div>
+      <h1 class="auth-title">Crie sua conta</h1>
+      <p class="auth-subtitle">Junte-se a nós na jornada sustentável</p>
+    </div>
+
+    <form id="cadastroForm" class="auth-form">
+      <div class="form-group">
+        <label for="nome" class="form-label">Nome Completo</label>
+        <input type="text" id="nome" class="form-input" placeholder="Digite seu nome completo" required>
+      </div>
+
+      <div class="form-group">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" id="email" class="form-input" placeholder="seu@email.com" required>
+      </div>
+
+      <div class="form-group">
+        <label for="senha" class="form-label">Senha</label>
+        <input type="password" id="senha" class="form-input" placeholder="Mínimo 6 caracteres" required>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmarSenha" class="form-label">Confirmar Senha</label>
+        <input type="password" id="confirmarSenha" class="form-input" placeholder="Digite a senha novamente" required>
+      </div>
+    
+      <div class="form-checkbox">
+        <input type="checkbox" id="termos" required>
+        <label for="termos">Aceito os <a href="#" class="link-primary">Termos de Uso</a></label>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full btn-lg">Criar Conta</button>
+    </form>
+
+    <div class="auth-footer">
+      <p>Já tem conta? <a href="recynet.html" class="link-primary">Fazer login</a></p>
+    </div>
+  </div>
+</div>
+
+<script src="database.js"></script>
+<script src="auth.js"></script>
+<script src="utils.js"></script>
+
+<script>
+// Sistema de Cadastro com Hash
+document.getElementById('cadastroForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  
+  // Verificar termos
+  const termos = document.getElementById('termos');
+  if (!termos || !termos.checked) {
+    if (typeof RecyNetUtils !== 'undefined') {
+      RecyNetUtils.showToast('Você precisa aceitar os termos de uso', 'warning');
+    } else {
+      alert('Você precisa aceitar os termos de uso');
+    }
+    return;
+  }
+  
+  const nome = document.getElementById('nome').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const senha = document.getElementById('senha').value;
+  const confirmar = document.getElementById('confirmarSenha').value;
+  
+  try {
+    const resultado = await RecyNetAuth.cadastrar(nome, email, senha, confirmar);
+    
+    if (resultado.sucesso) {
+      if (typeof RecyNetUtils !== 'undefined') {
+        RecyNetUtils.showToast(resultado.mensagem || 'Cadastro realizado!', 'success');
+      }
+      setTimeout(() => window.location.href = 'cooperado.html', 1000);
+    } else {
+      if (typeof RecyNetUtils !== 'undefined') {
+        RecyNetUtils.showToast(resultado.erro || 'Erro ao cadastrar', 'error');
+      } else {
+        alert(resultado.erro || 'Erro ao cadastrar');
+      }
+    }
+  } catch (error) {
+    console.error('Erro no cadastro:', error);
+    if (typeof RecyNetUtils !== 'undefined') {
+      RecyNetUtils.showToast('Erro inesperado ao cadastrar', 'error');
+    } else {
+      alert('Erro inesperado ao cadastrar');
+    }
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RecyNet - Setup Automático</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .setup-container {
+      background: white;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 600px;
+      width: 100%;
+    }
+    h1 { color: #10b981; text-align: center; margin-bottom: 10px; }
+    h2 { color: #666; font-size: 18px; text-align: center; margin-bottom: 30px; }
+    .step {
+      background: #f9fafb;
+      padding: 20px;
+      margin: 15px 0;
+      border-radius: 8px;
+      border-left: 4px solid #10b981;
+    }
+    .step.pending { opacity: 0.5; border-left-color: #ccc; }
+    .step.running { border-left-color: #f59e0b; animation: pulse 1s infinite; }
+    .step.done { border-left-color: #10b981; }
+    .step.error { border-left-color: #ef4444; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    .step-title { font-weight: bold; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+    .step-desc { color: #666; font-size: 14px; }
+    button {
+      width: 100%;
+      padding: 15px;
+      background: #10b981;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover { background: #059669; }
+    button:disabled { background: #ccc; cursor: not-allowed; }
+    .console { background: #1e293b; color: #10b981; padding: 15px; border-radius: 8px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <div class="setup-container">
+    <h1>🚀 RecyNet Setup Automático</h1>
+    <h2>Configuração rápida do sistema</h2>
+
+    <div id="step1" class="step pending">
+      <div class="step-title">
+        <span id="icon1">⏳</span>
+        <span>1. Limpar dados antigos</span>
+      </div>
+      <div class="step-desc">Remove todos os dados do localStorage</div>
+    </div>
+
+    <div id="step2" class="step pending">
+      <div class="step-title">
+        <span id="icon2">⏳</span>
+        <span>2. Criar usuário teste</span>
+      </div>
+      <div class="step-desc">Email: teste@recynet.com | Senha: 123456</div>
+    </div>
+
+    <div id="step3" class="step pending">
+      <div class="step-title">
+        <span id="icon3">⏳</span>
+        <span>3. Registrar coleta de teste</span>
+      </div>
+      <div class="step-desc">1kg de plástico (+8 pontos)</div>
+    </div>
+
+    <div id="step4" class="step pending">
+      <div class="step-title">
+        <span id="icon4">⏳</span>
+        <span>4. Fazer login automático</span>
+      </div>
+      <div class="step-desc">Login com usuário teste criado</div>
+    </div>
+
+    <button id="btnStart" onclick="iniciarSetup()">Iniciar Setup</button>
+    
+    <div class="console" id="console"></div>
+  </div>
+
+  <script src="database.js"></script>
+  <script src="auth.js"></script>
+
+  <script>
+    function log(msg, type = 'info') {
+      const console = document.getElementById('console');
+      const timestamp = new Date().toLocaleTimeString();
+      const color = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#10b981';
+      console.innerHTML += `<div style="color: ${color}">[${timestamp}] ${msg}</div>`;
+      console.scrollTop = console.scrollHeight;
+    }
+
+    function setStepStatus(step, status) {
+      const stepEl = document.getElementById(`step${step}`);
+      const iconEl = document.getElementById(`icon${step}`);
+      
+      stepEl.className = 'step ' + status;
+      
+      if (status === 'running') {
+        iconEl.textContent = '⏳';
+      } else if (status === 'done') {
+        iconEl.textContent = '✅';
+      } else if (status === 'error') {
+        iconEl.textContent = '❌';
+      }
+    }
+
+    async function iniciarSetup() {
+      const btn = document.getElementById('btnStart');
+      btn.disabled = true;
+      btn.textContent = 'Aguarde...';
+
+      try {
+        // Passo 1: Limpar dados
+        setStepStatus(1, 'running');
+        log('Limpando localStorage...');
+        await sleep(500);
+        localStorage.clear();
+        log('✓ LocalStorage limpo!', 'success');
+        setStepStatus(1, 'done');
+        await sleep(500);
+
+        // Passo 2: Criar usuário
+        setStepStatus(2, 'running');
+        log('Criando usuário teste...');
+        await sleep(500);
+        
+        const resultado = await RecyNetAuth.cadastrar(
+          'Usuário Teste',
+          'teste@recynet.com',
+          '123456',
+          '123456'
+        );
+        
+        if (resultado.sucesso) {
+          log('✓ Usuário criado: teste@recynet.com', 'success');
+          setStepStatus(2, 'done');
+        } else {
+          throw new Error(resultado.erro);
+        }
+        await sleep(500);
+
+        // Passo 3: Registrar coleta
+        setStepStatus(3, 'running');
+        log('Registrando coleta de teste...');
+        await sleep(500);
+        
+        const usuario = RecyNetAuth.getUsuarioLogado();
+        if (!usuario) {
+          throw new Error('Usuário não está logado');
+        }
+        
+        const coleta = RecyNetDB.registrarColeta(usuario.id, 'plastico', 1000);
+        
+        if (coleta.sucesso) {
+          log(`✓ Coleta registrada: 1kg plástico (+${coleta.pontosGanhos} pontos)`, 'success');
+          setStepStatus(3, 'done');
+        } else {
+          throw new Error(coleta.erro);
+        }
+        await sleep(500);
+
+        // Passo 4: Confirmar login
+        setStepStatus(4, 'running');
+        log('Verificando login...');
+        await sleep(500);
+        
+        const usuarioLogado = RecyNetAuth.getUsuarioLogado();
+        if (usuarioLogado) {
+          log(`✓ Login confirmado: ${usuarioLogado.nome}`, 'success');
+          setStepStatus(4, 'done');
+        } else {
+          throw new Error('Usuário não está logado');
+        }
+        
+        await sleep(1000);
+        
+        // Sucesso!
+        log('======================================', 'success');
+        log('🎉 SETUP CONCLUÍDO COM SUCESSO!', 'success');
+        log('======================================', 'success');
+        log('Dados criados:', 'success');
+        log('- Email: teste@recynet.com', 'success');
+        log('- Senha: 123456', 'success');
+        log('- Nível: 1', 'success');
+        log('- Pontos: 8', 'success');
+        log('- Total KG: 1 kg', 'success');
+        log('', 'success');
+        log('Redirecionando para o relatório...', 'success');
+        
+        btn.textContent = '✅ Concluído! Redirecionando...';
+        btn.style.background = '#10b981';
+        
+        setTimeout(() => {
+          window.location.href = 'relatorio.html';
+        }, 2000);
+
+      } catch (error) {
+        log(`❌ ERRO: ${error.message}`, 'error');
+        setStepStatus(2, 'error');
+        setStepStatus(3, 'error');
+        setStepStatus(4, 'error');
+        btn.disabled = false;
+        btn.textContent = 'Tentar Novamente';
+      }
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Log inicial
+    log('Sistema pronto para configuração.');
+    log('Clique no botão para iniciar.');
+  </script>
+</body>
+</html>
