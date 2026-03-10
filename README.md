@@ -7,6 +7,8 @@ A **versão 2.0** representa uma evolução significativa do projeto, trazendo m
 
 O projeto atualmente funciona como um **MVP (Minimum Viable Product)** voltado para **testes de usabilidade, engajamento e validação da ideia**.
 
+Link do protótipo: https://pedrinhocoder.github.io/RecyNet-2.0/
+
 ---
 
 # 🌍 Objetivo do Projeto
@@ -322,3 +324,4 @@ Projeto desenvolvido como protótipo e estudo de aplicação de **gamificação 
 O RecyNet busca explorar como **tecnologia, gamificação e sustentabilidade** podem trabalhar juntas para incentivar comportamentos ambientalmente responsáveis.
 
 Pequenas ações individuais podem gerar **grandes impactos coletivos**.
+
