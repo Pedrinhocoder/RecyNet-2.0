@@ -1,0 +1,125 @@
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RecyNet - Plataforma Sustentável</title>
+  <link rel="stylesheet" href="design-system.css" />
+  <link rel="stylesheet" href="components.css" />
+  <link rel="stylesheet" href="index.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="index.html" class="navbar-logo">♻ RecyNet</a>
+      
+      <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle menu">
+        ☰
+      </button>
+      
+      <div class="navbar-menu" id="navbarMenu">
+        <a href="#sobre" class="nav-link">Sobre</a>
+        <a href="#projetos" class="nav-link">Atuação</a>
+        <a href="#impacto" class="nav-link">Visão</a>
+        <a href="cadastro.html" class="nav-link active">Entrar</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="home-container">
+    <section class="hero-section">
+      <h1 class="hero-title">RecyNet: Transformando Reciclagem em Valor Real</h1>
+      <p class="hero-subtitle">
+        Uma plataforma digital que registra, recompensa e mensura o impacto ambiental da população por meio da reciclagem.
+      </p>
+    </section>
+
+    <section id="sobre" class="content-section">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">O que é a RecyNet</h2>
+        </div>
+        <div class="card-body">
+          <p>A RecyNet é uma plataforma digital de incentivo à reciclagem voltada para a população em geral.</p>
+          <p>O sistema permite que cidadãos registrem materiais recicláveis, acumulem pontos, evoluam de nível com base no peso total reciclado e troquem pontos por recompensas.</p>
+          <p>Nosso foco é transformar comportamento sustentável em um sistema mensurável, escalável e integrado à cidade.</p>
+          <p>Mais do que um sistema de registro, a RecyNet estrutura dados ambientais reais, permitindo análise de impacto por usuário, região e período.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="projetos" class="content-section">
+      <div class="card card-primary">
+        <div class="card-header">
+          <h2 class="card-title">Frentes de Atuação</h2>
+        </div>
+        <div class="card-body">
+          <ul class="project-list">
+            <li>🌱 Incentivo digital à reciclagem por meio de gamificação e recompensas</li>
+            <li>📊 Registro e mensuração de impacto ambiental em kg reciclados</li>
+            <li>🏙 Estruturação futura de rede metropolitana integrada de coleta</li>
+            <li>🤝 Integração com cooperativas, comércios e parceiros locais</li>
+            <li>🚌 Arquitetura preparada para integração com sistemas de mobilidade urbana</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="impacto" class="content-section">
+      <div class="card card-success">
+        <div class="card-header">
+          <h2 class="card-title">Visão de Expansão</h2>
+        </div>
+        <div class="card-body impact-stats">
+          <div class="stat-item">
+            <span class="stat-number">Impacto Mensurável</span>
+            <span class="stat-label">Dados reais de reciclagem organizados por usuário e período</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">Incentivo Urbano</span>
+            <span class="stat-label">Conversão de reciclagem em benefícios concretos para a população</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-number">Escalabilidade</span>
+            <span class="stat-label">Modelo preparado para expansão municipal e integração metropolitana</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="idealizador" class="content-section">
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Idealizador do Projeto</h2>
+    </div>
+    <div class="card-body">
+      <p>A RecyNet foi idealizada por <strong>Pedro Cauã Andrade Caetano</strong>, desenvolvedor e idealizador da iniciativa, com o propósito de unir tecnologia, sustentabilidade e impacto social em uma única plataforma acessível à população.</p>
+
+      <p>O projeto encontra-se atualmente em fase de estruturação e preparação para testes controlados, que ainda serão iniciados. A validação ocorrerá em etapas planejadas, começando por ambientes educacionais (Fundamental I, Fundamental II e Ensino Médio), permitindo análise de engajamento, coleta de dados reais e ajustes estratégicos antes da expansão.</p>
+
+      <p>A visão de longo prazo da RecyNet é se consolidar como uma startup ecotecnológica, integrando cidadãos, cooperativas, comércios e futuramente sistemas metropolitanos, criando um ecossistema inteligente de incentivo à reciclagem baseado em dados, impacto mensurável e benefícios reais.</p>
+    </div>
+  </div>
+</section>
+
+  </main>
+
+  <footer class="footer">
+    <p>© 2026 RecyNet – Plataforma de Incentivo Sustentável</p>
+  </footer>
+
+  <script>
+    const navbarToggle = document.getElementById('navbarToggle');
+    const navbarMenu = document.getElementById('navbarMenu');
+    
+    navbarToggle.addEventListener('click', () => {
+      navbarMenu.classList.toggle('active');
+    });
+
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        navbarMenu.classList.remove('active');
+      });
+    });
+  </script>
+</body>
+</html>
