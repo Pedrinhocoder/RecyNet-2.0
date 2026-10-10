@@ -163,12 +163,13 @@ function setLocalStorage(key, value) {
   }
 }
 
-// === SANITIZAÇÃO DE INPUTS ===
-function sanitizeInput(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+// Escapar dados apenas ao renderizar HTML; não usar em código JavaScript inline.
+function escapeHTML(text) {
+  const entities = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  return String(text ?? '').replace(/[&<>"']/g, char => entities[char]);
 }
+
+const sanitizeInput = escapeHTML;
 
 // === SINCRONIZAÇÃO DE SESSÃO ===
 function initSessionSync() {
@@ -196,6 +197,7 @@ window.RecyNetUtils = {
   formatCurrency,
   getLocalStorage,
   setLocalStorage,
+  escapeHTML,
   sanitizeInput
 };
 

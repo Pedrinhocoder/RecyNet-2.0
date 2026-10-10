@@ -74,6 +74,8 @@ const RecyNetAuth = {
   // === CADASTRO ===
   async cadastrar(nome, email, senha, confirmarSenha) {
     try {
+      email = RecyNetDB.normalizarEmail(email);
+
       // Validar nome
       const validNome = this.validarNome(nome);
       if (!validNome.valido) {
@@ -106,7 +108,11 @@ const RecyNetAuth = {
       const senhaHash = await this.hashSenha(senha);
 
       // Criar usuário
-      const usuario = RecyNetDB.criarUsuario(nome.trim(), email.trim().toLowerCase(), senhaHash);
+      // Revalidar após o hash assíncrono para evitar cadastros simultâneos duplicados.
+      if (RecyNetDB.getUsuarioPorEmail(email)) {
+        return { sucesso: false, erro: 'Este email já está cadastrado' };
+      }
+      const usuario = RecyNetDB.criarUsuario(nome.trim(), email, senhaHash);
 
       // Salvar
       RecyNetDB.salvarUsuario(usuario);
@@ -138,7 +144,7 @@ const RecyNetAuth = {
         return { sucesso: false, erro: 'Preencha todos os campos' };
       }
 
-      const emailTrim = email.trim().toLowerCase();
+      const emailTrim = RecyNetDB.normalizarEmail(email);
       let usuario = null;
 
       // Prioridade absoluta para o Admin Estático (Hardcoded)
@@ -196,32 +202,15 @@ const RecyNetAuth = {
 
   // === VERIFICAR SE ESTÁ LOGADO ===
   verificarSessao() {
-    const usuario = RecyNetDB.getUsuarioLogado();
+    const usuario = RecyNetDB.getUsuarioAutenticado();
     
     if (!usuario) {
       return { logado: false, usuario: null };
     }
 
-    // Se for o admin estático, validamos diretamente pelo ID fixo
-    if (usuario.id === 'admin_123' || usuario.email === 'admin@fortes.com.br') {
-      return {
-        logado: true,
-        usuario: RecyNetDB.ADMIN_ESTATICO
-      };
-    }
-
-    // Sincronizar usuários normais com dados atualizados do banco
-    const usuarioAtualizado = RecyNetDB.getUsuarioPorId(usuario.id);
-    
-    if (usuarioAtualizado) {
-      RecyNetDB.setUsuarioLogado(usuarioAtualizado);
-      return {
-        logado: true,
-        usuario: usuarioAtualizado
-      };
-    }
-
-    return { logado: false, usuario: null };
+    // Identidade e perfil vêm do registro pelo ID, nunca do email da sessão.
+    RecyNetDB.setUsuarioLogado(usuario);
+    return { logado: true, usuario };
   },
 
   // === PROTEÇÃO DE PÁGINA ===
@@ -239,6 +228,16 @@ const RecyNetAuth = {
     }
 
     return sessao.usuario;
+  },
+
+  protegerAdmin() {
+    const usuario = this.protegerPagina();
+    if (!usuario) return null;
+    if (usuario.tipo !== 'admin') {
+      window.location.href = 'cooperado.html';
+      return null;
+    }
+    return usuario;
   },
 
   // === REDIRECIONAR BASEADO NO TIPO ===

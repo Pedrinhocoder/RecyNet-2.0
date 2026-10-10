@@ -97,10 +97,10 @@ const RankingSystem = {
             <span class="rank-badge ${badge.classe}">${badge.texto.split(' ')[0]}</span>
           </div>
           <div class="ranking-avatar">
-            <div class="avatar-circle">${usuario.nome.charAt(0)}</div>
+            <div class="avatar-circle">${RecyNetUtils.escapeHTML(usuario.nome.charAt(0))}</div>
           </div>
           <div class="ranking-usuario">
-            <span class="ranking-nome">${usuario.nome}${isUsuarioLogado ? ' <span class="me-tag">Você</span>' : ''}</span>
+            <span class="ranking-nome">${RecyNetUtils.escapeHTML(usuario.nome)}${isUsuarioLogado ? ' <span class="me-tag">Você</span>' : ''}</span>
             <span class="ranking-nivel">Nível ${usuario.nivel} • ${RecyNetDB.TITULOS_NIVEL[usuario.nivel] || 'Reciclador'}</span>
           </div>
           <div class="ranking-stats">
@@ -145,10 +145,10 @@ const RankingSystem = {
             <span class="rank-number">${usuario.posicao}º</span>
           </div>
           <div class="ranking-avatar">
-            <div class="avatar-circle">${usuario.nome.charAt(0)}</div>
+            <div class="avatar-circle">${RecyNetUtils.escapeHTML(usuario.nome.charAt(0))}</div>
           </div>
           <div class="ranking-usuario">
-            <span class="ranking-nome">${usuario.nome}${isUsuarioLogado ? ' <span class="me-tag">Você</span>' : ''}</span>
+            <span class="ranking-nome">${RecyNetUtils.escapeHTML(usuario.nome)}${isUsuarioLogado ? ' <span class="me-tag">Você</span>' : ''}</span>
           </div>
           <div class="ranking-stats">
             <span class="ranking-kg">♻️ ${usuario.totalKg.toFixed(1)} kg</span>
@@ -201,10 +201,10 @@ const RankingSystem = {
         <div class="podio-item-modern podio-${classePosicao}">
           <div class="podio-user-info">
             <div class="podio-avatar-wrapper">
-              <div class="podio-avatar-main">${usuario.nome.charAt(0)}</div>
+              <div class="podio-avatar-main">${RecyNetUtils.escapeHTML(usuario.nome.charAt(0))}</div>
               <span class="podio-medal-overlay">${icone}</span>
             </div>
-            <span class="podio-name-modern">${usuario.nome}</span>
+            <span class="podio-name-modern">${RecyNetUtils.escapeHTML(usuario.nome)}</span>
             <span class="podio-kg-modern">♻️ ${usuario.totalKg.toFixed(1)} kg</span>
           </div>
           <div class="podio-pedestal-modern">

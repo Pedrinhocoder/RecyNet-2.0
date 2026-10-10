@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RecyNet - Setup Automático</title>
+  <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -64,9 +65,9 @@
     <div id="step1" class="step pending">
       <div class="step-title">
         <span id="icon1">⏳</span>
-        <span>1. Limpar dados antigos</span>
+        <span>1. Preparar demonstração</span>
       </div>
-      <div class="step-desc">Remove todos os dados do localStorage</div>
+      <div class="step-desc">Valida a configuração e preserva suas contas e históricos</div>
     </div>
 
     <div id="step2" class="step pending">
@@ -74,7 +75,7 @@
         <span id="icon2">⏳</span>
         <span>2. Criar usuário teste</span>
       </div>
-      <div class="step-desc">Email: teste@recynet.com | Senha: 123456</div>
+      <div class="step-desc" id="demoCredenciais">Cria uma conta exclusiva de demonstração, sem substituir contas existentes</div>
     </div>
 
     <div id="step3" class="step pending">
@@ -100,13 +101,17 @@
 
   <script src="database.js"></script>
   <script src="auth.js"></script>
+  <script src="demo-setup.js"></script>
 
   <script>
     function log(msg, type = 'info') {
       const console = document.getElementById('console');
       const timestamp = new Date().toLocaleTimeString();
       const color = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#10b981';
-      console.innerHTML += `<div style="color: ${color}">[${timestamp}] ${msg}</div>`;
+      const linha = document.createElement('div');
+      linha.style.color = color;
+      linha.textContent = `[${timestamp}] ${msg}`;
+      console.appendChild(linha);
       console.scrollTop = console.scrollHeight;
     }
 
@@ -127,81 +132,28 @@
 
     async function iniciarSetup() {
       const btn = document.getElementById('btnStart');
+      if (btn.disabled) return;
       btn.disabled = true;
       btn.textContent = 'Aguarde...';
 
       try {
-        // Passo 1: Limpar dados
-        setStepStatus(1, 'running');
-        log('Limpando localStorage...');
-        await sleep(500);
-        localStorage.clear();
-        log('✓ LocalStorage limpo!', 'success');
-        setStepStatus(1, 'done');
-        await sleep(500);
-
-        // Passo 2: Criar usuário
-        setStepStatus(2, 'running');
-        log('Criando usuário teste...');
-        await sleep(500);
-        
-        const resultado = await RecyNetAuth.cadastrar(
-          'Usuário Teste',
-          'teste@recynet.com',
-          '123456',
-          '123456'
-        );
-        
-        if (resultado.sucesso) {
-          log('✓ Usuário criado: teste@recynet.com', 'success');
-          setStepStatus(2, 'done');
-        } else {
-          throw new Error(resultado.erro);
-        }
-        await sleep(500);
-
-        // Passo 3: Registrar coleta
-        setStepStatus(3, 'running');
-        log('Registrando coleta de teste...');
-        await sleep(500);
-        
-        const usuario = RecyNetAuth.getUsuarioLogado();
-        if (!usuario) {
-          throw new Error('Usuário não está logado');
-        }
-        
-        const coleta = RecyNetDB.registrarColeta(usuario.id, 'plastico', 1000);
-        
-        if (coleta.sucesso) {
-          log(`✓ Coleta registrada: 1kg plástico (+${coleta.pontosGanhos} pontos)`, 'success');
-          setStepStatus(3, 'done');
-        } else {
-          throw new Error(coleta.erro);
-        }
-        await sleep(500);
-
-        // Passo 4: Confirmar login
-        setStepStatus(4, 'running');
-        log('Verificando login...');
-        await sleep(500);
-        
-        const usuarioLogado = RecyNetAuth.getUsuarioLogado();
-        if (usuarioLogado) {
-          log(`✓ Login confirmado: ${usuarioLogado.nome}`, 'success');
-          setStepStatus(4, 'done');
-        } else {
-          throw new Error('Usuário não está logado');
-        }
-        
-        await sleep(1000);
+        const etapas = ['Validando configuração...', 'Criando conta de demonstração...',
+          'Registrando 1kg de plástico...', 'Confirmando sessão de demonstração...'];
+        const resultado = await RecyNetDemo.configurar((step, status) => {
+          setStepStatus(step, status);
+          if (status === 'running') log(etapas[step - 1]);
+        });
+        if (!resultado.sucesso) throw new Error(resultado.erro);
+        document.getElementById('demoCredenciais').textContent =
+          `Email: ${resultado.email} | Senha: ${resultado.senha}`;
         
         // Sucesso!
         log('======================================', 'success');
         log('🎉 SETUP CONCLUÍDO COM SUCESSO!', 'success');
         log('======================================', 'success');
         log('Dados criados:', 'success');
-        log('- Email: teste@recynet.com', 'success');
-        log('- Senha: 123456', 'success');
+        log(`- Email: ${resultado.email}`, 'success');
+        log(`- Senha: ${resultado.senha}`, 'success');
         log('- Nível: 1', 'success');
         log('- Pontos: 8', 'success');
         log('- Total KG: 1 kg', 'success');
@@ -217,6 +169,7 @@
 
       } catch (error) {
         log(`❌ ERRO: ${error.message}`, 'error');
+        setStepStatus(1, 'error');
         setStepStatus(2, 'error');
         setStepStatus(3, 'error');
         setStepStatus(4, 'error');
@@ -225,12 +178,8 @@
       }
     }
 
-    function sleep(ms) {
-      return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     // Log inicial
-    log('Sistema pronto para configuração.');
+    log('Sistema pronto para demonstração. Seus dados existentes serão preservados.');
     log('Clique no botão para iniciar.');
   </script>
 </body>

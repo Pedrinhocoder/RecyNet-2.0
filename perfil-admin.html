@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil do Administrador - RecyNet</title>
+    <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
     <link rel="stylesheet" href="design-system.css">
     <link rel="stylesheet" href="components.css">
     <link rel="stylesheet" href="admin.css">
@@ -173,7 +174,7 @@
     <!-- Navbar Admin -->
     <nav class="navbar navbar-admin" role="navigation" aria-label="Navegação administrativa">
         <div class="navbar-container">
-            <a href="admin.html" class="navbar-logo">♻ RecyNet Admin</a>
+            <a href="admin.html" class="navbar-logo"><img src="assets/logos/recynet-clara.png" class="brand-mark" alt="" aria-hidden="true" width="48" height="48"><span>RecyNet Admin</span></a>
             <button class="navbar-toggle" id="navbarToggle" type="button" aria-label="Abrir menu">☰</button>
             <div class="navbar-menu" id="navbarMenu">
                 <a href="admin.html" class="nav-link">Dashboard</a>
@@ -286,8 +287,8 @@
     <script src="utils.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const admin = RecyNetAuth.protegerPagina();
-            if (!admin || admin.tipo !== 'admin') return;
+            const admin = RecyNetAuth.protegerAdmin();
+            if (!admin) return;
 
             carregarPerfil(admin);
             carregarEstatisticas();
@@ -307,6 +308,7 @@
 
         function carregarEstatisticas() {
             const stats = RecyNetDB.getEstatisticasGerais();
+            if (!stats) return;
             document.getElementById('statUsuarios').textContent = stats.totalUsuarios;
             document.getElementById('statKg').textContent = stats.totalKg.toFixed(1) + ' kg';
             document.getElementById('statColetas').textContent = stats.totalColetas;
@@ -315,6 +317,7 @@
 
         function carregarAtividades() {
             const stats = RecyNetDB.getEstatisticasGerais();
+            if (!stats) return;
             const container = document.getElementById('adminActivities');
             
             if (stats.coletasRecentes.length === 0) {
@@ -332,9 +335,9 @@
                     <div class="activity-item">
                         <div class="activity-icon">♻️</div>
                         <div class="activity-content">
-                            <strong>${coleta.usuarioNome}</strong> registrou 
+                            <strong>${RecyNetUtils.escapeHTML(coleta.usuarioNome)}</strong> registrou
                             <strong>${coleta.kg.toFixed(2)} kg</strong> de 
-                            <strong>${coleta.material}</strong>
+                            <strong>${RecyNetUtils.escapeHTML(coleta.material)}</strong>
                             <div class="activity-time">${data}</div>
                         </div>
                     </div>

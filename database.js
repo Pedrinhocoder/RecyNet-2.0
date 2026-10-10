@@ -48,7 +48,7 @@ const RecyNetDB = {
     return {
       id: this.gerarId(),
       nome,
-      email,
+      email: this.normalizarEmail(email),
       senha: senhaHash,
       tipo,
       totalKg: 0,
@@ -116,13 +116,18 @@ const RecyNetDB = {
     return usuarios;
   },
 
+  normalizarEmail(email) {
+    return String(email || '').trim().toLowerCase();
+  },
+
   getUsuarioPorEmail(email) {
+    email = this.normalizarEmail(email);
     // Busca direta pelo admin estático para rapidez e garantia
     if (email === this.ADMIN_ESTATICO.email) {
       return this.ADMIN_ESTATICO;
     }
     const usuarios = this.getUsuarios();
-    return usuarios.find(u => u.email === email);
+    return usuarios.find(u => this.normalizarEmail(u.email) === email);
   },
 
   getUsuarioPorId(id) {
@@ -147,12 +152,30 @@ const RecyNetDB = {
     return this.getLocalStorage('recynet_sessao');
   },
 
+  getUsuarioAutenticado() {
+    const sessao = this.getUsuarioLogado();
+    return sessao ? this.getUsuarioPorId(sessao.id) || null : null;
+  },
+
+  isAdmin() {
+    const usuario = this.getUsuarioAutenticado();
+    return Boolean(usuario && usuario.tipo === 'admin');
+  },
+
+  podeAlterarUsuario(usuarioId) {
+    const usuario = this.getUsuarioAutenticado();
+    return Boolean(usuario && (usuario.id === usuarioId || usuario.tipo === 'admin'));
+  },
+
   logout() {
     localStorage.removeItem('recynet_sessao');
   },
 
   // === REGISTRO DE COLETA ===
   registrarColeta(usuarioId, material, gramas) {
+    if (!this.podeAlterarUsuario(usuarioId)) {
+      return { sucesso: false, erro: 'Acesso não autorizado' };
+    }
     const usuario = this.getUsuarioPorId(usuarioId);
     if (!usuario) return { sucesso: false, erro: 'Usuário não encontrado' };
 
@@ -199,7 +222,6 @@ const RecyNetDB = {
 
     // Salvar usuário
     this.salvarUsuario(usuario);
-    this.setUsuarioLogado(usuario); // Atualiza sessão
 
     return {
       sucesso: true,
@@ -228,6 +250,9 @@ const RecyNetDB = {
 
   // === RESGATE DE RECOMPENSA ===
   resgatarRecompensa(usuarioId, nomeRecompensa, custo) {
+    if (!this.podeAlterarUsuario(usuarioId)) {
+      return { sucesso: false, erro: 'Acesso não autorizado' };
+    }
     const usuario = this.getUsuarioPorId(usuarioId);
     if (!usuario) return { sucesso: false, erro: 'Usuário não encontrado' };
 
@@ -251,7 +276,6 @@ const RecyNetDB = {
 
     // Salvar
     this.salvarUsuario(usuario);
-    this.setUsuarioLogado(usuario);
 
     return {
       sucesso: true,
@@ -378,6 +402,7 @@ const RecyNetDB = {
   
   // Registrar coleta para um usuário (admin)
   registrarColetaParaUsuario(usuarioId, material, kg) {
+    if (!this.isAdmin()) return { sucesso: false, erro: 'Acesso restrito ao administrador' };
     const usuario = this.getUsuarioPorId(usuarioId);
     if (!usuario) return { sucesso: false, erro: 'Usuário não encontrado' };
 
@@ -391,6 +416,7 @@ const RecyNetDB = {
 
   // Ajustar pontos de um usuário (admin)
   ajustarPontosUsuario(usuarioId, pontos, motivo = 'Ajuste administrativo') {
+    if (!this.isAdmin()) return { sucesso: false, erro: 'Acesso restrito ao administrador' };
     try {
       const usuarios = this.getUsuarios();
       const index = usuarios.findIndex(u => u.id === usuarioId);
@@ -439,6 +465,7 @@ const RecyNetDB = {
 
   // Ajustar KG de um usuário (admin)
   ajustarKgUsuario(usuarioId, kg, material = '', motivo = 'Ajuste administrativo') {
+    if (!this.isAdmin()) return { sucesso: false, erro: 'Acesso restrito ao administrador' };
     try {
       const usuarios = this.getUsuarios();
       const index = usuarios.findIndex(u => u.id === usuarioId);
@@ -493,6 +520,7 @@ const RecyNetDB = {
 
   // Deletar usuário (admin)
   deletarUsuario(usuarioId) {
+    if (!this.isAdmin()) return { sucesso: false, erro: 'Acesso restrito ao administrador' };
     let usuarios = this.getUsuarios();
     const usuario = usuarios.find(u => u.id === usuarioId);
     
@@ -505,8 +533,16 @@ const RecyNetDB = {
     return { sucesso: true };
   },
 
+  limparUsuarios() {
+    if (!this.isAdmin()) return { sucesso: false, erro: 'Acesso restrito ao administrador' };
+    const admins = this.getUsuarios().filter(u => u.tipo === 'admin');
+    localStorage.setItem('recynet_usuarios', JSON.stringify(admins));
+    return { sucesso: true };
+  },
+
   // Estatísticas gerais (admin)
   getEstatisticasGerais() {
+    if (!this.isAdmin()) return null;
     const usuarios = this.getUsuarios().filter(u => u.tipo === 'user');
     
     const totalUsuarios = usuarios.length;

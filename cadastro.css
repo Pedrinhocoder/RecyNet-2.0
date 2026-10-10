@@ -38,10 +38,19 @@ body {
 }
 
 .auth-logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
   font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
   margin-bottom: var(--spacing-md);
+}
+
+.auth-logo .brand-mark {
+  width: 96px;
+  height: 96px;
 }
 
 .auth-title {
@@ -194,6 +203,11 @@ body {
   
   .auth-logo {
     font-size: var(--font-size-2xl);
+  }
+
+  .auth-logo .brand-mark {
+    width: 72px;
+    height: 72px;
   }
   
   .auth-title {

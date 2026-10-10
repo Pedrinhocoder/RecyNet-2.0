@@ -4,7 +4,12 @@
   "description": "RecyNet - Sistema de Reciclagem e Recompensas",
   "main": "index.html",
   "scripts": {
-    "start": "echo 'Abra index.html no navegador'"
+    "start": "echo 'Abra index.html no navegador'",
+    "test": "node --test tests/core.test.cjs",
+    "test:browser": "node tests/browser.cjs"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1"
   },
   "keywords": ["reciclagem", "sustentabilidade", "recompensas"],
   "author": "",

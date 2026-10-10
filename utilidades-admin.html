@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Utilitários Admin - RecyNet</title>
+    <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
     <link rel="stylesheet" href="design-system.css">
     <link rel="stylesheet" href="components.css">
     <link rel="stylesheet" href="admin.css">
@@ -103,7 +104,7 @@
     <!-- Navbar Admin -->
     <nav class="navbar navbar-admin" role="navigation" aria-label="Navegação administrativa">
         <div class="navbar-container">
-            <a href="admin.html" class="navbar-logo">♻ RecyNet Admin</a>
+            <a href="admin.html" class="navbar-logo"><img src="assets/logos/recynet-clara.png" class="brand-mark" alt="" aria-hidden="true" width="48" height="48"><span>RecyNet Admin</span></a>
             <button class="navbar-toggle" id="navbarToggle" type="button" aria-label="Abrir menu">☰</button>
             <div class="navbar-menu" id="navbarMenu">
                 <a href="admin.html" class="nav-link">Dashboard</a>
@@ -232,8 +233,8 @@
     <script src="utils.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const admin = RecyNetAuth.protegerPagina();
-            if (!admin || admin.tipo !== 'admin') return;
+            const admin = RecyNetAuth.protegerAdmin();
+            if (!admin) return;
 
             carregarUsuarios();
 
@@ -283,6 +284,7 @@
         });
 
         function carregarUsuarios() {
+            if (!RecyNetDB.isAdmin()) return;
             try {
                 const usuarios = RecyNetDB.getUsuarios().filter(u => u.tipo === 'user');
                 const selectKg = document.getElementById('userSelectKg');
@@ -296,20 +298,25 @@
                 listDelete.innerHTML = '';
 
                 usuarios.forEach(u => {
-                    const option = `<option value="${u.id}">${u.nome} (${u.email})</option>`;
-                    selectKg.innerHTML += option;
-                    selectPoints.innerHTML += option;
+                    const option = document.createElement('option');
+                    option.value = u.id;
+                    option.textContent = `${u.nome} (${u.email})`;
+                    selectKg.appendChild(option);
+                    selectPoints.appendChild(option.cloneNode(true));
 
-                    const item = `
-                        <div class="user-item-compact">
+                    const item = document.createElement('div');
+                    item.className = 'user-item-compact';
+                    item.innerHTML = `
                             <div>
-                                <strong>${u.nome}</strong><br>
-                                <span class="text-xs text-gray">${u.email}</span>
+                                <strong></strong><br>
+                                <span class="text-xs text-gray"></span>
                             </div>
-                            <button class="btn btn-sm btn-danger-soft" onclick="deletarUsuario('${u.id}', '${u.nome}')">Excluir</button>
-                        </div>
+                            <button class="btn btn-sm btn-danger-soft">Excluir</button>
                     `;
-                    listDelete.innerHTML += item;
+                    item.querySelector('strong').textContent = u.nome;
+                    item.querySelector('span').textContent = u.email;
+                    item.querySelector('button').addEventListener('click', () => deletarUsuario(u.id, u.nome));
+                    listDelete.appendChild(item);
                 });
             } catch (e) {
                 console.error('Erro ao carregar usuários:', e);
@@ -317,15 +324,20 @@
         }
 
         function deletarUsuario(id, nome) {
+            if (!RecyNetAuth.protegerAdmin()) return;
             if (confirm(`Deseja realmente excluir a conta de ${nome}? Esta ação não pode ser desfeita.`)) {
-                if (RecyNetDB.deletarUsuario(id)) {
+                const resultado = RecyNetDB.deletarUsuario(id);
+                if (resultado.sucesso) {
                     RecyNetUtils.showToast('Usuário excluído!', 'success');
                     carregarUsuarios();
+                } else {
+                    RecyNetUtils.showToast(resultado.erro, 'error');
                 }
             }
         }
 
         function exportarDados() {
+            if (!RecyNetAuth.protegerAdmin()) return;
             const data = JSON.stringify(RecyNetDB.getUsuarios(), null, 2);
             const blob = new Blob([data], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -337,9 +349,13 @@
         }
 
         function limparUsuarios() {
+            if (!RecyNetAuth.protegerAdmin()) return;
             if (confirm('⚠️ ATENÇÃO: Deseja apagar TODOS os usuários (exceto admin)?')) {
-                const admin = RecyNetDB.getUsuarios().find(u => u.tipo === 'admin');
-                localStorage.setItem('recynet_usuarios', JSON.stringify([admin]));
+                const resultado = RecyNetDB.limparUsuarios();
+                if (!resultado.sucesso) {
+                    RecyNetUtils.showToast(resultado.erro, 'error');
+                    return;
+                }
                 RecyNetUtils.showToast('Sistema limpo!', 'success');
                 carregarUsuarios();
             }

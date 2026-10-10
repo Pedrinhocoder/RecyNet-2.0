@@ -135,7 +135,7 @@ function renderizarAtividadesRecentes(usuario) {
     html += `
       <div class="activity-item">
         <span class="activity-icon">${icone}</span>
-        <span class="activity-text">${texto}</span>
+        <span class="activity-text">${RecyNetUtils.escapeHTML(texto)}</span>
         <span class="activity-date">${dataFormatada}</span>
       </div>
     `;

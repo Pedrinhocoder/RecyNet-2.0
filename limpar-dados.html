@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Limpar Dados RecyNet</title>
+  <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -140,8 +141,11 @@
     <button onclick="voltarAdmin()">← Voltar</button>
   </div>
 
+  <script src="database.js"></script>
+  <script src="auth.js"></script>
   <script>
     function atualizarStats() {
+      if (!RecyNetDB.isAdmin()) return;
       try {
         const usuarios = JSON.parse(localStorage.getItem('recynet_usuarios') || '[]');
         const usuariosReais = usuarios.filter(u => u.tipo === 'user');
@@ -165,6 +169,7 @@
     }
 
     function limparUsuarios() {
+      if (!RecyNetAuth.protegerAdmin()) return;
       const confirmar = confirm(
         '⚠️ ATENÇÃO!\n\n' +
         'Esta ação irá DELETAR todos os usuários fantasmas:\n' +
@@ -181,25 +186,8 @@
       if (!confirmar) return;
 
       try {
-        const usuarios = JSON.parse(localStorage.getItem('recynet_usuarios') || '[]');
-        
-        // Manter apenas admin
-        const apenasAdmin = usuarios.filter(u => u.tipo === 'admin');
-        
-        // Se não houver admin, criar um
-        if (apenasAdmin.length === 0) {
-          apenasAdmin.push({
-            id: 'admin_' + Date.now(),
-            nome: 'Administrador',
-            email: 'admin@fortes.com.br',
-            senha: '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92',
-            tipo: 'admin',
-            dataCadastro: new Date().toISOString(),
-            ultimoAcesso: new Date().toISOString()
-          });
-        }
-        
-        localStorage.setItem('recynet_usuarios', JSON.stringify(apenasAdmin));
+        const resultado = RecyNetDB.limparUsuarios();
+        if (!resultado.sucesso) throw new Error(resultado.erro);
         
         document.getElementById('successBox').style.display = 'block';
         atualizarStats();
@@ -228,7 +216,9 @@
     }
 
     // Carregar stats ao abrir
-    window.addEventListener('DOMContentLoaded', atualizarStats);
+    window.addEventListener('DOMContentLoaded', () => {
+      if (RecyNetAuth.protegerAdmin()) atualizarStats();
+    });
   </script>
 </body>
 </html>

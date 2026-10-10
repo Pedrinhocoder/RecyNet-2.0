@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Admin - RecyNet</title>
+    <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
     <link rel="stylesheet" href="design-system.css">
     <link rel="stylesheet" href="components.css">
     <link rel="stylesheet" href="admin.css">
@@ -12,7 +13,7 @@
     <!-- Navbar Admin (Vermelho) -->
     <nav class="navbar navbar-admin" role="navigation" aria-label="Navegação administrativa">
         <div class="navbar-container">
-            <a href="admin.html" class="navbar-logo">♻ RecyNet Admin</a>
+            <a href="admin.html" class="navbar-logo"><img src="assets/logos/recynet-clara.png" class="brand-mark" alt="" aria-hidden="true" width="48" height="48"><span>RecyNet Admin</span></a>
             <button class="navbar-toggle" id="navbarToggle" type="button" aria-label="Abrir menu">☰</button>
             <div class="navbar-menu" id="navbarMenu">
                 <a href="admin.html" class="nav-link active">Dashboard</a>
@@ -163,24 +164,22 @@
     <!-- Scripts -->
     <script src="database.js"></script>
     <script src="auth.js"></script>
+    <script src="utils.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Proteção admin
-            RecyNetAuth.protegerPagina();
-            const admin = RecyNetAuth.getUsuarioLogado();
-            
-            if (!admin || admin.tipo !== 'admin') {
-                window.location.href = 'recynet.html';
-                return;
-            }
+            const admin = RecyNetAuth.protegerAdmin();
+            if (!admin) return;
             
             carregarStats();
             carregarUsuarios();
             configurarFormulario();
+            carregarRecentes();
         });
 
         function carregarStats() {
             const stats = RecyNetDB.getEstatisticasGerais();
+            if (!stats) return;
             
             document.getElementById('statUsuarios').textContent = stats.totalUsuarios;
             document.getElementById('statKg').textContent = stats.totalKg.toFixed(1) + ' kg';
@@ -189,6 +188,7 @@
         }
 
         function carregarUsuarios() {
+            if (!RecyNetDB.isAdmin()) return;
             const usuarios = RecyNetDB.getUsuarios().filter(u => u.tipo === 'user');
             const tbody = document.getElementById('tabelaUsuarios');
             const select = document.getElementById('selectUsuario');
@@ -214,16 +214,19 @@
           function desenharTabela(lista) {
             tbody.innerHTML = lista.map(u => `
                 <tr>
-                    <td>${u.nome}</td>
-                    <td>${u.email}</td>
+                    <td>${RecyNetUtils.escapeHTML(u.nome)}</td>
+                    <td>${RecyNetUtils.escapeHTML(u.email)}</td>
                     <td>${u.nivel || 1}</td>
                     <td>${(u.totalKg || 0).toFixed(2)} kg</td>
                     <td>${Math.floor(u.pontosDisponiveis || 0)}</td>
                     <td>
-                        <button class="btn btn-sm" onclick="verHistorico('${u.id}')">Ver Histórico</button>
+                        <button class="btn btn-sm">Ver Histórico</button>
                     </td>
                 </tr>
             `).join('');
+            tbody.querySelectorAll('button').forEach((button, index) => {
+              button.addEventListener('click', () => verHistorico(lista[index].id));
+            });
           }
           desenharTabela(usuarios);
 
@@ -300,6 +303,7 @@
         }
 
         function verHistorico(usuarioId) {
+            if (!RecyNetAuth.protegerAdmin()) return;
             const usuario = RecyNetDB.getUsuarioPorId(usuarioId);
             if (!usuario) return;
             
@@ -319,14 +323,9 @@
             alert(texto);
         }
 
-        // Toggle navbar mobile
-        document.getElementById('navbarToggle').addEventListener('click', function() {
-            document.getElementById('navbarMenu').classList.toggle('active');
-            document.getElementById('navbarActions').classList.toggle('active');
-        });
-
         // Atividades recentes agregadas
         function carregarRecentes() {
+          if (!RecyNetDB.isAdmin()) return;
           const usuarios = RecyNetDB.getUsuarios().filter(u => u.tipo === 'user');
           const atividades = [];
           
@@ -367,7 +366,7 @@
             html += `
               <div class="activity-item">
                 <span class="activity-icon">${icone}</span>
-                <span class="activity-text">${texto}</span>
+                <span class="activity-text">${RecyNetUtils.escapeHTML(texto)}</span>
                 <span class="activity-date">${data}</span>
               </div>
             `;
@@ -375,8 +374,6 @@
           html += '</div>';
           container.innerHTML = html;
         }
-        // Carregar após tabela
-        carregarRecentes();
     </script>
 </body>
 </html>

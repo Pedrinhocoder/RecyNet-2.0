@@ -44,6 +44,15 @@
   transform: scale(1.05);
 }
 
+/* Identidade visual: manter a proporção das duas versões da marca. */
+.brand-mark {
+  display: block;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
 .navbar-menu {
   display: flex;
   justify-content: center;
@@ -586,6 +595,11 @@
 }
 
 @media (max-width: 480px) {
+  .navbar-logo .brand-mark {
+    width: 40px;
+    height: 40px;
+  }
+
   .navbar-logo {
     font-size: var(--font-size-xl);
   }
