@@ -101,10 +101,29 @@ async function main() {
       const user = await cadastrar("D'Ávila");
       await admin();
       await go('utilidades-admin.html');
+      // Reter a trava torna a gravação pendente de forma determinística,
+      // inclusive em máquinas onde IndexedDB normalmente confirma muito rápido.
+      await page.evaluate(() => {
+        window.__deletionGate = new Promise(resolve => { window.__releaseDeletion = resolve; });
+        window.__deletionLock = navigator.locks.request('recynet:contas:v1', () => {
+          window.__deletionLockHeld = true;
+          return window.__deletionGate;
+        });
+      });
+      await page.waitForFunction(() => window.__deletionLockHeld);
       await page.locator('#userListDelete button').click();
       assert.equal(dialogs.length, 1);
       assert(dialogs[0].includes("D'Ávila"));
+      await page.waitForFunction(async () =>
+        (await navigator.locks.query()).pending.some(lock => lock.name === 'recynet:contas:v1'));
+      assert.equal(await page.evaluate(id => Boolean(RecyNetDB.getUsuarioPorId(id)), user.id), true);
+      await page.evaluate(() => window.__releaseDeletion());
+      // O clique e a aceitação do diálogo não aguardam o handler assíncrono.
+      await page.waitForFunction(id => !RecyNetDB.getUsuarioPorId(id), user.id);
+      await page.waitForFunction(() => document.querySelectorAll('#userListDelete button').length === 0);
+      await page.reload();
       assert.equal(await page.evaluate(id => Boolean(RecyNetDB.getUsuarioPorId(id)), user.id), false);
+      assert.equal(await page.locator('#userListDelete button').count(), 0);
     });
 
     await check('usuário comum é redirecionado de todas as páginas administrativas', async ({ page, go, cadastrar }) => {
