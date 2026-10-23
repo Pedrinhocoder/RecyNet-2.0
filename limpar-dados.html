@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Limpar Dados RecyNet</title>
+  <title>Excluir cooperados locais — RecyNet</title>
   <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
   <style>
     body {
@@ -20,6 +20,8 @@
       border-radius: 16px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.2);
     }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .container a { color: #1b5e20; }
     h1 {
       color: #2e7d32;
       text-align: center;
@@ -97,19 +99,20 @@
 </head>
 <body>
   <div class="container">
-    <h1>🗑️ Limpar Usuários Fantasmas</h1>
-    
+    <h1>🗑️ Excluir todos os cooperados locais</h1>
+
     <div class="warning">
       <strong>⚠️ Atenção!</strong><br>
-      Você está vendo usuários fantasmas no ranking porque existem dados antigos no localStorage do seu navegador.
+      Esta ação exclui todas as contas de cooperados deste navegador, incluindo contas válidas, coletas e resgates. Não é uma limpeza seletiva de dados antigos.
     </div>
 
     <div class="info">
       <strong>ℹ️ O que será feito:</strong><br>
-      • Remover todos os usuários fantasmas (Edgar, Fabiana, etc.)<br>
-      • Manter o admin (admin@fortes.com.br)<br>
-      • Sistema ficará zerado e limpo<br>
-      • Pronto para cadastros reais
+      • Excluir todos os cooperados locais e seus históricos<br>
+      • Preservar a conta administrativa e sua sessão<br>
+      • Não há opção de desfazer nesta página<br>
+      Antes de continuar, <a href="utilidades-admin.html">exporte um backup nas utilidades administrativas</a>.
+      <p id="cleanupScope" role="status"></p>
     </div>
 
     <div class="stats" id="statsBox">
@@ -128,33 +131,36 @@
       </div>
     </div>
 
-    <div class="success" id="successBox">
-      <strong>✅ Sucesso!</strong><br>
-      Sistema limpo! Todos os usuários fantasmas foram removidos.<br>
-      Apenas o admin foi mantido.
+    <div class="success" id="successBox" role="status" tabindex="-1">
+      <strong>Exclusão concluída.</strong>
+      <p>Todos os cooperados locais foram excluídos. A conta administrativa foi preservada.</p>
+      <p><a href="admin.html">Voltar ao painel administrativo</a> · <a href="utilidades-admin.html">Abrir utilidades administrativas</a></p>
     </div>
 
     <button onclick="atualizarStats()">🔄 Atualizar Estatísticas</button>
-    
-    <button class="danger" onclick="limparUsuarios()">🗑️ LIMPAR USUÁRIOS FANTASMAS</button>
+
+    <button id="deleteAllUsers" class="danger" onclick="limparUsuarios()">Excluir todos os cooperados locais</button>
 
     <button onclick="voltarAdmin()">← Voltar</button>
   </div>
 
-  <script src="database.js"></script>
-  <script src="auth.js"></script>
+  <script src="assets/js/database.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/utils.js"></script>
   <script>
     function atualizarStats() {
       if (!RecyNetDB.isAdmin()) return;
       try {
-        const usuarios = JSON.parse(localStorage.getItem('recynet_usuarios') || '[]');
+        const usuarios = RecyNetDB.getUsuarios();
         const usuariosReais = usuarios.filter(u => u.tipo === 'user');
-        
+
         const totalKg = usuariosReais.reduce((sum, u) => sum + (u.totalKg || 0), 0);
         const totalPontos = usuariosReais.reduce((sum, u) => sum + (u.totalPontosGanhos || 0), 0);
 
         document.getElementById('totalUsers').textContent = usuariosReais.length;
-        document.getElementById('totalKg').textContent = totalKg.toFixed(2) + ' kg';
+        document.getElementById('cleanupScope').textContent = `Contas de cooperados que serão excluídas: ${usuariosReais.length}.`;
+        document.getElementById('deleteAllUsers').disabled = usuariosReais.length === 0;
+        document.getElementById('totalKg').textContent = RecyNetDB.formatarKg(totalKg);
         document.getElementById('totalPoints').textContent = Math.round(totalPontos);
 
         if (usuariosReais.length > 0) {
@@ -168,57 +174,39 @@
       }
     }
 
-    function limparUsuarios() {
+    async function limparUsuarios() {
       if (!RecyNetAuth.protegerAdmin()) return;
-      const confirmar = confirm(
-        '⚠️ ATENÇÃO!\n\n' +
-        'Esta ação irá DELETAR todos os usuários fantasmas:\n' +
-        '- Edgar UVV\n' +
-        '- Fabiana Silva\n' +
-        '- Renato Costa\n' +
-        '- João Vyctor\n' +
-        '- Erick Dias\n' +
-        '- E qualquer outro usuário cadastrado\n\n' +
-        'O admin (admin@fortes.com.br) será mantido.\n\n' +
-        'Tem certeza que deseja continuar?'
-      );
+      const total = RecyNetDB.getUsuarios().filter(u => u.tipo === 'user').length;
+      if (!total) return;
+      const confirmar = confirm(`Excluir todas as ${total} conta(s) de cooperados locais e seus históricos? A conta administrativa será preservada. Sem um backup, não será possível recuperar esses dados.`);
 
       if (!confirmar) return;
 
       try {
-        const resultado = RecyNetDB.limparUsuarios();
+        const resultado = (await RecyNetDB.limparUsuarios());
         if (!resultado.sucesso) throw new Error(resultado.erro);
-        
+
         document.getElementById('successBox').style.display = 'block';
         atualizarStats();
-        
-        setTimeout(() => {
-          const irPara = confirm('✅ Usuários limpos!\n\nDeseja ir para o dashboard admin ou para a página de relatório?');
-          if (irPara) {
-            window.location.href = 'admin.html';
-          } else {
-            window.location.href = 'relatorio.html';
-          }
-        }, 1000);
-        
+
+        document.getElementById('successBox').focus();
+
+
       } catch (error) {
         alert('❌ Erro ao limpar usuários: ' + error.message);
       }
     }
 
     function voltarAdmin() {
-      const temAdmin = localStorage.getItem('usuarioLogado');
-      if (temAdmin) {
-        window.location.href = 'admin.html';
-      } else {
-        window.location.href = 'recynet.html';
-      }
+      if (RecyNetAuth.protegerAdmin()) window.location.href = 'admin.html';
     }
 
     // Carregar stats ao abrir
     window.addEventListener('DOMContentLoaded', () => {
       if (RecyNetAuth.protegerAdmin()) atualizarStats();
     });
-  </script>
+
+RecyNetUtils.aoAtualizarDados(u => { atualizarStats(); });
+</script>
 </body>
 </html>

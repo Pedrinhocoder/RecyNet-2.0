@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restaurar dados — RecyNet</title>
+  <link rel="icon" href="assets/logos/recynet-colorida.png">
+  <link rel="stylesheet" href="assets/css/design-system.css"><link rel="stylesheet" href="assets/css/components.css">
+</head>
+<body>
+<main class="container" style="padding:2rem 1rem;max-width:760px">
+  <h1>Restaurar dados locais</h1>
+  <p>Selecione um backup JSON exportado pelo RecyNet. A restauração substitui as contas deste navegador e encerra a sessão. O conteúdo anterior será preservado para download.</p>
+  <p id="recoveryPermission" role="status"></p>
+  <label for="backupFile">Arquivo de backup</label><input id="backupFile" type="file" accept=".json,application/json" class="form-input">
+  <p id="backupPreview" role="status" style="overflow-wrap:anywhere">Nenhum arquivo selecionado.</p>
+  <button id="restoreBackup" class="btn btn-primary" disabled>Restaurar backup</button>
+  <button id="downloadOriginal" class="btn btn-outline">Baixar dados anteriores</button>
+  <p id="recoveryResult" role="status"></p>
+  <p><a href="recynet.html">Voltar ao login</a> · <a href="utilidades-admin.html">Utilidades administrativas</a></p>
+</main>
+<script src="assets/js/database.js"></script><script src="assets/js/utils.js"></script>
+<script>
+  let conteudo = null;
+  let arquivoValidado = null;
+  let versaoLeitura = 0;
+  const seletorBackup = document.getElementById('backupFile');
+  let restauradoNestaPagina = false;
+  const permitido = () => RecyNetDB.isAdmin() || Boolean(RecyNetDB.lerUsuarios().erro);
+  document.getElementById('recoveryPermission').textContent = permitido()
+    ? 'Você pode restaurar um backup neste navegador.'
+    : 'Entre como administrador para restaurar. Se os dados estiverem ilegíveis, a restauração também estará disponível aqui.';
+  seletorBackup.addEventListener('change', async event => {
+    const versao = ++versaoLeitura;
+    const arquivo = event.target.files[0];
+    const leituraAtual = () => versao === versaoLeitura && seletorBackup.files[0] === arquivo;
+    conteudo = null;
+    arquivoValidado = null;
+    document.getElementById('restoreBackup').disabled = true;
+    document.getElementById('backupPreview').textContent = arquivo ? 'Lendo arquivo…' : 'Nenhum arquivo selecionado.';
+    document.getElementById('recoveryResult').textContent = '';
+    if (!arquivo) return;
+    if (arquivo.size > 10 * 1024 * 1024) { document.getElementById('backupPreview').textContent = 'O arquivo excede 10 MB.'; return; }
+    try {
+      const texto = await arquivo.text();
+      if (!leituraAtual()) return;
+      const result = RecyNetDB.validarBackup(texto);
+      document.getElementById('backupPreview').textContent = result.sucesso ? `${arquivo.name}: ${result.total} conta(s) de cooperados no backup.${result.gramasNormalizados ? ` ${result.gramasNormalizados} registro(s) terão os gramas normalizados para corrigir precisão numérica.` : ''}` : result.erro;
+      if (result.sucesso) {
+        conteudo = texto;
+        arquivoValidado = arquivo;
+        document.getElementById('restoreBackup').disabled = !permitido();
+      }
+    } catch {
+      if (leituraAtual()) document.getElementById('backupPreview').textContent = 'Não foi possível ler o arquivo.';
+    }
+  });
+  let restaurando = false;
+  document.getElementById('restoreBackup').addEventListener('click', async () => {
+    if (restaurando) return;
+    const arquivo = arquivoValidado;
+    const versao = versaoLeitura;
+    if (!conteudo || !arquivo || arquivo !== seletorBackup.files[0]) return;
+    if (!confirm(`Substituir as contas locais pelo arquivo "${arquivo.name}"? A sessão será encerrada.`)) return;
+    if (versao !== versaoLeitura || arquivo !== seletorBackup.files[0]) return;
+    restaurando = true;
+    seletorBackup.disabled = true;
+    document.getElementById('restoreBackup').disabled = true;
+    const result = (await RecyNetDB.restaurarBackup(conteudo));
+    restaurando = false;
+    seletorBackup.disabled = false;
+    if (!result.sucesso) document.getElementById('restoreBackup').disabled = !permitido();
+    document.getElementById('recoveryResult').textContent = result.sucesso ? `${result.total} conta(s) restaurada(s). Entre novamente para continuar.` : result.erro;
+    if (result.sucesso) { restauradoNestaPagina = true; document.getElementById('restoreBackup').disabled = true; }
+  });
+  document.getElementById('downloadOriginal').addEventListener('click', () => {
+    const resultado = document.getElementById('recoveryResult');
+    let url, link;
+    try {
+      if (!permitido() && !restauradoNestaPagina) { resultado.textContent = 'Entre como administrador para baixar dados locais.'; return; }
+      const texto = localStorage.getItem('recynet_backup_anterior') ?? localStorage.getItem('recynet_usuarios');
+      if (texto === null) { resultado.textContent = 'Não há cópia anterior nem dados locais disponíveis para baixar.'; return; }
+      url = URL.createObjectURL(new Blob([texto], {type:'application/json'}));
+      link = document.createElement('a'); link.href = url; link.download = 'recynet-dados-anteriores.json';
+      document.body.appendChild(link); link.click();
+      resultado.textContent = 'Download solicitado. Se o arquivo não aparecer, verifique as permissões de download do navegador.';
+    } catch (erro) {
+      resultado.textContent = erro.name === 'SecurityError' ? 'O navegador bloqueou o acesso aos dados locais. Permita o armazenamento para baixar a cópia.' : 'Não foi possível preparar ou baixar os dados anteriores. Verifique o armazenamento e as permissões de download.';
+    } finally {
+      link?.remove();
+      if (url) setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+  });
+</script>
+</body></html>

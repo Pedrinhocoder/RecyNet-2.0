@@ -1,3 +1,5 @@
+> **Documento histórico:** descreve uma etapa anterior do projeto. Para funcionalidades, correções e validação atuais, consulte [ESTADO-ATUAL.md](ESTADO-ATUAL.md).
+
 # 🧪 Guia de Testes - Projeto RecyNet
 
 Este guia contém o roteiro completo para validar o protótipo do **RecyNet**. Siga os passos abaixo para garantir que todas as funcionalidades estejam operando conforme o esperado.

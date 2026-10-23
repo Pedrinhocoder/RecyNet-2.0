@@ -3,7 +3,7 @@ info:
   title: RecyNet API
   description: |
     API REST para o sistema RecyNet - Plataforma de gerenciamento de reciclagem com gamificação.
-    
+
     ## Funcionalidades
     - 🔐 Autenticação e autorização
     - 👤 Gerenciamento de usuários e perfis
@@ -11,15 +11,15 @@ info:
     - 🏆 Sistema de ranking e gamificação
     - 🎁 Catálogo e resgate de recompensas
     - 👨‍💼 Painel administrativo completo
-    
+
     ## Autenticação
     A maioria dos endpoints requer autenticação via Bearer Token (JWT).
-    
+
     **Fluxo:**
     1. Fazer login em `/auth/login`
     2. Receber token JWT
     3. Enviar token no header: `Authorization: Bearer {token}`
-    
+
     ## Níveis e Gamificação
     - Usuários ganham pontos e XP ao registrar coletas
     - Sistema de 10 níveis (Bronze I → Diamante)
@@ -1238,7 +1238,7 @@ components:
       bearerFormat: JWT
       description: |
         Token JWT obtido no login.
-        
+
         **Exemplo:** `Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
 
   schemas:

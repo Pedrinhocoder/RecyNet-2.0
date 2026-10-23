@@ -1,0 +1,147 @@
+* {
+  box-sizing: border-box;
+}
+
+/* Estilos complementares de Login:
+   Mantém apenas toasts e pequenos ajustes que não conflitam com cadastro.css */
+
+.titulo {
+  text-align: center;
+  font-size: 2.2rem;
+  color: #2e7d32;
+  margin-bottom: 5px;
+}
+
+.subtitulo {
+  text-align: center;
+  color: #555;
+  margin-bottom: 25px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  background-color: #43a047;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background-color: #388e3c;
+}
+
+.options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  margin-top: 8px;
+  margin-bottom: 10px;
+}
+
+
+.options a {
+  color: #1b5e20;
+  text-decoration: none;
+}
+
+.divider {
+  text-align: center;
+  margin: 20px 0;
+  color: #777;
+}
+
+.social-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.facebook-btn,
+.google-btn {
+  flex: 1;
+  padding: 10px;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.facebook-btn {
+  background-color: #3b5998;
+  color: white;
+}
+
+.google-btn {
+  background-color: #db4437;
+  color: white;
+}
+
+.criar-conta {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.9rem;
+}
+
+.criar-conta a {
+  color: #2e7d32;
+  text-decoration: none;
+}
+
+/* RESPONSIVO */
+@media (max-width: 400px) {
+  .options {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+  }
+
+  .social-buttons {
+    flex-direction: column;
+  }
+
+  .facebook-btn,
+  .google-btn {
+    width: 100%;
+  }
+}
+
+/* Toasts */
+#toast-container,
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+.toast {
+  background: white;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  margin-bottom: 12px;
+  transform: translateX(400px);
+  transition: transform 0.3s ease;
+  border-left: 4px solid #6b7280;
+  font-size: 14px;
+}
+.toast-show { transform: translateX(0); }
+.toast-success { border-left-color: #10b981; color: #065f46; }
+.toast-error { border-left-color: #ef4444; color: #991b1b; }
+.toast-info { border-left-color: #3b82f6; color: #1e40af; }

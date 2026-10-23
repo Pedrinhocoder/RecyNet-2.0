@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RecyNet - Cadastro</title>
   <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
-  <link rel="stylesheet" href="design-system.css" />
-  <link rel="stylesheet" href="components.css" />
-  <link rel="stylesheet" href="cadastro.css"/>
+  <link rel="stylesheet" href="assets/css/design-system.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/cadastro.css"/>
 </head>
 <body>
 
@@ -19,30 +19,32 @@
       <p class="auth-subtitle">Junte-se a nós na jornada sustentável</p>
     </div>
 
-    <form id="cadastroForm" class="auth-form">
+    <form id="cadastroForm" class="auth-form" novalidate>
+      <p id="cadastroErro" role="alert" class="form-error"></p>
       <div class="form-group">
         <label for="nome" class="form-label">Nome Completo</label>
-        <input type="text" id="nome" class="form-input" placeholder="Digite seu nome completo" required>
+        <input type="text" id="nome" minlength="3" autocomplete="name" class="form-input" placeholder="Digite seu nome completo" required>
       </div>
 
       <div class="form-group">
         <label for="email" class="form-label">Email</label>
-        <input type="email" id="email" class="form-input" placeholder="seu@email.com" required>
+        <input type="email" id="email" autocomplete="email" class="form-input" placeholder="seu@email.com" required>
       </div>
 
       <div class="form-group">
         <label for="senha" class="form-label">Senha</label>
-        <input type="password" id="senha" class="form-input" placeholder="Mínimo 6 caracteres" required>
+        <input type="password" id="senha" minlength="8" autocomplete="new-password" aria-describedby="senhaAjuda" class="form-input" placeholder="Mínimo 8 caracteres" required>
       </div>
 
+      <p id="senhaAjuda">Use ao menos 8 caracteres, com maiúscula, minúscula, número e símbolo.</p>
       <div class="form-group">
         <label for="confirmarSenha" class="form-label">Confirmar Senha</label>
-        <input type="password" id="confirmarSenha" class="form-input" placeholder="Digite a senha novamente" required>
+        <input type="password" id="confirmarSenha" autocomplete="new-password" class="form-input" placeholder="Digite a senha novamente" required>
       </div>
-    
+
       <div class="form-checkbox">
         <input type="checkbox" id="termos" required>
-        <label for="termos">Aceito os <a href="#" class="link-primary">Termos de Uso</a></label>
+        <label for="termos">Aceito os <a href="#termos-de-uso" class="link-primary">Termos de Uso</a></label>
       </div>
 
       <button type="submit" class="btn btn-primary btn-full btn-lg">Criar Conta</button>
@@ -54,53 +56,76 @@
   </div>
 </div>
 
-<script src="database.js"></script>
-<script src="auth.js"></script>
-<script src="utils.js"></script>
+<section id="termos-de-uso" class="container"><h2>Uso do protótipo</h2><p>Contas e atividades ficam neste navegador. Pontos e resgates são simulações sem benefícios reais. Evite dados sensíveis e mantenha seu backup.</p></section>
+<script src="assets/js/database.js"></script>
+<script src="assets/js/auth.js"></script>
+<script src="assets/js/utils.js"></script>
 
 <script>
-// Sistema de Cadastro com Hash
-document.getElementById('cadastroForm').addEventListener('submit', async function(e) {
-  e.preventDefault();
-  
-  // Verificar termos
+// Erros persistentes são associados ao campo; o foco aponta a primeira falha.
+const cadastroForm = document.getElementById('cadastroForm');
+function limparErroCadastro(campo) {
+  const erroId = `${campo.id}Erro`;
+  document.getElementById(erroId)?.remove();
+  campo.removeAttribute('aria-invalid');
+  campo.classList.remove('error');
+  const descricoes = (campo.getAttribute('aria-describedby') || '').split(' ').filter(id => id && id !== erroId);
+  if (descricoes.length) campo.setAttribute('aria-describedby', descricoes.join(' '));
+  else campo.removeAttribute('aria-describedby');
+}
+function erroCadastro(campo, mensagem) {
+  if (!campo) { document.getElementById('cadastroErro').textContent = mensagem; return; }
+  limparErroCadastro(campo);
+  const erro = document.createElement('p');
+  erro.id = `${campo.id}Erro`;
+  erro.className = 'form-error';
+  erro.setAttribute('role', 'alert');
+  erro.textContent = mensagem;
+  const ancora = campo.type === 'checkbox' ? campo.closest('.form-checkbox') : campo;
+  ancora.insertAdjacentElement('afterend', erro);
+  campo.setAttribute('aria-invalid', 'true');
+  campo.classList.add('error');
+  campo.setAttribute('aria-describedby', [campo.getAttribute('aria-describedby'), erro.id].filter(Boolean).join(' '));
+  campo.focus();
+}
+cadastroForm.querySelectorAll('input').forEach(campo => {
+  campo.addEventListener('input', () => {
+    limparErroCadastro(campo);
+    document.getElementById('cadastroErro').textContent = '';
+  });
+});
+cadastroForm.addEventListener('submit', async function(event) {
+  event.preventDefault();
+  const campos = [...cadastroForm.querySelectorAll('input')];
+  campos.forEach(limparErroCadastro);
+  document.getElementById('cadastroErro').textContent = '';
+  const nome = document.getElementById('nome');
+  const email = document.getElementById('email');
+  const senha = document.getElementById('senha');
+  const confirmar = document.getElementById('confirmarSenha');
   const termos = document.getElementById('termos');
-  if (!termos || !termos.checked) {
-    if (typeof RecyNetUtils !== 'undefined') {
-      RecyNetUtils.showToast('Você precisa aceitar os termos de uso', 'warning');
-    } else {
-      alert('Você precisa aceitar os termos de uso');
-    }
-    return;
-  }
-  
-  const nome = document.getElementById('nome').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const senha = document.getElementById('senha').value;
-  const confirmar = document.getElementById('confirmarSenha').value;
-  
+  const nomeValido = RecyNetAuth.validarNome(nome.value);
+  if (!nomeValido.valido) { erroCadastro(nome, nomeValido.erro); return; }
+  if (!RecyNetAuth.validarEmail(RecyNetDB.normalizarEmail(email.value))) { erroCadastro(email, 'Informe um email válido.'); return; }
+  const senhaValida = RecyNetAuth.validarSenha(senha.value);
+  if (!senhaValida.valido) { erroCadastro(senha, senhaValida.erro); return; }
+  if (!confirmar.value || senha.value !== confirmar.value) { erroCadastro(confirmar, 'As senhas não coincidem.'); return; }
+  if (!termos.checked) { erroCadastro(termos, 'Aceite os termos de uso para criar a conta.'); return; }
+  const botao = cadastroForm.querySelector('button[type="submit"]');
+  if (botao.disabled) return;
+  botao.disabled = true;
   try {
-    const resultado = await RecyNetAuth.cadastrar(nome, email, senha, confirmar);
-    
+    const resultado = await RecyNetAuth.cadastrar(nome.value.trim(), email.value.trim(), senha.value, confirmar.value);
     if (resultado.sucesso) {
-      if (typeof RecyNetUtils !== 'undefined') {
-        RecyNetUtils.showToast(resultado.mensagem || 'Cadastro realizado!', 'success');
-      }
+      RecyNetUtils.showToast(resultado.mensagem || 'Cadastro realizado!', 'success');
       setTimeout(() => window.location.href = 'cooperado.html', 1000);
     } else {
-      if (typeof RecyNetUtils !== 'undefined') {
-        RecyNetUtils.showToast(resultado.erro || 'Erro ao cadastrar', 'error');
-      } else {
-        alert(resultado.erro || 'Erro ao cadastrar');
-      }
+      erroCadastro(/email/i.test(resultado.erro || '') ? email : null, resultado.erro || 'Erro ao cadastrar.');
+      botao.disabled = false;
     }
-  } catch (error) {
-    console.error('Erro no cadastro:', error);
-    if (typeof RecyNetUtils !== 'undefined') {
-      RecyNetUtils.showToast('Erro inesperado ao cadastrar', 'error');
-    } else {
-      alert('Erro inesperado ao cadastrar');
-    }
+  } catch (_) {
+    erroCadastro(null, 'Não foi possível cadastrar. Tente novamente.');
+    botao.disabled = false;
   }
 });
 </script>

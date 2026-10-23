@@ -5,30 +5,33 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Admin - RecyNet</title>
     <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
-    <link rel="stylesheet" href="design-system.css">
-    <link rel="stylesheet" href="components.css">
-    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="assets/css/design-system.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/admin.css">
 </head>
 <body>
     <!-- Navbar Admin (Vermelho) -->
-    <nav class="navbar navbar-admin" role="navigation" aria-label="Navegação administrativa">
+    <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
+  <nav class="navbar navbar-admin" role="navigation" aria-label="Navegação administrativa">
         <div class="navbar-container">
             <a href="admin.html" class="navbar-logo"><img src="assets/logos/recynet-clara.png" class="brand-mark" alt="" aria-hidden="true" width="48" height="48"><span>RecyNet Admin</span></a>
             <button class="navbar-toggle" id="navbarToggle" type="button" aria-label="Abrir menu">☰</button>
-            <div class="navbar-menu" id="navbarMenu">
-                <a href="admin.html" class="nav-link active">Dashboard</a>
-                <a href="perfil-admin.html" class="nav-link">Perfil</a>
-                <a href="utilidades-admin.html" class="nav-link">Utilidades</a>
+            <div class="navbar-panel">
+              <div class="navbar-menu" id="navbarMenu">
+                  <a href="admin.html" class="nav-link active">Dashboard</a>
+                  <a href="perfil-admin.html" class="nav-link">Perfil</a>
+                  <a href="utilidades-admin.html" class="nav-link">Utilidades</a>
+              </div>
+              <div class="navbar-actions" id="navbarActions">
+                  <span class="admin-badge">ADMIN</span>
+                  <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+              </div>
             </div>
-            <div class="navbar-actions" id="navbarActions">
-                <span class="admin-badge">ADMIN</span>
-                <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
-            </div>
-        </div>
+          </div>
     </nav>
 
     <!-- Container Principal -->
-    <div class="admin-container">
+    <main id="conteudo-principal" tabindex="-1" class="admin-container">
         <!-- Header -->
         <div class="admin-header fade-in-up">
             <h1>Dashboard Administrativo</h1>
@@ -44,7 +47,7 @@
                     <span class="stat-label">Usuários</span>
                 </div>
             </div>
-            
+
             <div class="stat-card fade-in-up">
                 <div class="stat-icon">♻️</div>
                 <div class="stat-data">
@@ -52,7 +55,7 @@
                     <span class="stat-label">Total Reciclado</span>
                 </div>
             </div>
-            
+
             <div class="stat-card fade-in-up">
                 <div class="stat-icon">📦</div>
                 <div class="stat-data">
@@ -60,7 +63,7 @@
                     <span class="stat-label">Coletas</span>
                 </div>
             </div>
-            
+
             <div class="stat-card fade-in-up">
                 <div class="stat-icon">⭐</div>
                 <div class="stat-data">
@@ -78,15 +81,15 @@
             <div class="card-body">
                 <form id="formRegistrarColeta">
                     <div class="form-group">
-                        <label>Selecionar Usuário</label>
-                        <select id="selectUsuario" required>
+                        <label for="selectUsuario">Selecionar Usuário</label>
+                        <select class="form-select" id="selectUsuario" required>
                             <option value="">Selecione um usuário...</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
-                        <label>Material</label>
-                        <select id="selectMaterial" required>
+                        <label for="selectMaterial">Material</label>
+                        <select class="form-select" id="selectMaterial" required>
                             <option value="">Selecione o material...</option>
                             <option value="papel">📄 Papel - 5 pts/kg</option>
                             <option value="vidro">🍾 Vidro - 6 pts/kg</option>
@@ -95,25 +98,25 @@
                             <option value="eletronico">💻 Eletrônico - 20 pts/kg</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
-                        <label>Peso (kg)</label>
-                        <input type="number" id="inputPeso" min="0.1" step="0.1" placeholder="Ex: 2.5" required>
+                        <label for="inputPeso">Peso (kg)</label>
+                        <input class="form-input" type="number" id="inputPeso" min="0.1" step="0.001" placeholder="Ex: 2.5" required>
                         <small>Mínimo: 100g (0.1kg)</small>
                     </div>
-                    
+
                     <div class="form-group">
-                        <label>Data da Coleta</label>
-                        <input type="date" id="inputData" required>
+                        <label for="inputData">Data da Coleta</label>
+                        <input class="form-input" type="date" id="inputData" required>
                     </div>
-                    
+
                     <div id="previewColeta" style="display:none;">
                         <h4>Preview:</h4>
                         <p>Material: <strong id="previewMaterial">-</strong></p>
                         <p>Peso: <strong id="previewPeso">-</strong></p>
                         <p>Pontos: <strong id="previewPontos">-</strong></p>
                     </div>
-                    
+
                     <button type="submit" class="btn btn-primary">Registrar Coleta</button>
                 </form>
             </div>
@@ -126,7 +129,7 @@
             </div>
             <div class="card-body">
             <div class="admin-search">
-              <input id="buscaUsuario" type="search" class="form-input" placeholder="🔍 Buscar por nome ou email">
+              <input aria-label="Buscar usuários por nome ou email" id="buscaUsuario" type="search" class="form-input" placeholder="🔍 Buscar por nome ou email">
             </div>
                 <div class="table-responsive">
                     <table class="table">
@@ -159,18 +162,18 @@
             <div id="adminRecentes"></div>
           </div>
         </div>
-    </div>
+    </main>
 
     <!-- Scripts -->
-    <script src="database.js"></script>
-    <script src="auth.js"></script>
-    <script src="utils.js"></script>
+    <script src="assets/js/database.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/utils.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Proteção admin
             const admin = RecyNetAuth.protegerAdmin();
             if (!admin) return;
-            
+
             carregarStats();
             carregarUsuarios();
             configurarFormulario();
@@ -180,11 +183,11 @@
         function carregarStats() {
             const stats = RecyNetDB.getEstatisticasGerais();
             if (!stats) return;
-            
+
             document.getElementById('statUsuarios').textContent = stats.totalUsuarios;
-            document.getElementById('statKg').textContent = stats.totalKg.toFixed(1) + ' kg';
+            document.getElementById('statKg').textContent = RecyNetDB.formatarKg(stats.totalKg);
             document.getElementById('statColetas').textContent = stats.totalColetas;
-            document.getElementById('statPontos').textContent = Math.floor(stats.totalPontos);
+            document.getElementById('statPontos').textContent = RecyNetDB.formatarPontos(stats.totalPontos);
         }
 
         function carregarUsuarios() {
@@ -193,15 +196,15 @@
             const tbody = document.getElementById('tabelaUsuarios');
             const select = document.getElementById('selectUsuario');
           const busca = document.getElementById('buscaUsuario');
-            
+
             // Limpar select
             select.innerHTML = '<option value="">Selecione um usuário...</option>';
-            
+
             if (usuarios.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center">Nenhum usuário cadastrado</td></tr>';
                 return;
             }
-            
+
             // Preencher select
             usuarios.forEach(u => {
                 const option = document.createElement('option');
@@ -209,7 +212,7 @@
                 option.textContent = `${u.nome} (${u.email})`;
                 select.appendChild(option);
             });
-            
+
             // Preencher tabela
           function desenharTabela(lista) {
             tbody.innerHTML = lista.map(u => `
@@ -217,10 +220,10 @@
                     <td>${RecyNetUtils.escapeHTML(u.nome)}</td>
                     <td>${RecyNetUtils.escapeHTML(u.email)}</td>
                     <td>${u.nivel || 1}</td>
-                    <td>${(u.totalKg || 0).toFixed(2)} kg</td>
-                    <td>${Math.floor(u.pontosDisponiveis || 0)}</td>
+                    <td>${RecyNetDB.formatarKg(u.totalKg || 0)}</td>
+                    <td>${RecyNetDB.formatarPontos(u.pontosDisponiveis || 0)}</td>
                     <td>
-                        <button class="btn btn-sm">Ver Histórico</button>
+                        <button class="btn btn-primary btn-sm">Ver Histórico</button>
                     </td>
                 </tr>
             `).join('');
@@ -232,14 +235,15 @@
 
           // Filtro de busca
           if (busca) {
-            busca.addEventListener('input', () => {
+            busca.oninput = () => {
               const q = busca.value.toLowerCase();
-              const filtrados = usuarios.filter(u => 
+              const filtrados = usuarios.filter(u =>
                 (u.nome || '').toLowerCase().includes(q) ||
                 (u.email || '').toLowerCase().includes(q)
               );
               desenharTabela(filtrados);
-            });
+            };
+            busca.oninput();
           }
         }
 
@@ -248,19 +252,20 @@
             const materialSelect = document.getElementById('selectMaterial');
             const pesoInput = document.getElementById('inputPeso');
             const dataInput = document.getElementById('inputData');
-            
+
             // Data padrão: hoje
-            dataInput.valueAsDate = new Date();
-            
+            dataInput.value = RecyNetDB.formatarDataLocal();
+            dataInput.max = RecyNetDB.formatarDataLocal();
+
             // Preview ao digitar
             function atualizarPreview() {
                 const material = materialSelect.value;
                 const peso = parseFloat(pesoInput.value) || 0;
-                
+
                 if (material && peso >= 0.1) {
                     const PONTOS = { papel: 5, vidro: 6, plastico: 8, metal: 12, eletronico: 20 };
                     const pontos = peso * PONTOS[material];
-                    
+
                     document.getElementById('previewMaterial').textContent = material;
                     document.getElementById('previewPeso').textContent = peso + ' kg';
                     document.getElementById('previewPontos').textContent = pontos.toFixed(1) + ' pts';
@@ -269,36 +274,40 @@
                     document.getElementById('previewColeta').style.display = 'none';
                 }
             }
-            
+
             materialSelect.addEventListener('change', atualizarPreview);
             pesoInput.addEventListener('input', atualizarPreview);
-            
+
             // Submit
-            form.addEventListener('submit', function(e) {
+            form.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                
+
                 const usuarioId = document.getElementById('selectUsuario').value;
                 const material = materialSelect.value;
                 const kg = parseFloat(pesoInput.value);
-                
+
                 if (!usuarioId || !material || kg < 0.1) {
                     alert('Preencha todos os campos corretamente. Peso mínimo: 0.1kg');
                     return;
                 }
-                
+
                 const gramas = kg * 1000;
-                const resultado = RecyNetDB.registrarColeta(usuarioId, material, gramas);
-                
-                if (resultado.sucesso) {
-                    alert(`Coleta registrada com sucesso! +${resultado.pontosGanhos} pontos`);
-                    form.reset();
-                    dataInput.valueAsDate = new Date();
-                    document.getElementById('previewColeta').style.display = 'none';
-                    carregarStats();
-                    carregarUsuarios();
-                } else {
-                    alert('Erro: ' + resultado.erro);
-                }
+                return await RecyNetUtils.executarEnvioUnico(form, async () => {
+                    const resultado = (await RecyNetDB.registrarColeta(usuarioId, material, gramas, dataInput.value));
+
+                    if (resultado.sucesso) {
+                        alert(`Coleta registrada com sucesso! +${resultado.pontosGanhos} pontos`);
+                        form.reset();
+                        dataInput.value = RecyNetDB.formatarDataLocal();
+                        dataInput.max = RecyNetDB.formatarDataLocal();
+                        document.getElementById('previewColeta').style.display = 'none';
+                        carregarStats();
+                        carregarUsuarios();
+                        carregarRecentes();
+                    } else {
+                        alert('Erro: ' + resultado.erro);
+                    }
+                });
             });
         }
 
@@ -306,20 +315,20 @@
             if (!RecyNetAuth.protegerAdmin()) return;
             const usuario = RecyNetDB.getUsuarioPorId(usuarioId);
             if (!usuario) return;
-            
+
             const historico = usuario.historico.filter(h => h.tipo === 'coleta');
-            
+
             if (historico.length === 0) {
                 alert('Nenhuma coleta registrada para este usuário.');
                 return;
             }
-            
+
             let texto = `Histórico de ${usuario.nome}:\n\n`;
             historico.forEach((h, i) => {
                 const data = new Date(h.data).toLocaleDateString('pt-BR');
-                texto += `${i+1}. ${data} - ${h.kg.toFixed(2)}kg de ${h.material} (+${Math.floor(h.pontosGanhos)} pts)\n`;
+                texto += `${i+1}. ${data} - ${RecyNetDB.formatarKg(h.kg)} de ${h.material} (+${RecyNetDB.formatarPontos(h.pontosGanhos)} pts)\n`;
             });
-            
+
             alert(texto);
         }
 
@@ -328,40 +337,42 @@
           if (!RecyNetDB.isAdmin()) return;
           const usuarios = RecyNetDB.getUsuarios().filter(u => u.tipo === 'user');
           const atividades = [];
-          
+
           usuarios.forEach(usuario => {
             (usuario.historico || []).forEach(item => {
-              if (item.tipo === 'coleta' || item.tipo === 'resgate') {
+              if (['coleta', 'resgate', 'ajuste_pontos', 'ajuste_kg', 'ajuste'].includes(item.tipo)) {
                 atividades.push({
+                  ...item,
                   tipo: item.tipo,
                   usuario: usuario.nome,
                   material: item.material || '',
                   kg: item.kg || 0,
-                  pontos: item.pontosGanhos || item.custo || 0,
+                  pontos: item.pontosGanhos ?? item.custo ?? item.pontos ?? 0,
                   recompensa: item.recompensa || '',
                   data: item.data
                 });
               }
             });
           });
-          
+
           atividades.sort((a, b) => new Date(b.data) - new Date(a.data));
           const recentes = atividades.slice(0, 12);
-          
+
           const container = document.getElementById('adminRecentes');
           if (!container) return;
-          
+
           if (recentes.length === 0) {
             container.innerHTML = '<div class="activities-empty"><p>Sem atividades recentes.</p></div>';
             return;
           }
-          
+
           let html = '<div class="activities-list">';
           recentes.forEach(ativ => {
             const data = new Date(ativ.data).toLocaleString('pt-BR');
-            const icone = ativ.tipo === 'coleta' ? '♻️' : '🎁';
-            const texto = ativ.tipo === 'coleta'
-              ? `Coleta: ${ativ.kg.toFixed(2)}kg de ${ativ.material} — ${ativ.usuario}`
+            const ajuste = RecyNetUtils.formatarAjusteHistorico(ativ);
+            const icone = ajuste ? ajuste.icone : ativ.tipo === 'coleta' ? '♻️' : '🎁';
+            const texto = ajuste ? `${ajuste.texto} — ${ativ.usuario}` : ativ.tipo === 'coleta'
+              ? `Coleta: ${RecyNetDB.formatarKg(ativ.kg)} de ${ativ.material} — ${ativ.usuario}`
               : `Resgate: ${ativ.recompensa} — ${ativ.usuario}`;
             html += `
               <div class="activity-item">
@@ -374,6 +385,8 @@
           html += '</div>';
           container.innerHTML = html;
         }
-    </script>
+
+RecyNetUtils.aoAtualizarDados(u => { carregarStats(); carregarUsuarios(); carregarRecentes(); });
+</script>
 </body>
 </html>

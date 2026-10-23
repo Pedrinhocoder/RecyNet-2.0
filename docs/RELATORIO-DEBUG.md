@@ -1,3 +1,5 @@
+> **Documento histórico:** descreve uma etapa anterior do projeto. Para funcionalidades, correções e validação atuais, consulte [ESTADO-ATUAL.md](ESTADO-ATUAL.md).
+
 # 🧪 RELATÓRIO DE DEBUG - RECYNET
 
 **Data:** 06/03/2026  

@@ -1,3 +1,5 @@
+> **Documento histórico:** descreve uma etapa anterior do projeto. Para funcionalidades, correções e validação atuais, consulte [ESTADO-ATUAL.md](ESTADO-ATUAL.md).
+
 # 🔧 CORREÇÕES PRIORITÁRIAS - RECYNET
 
 **Data:** 03/03/2026  

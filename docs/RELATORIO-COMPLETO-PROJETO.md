@@ -1,3 +1,5 @@
+> **Documento histórico:** descreve uma etapa anterior do projeto. Para funcionalidades, correções e validação atuais, consulte [ESTADO-ATUAL.md](ESTADO-ATUAL.md).
+
 # 📊 RELATÓRIO COMPLETO DO PROJETO RECYNET
 
 **Data do Relatório:** 01 de Março de 2026  

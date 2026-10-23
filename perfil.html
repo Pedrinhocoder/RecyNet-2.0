@@ -5,40 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RecyNet - Perfil</title>
   <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
-  <link rel="stylesheet" href="design-system.css" />
-  <link rel="stylesheet" href="components.css" />
-  <link rel="stylesheet" href="perfil.css" />
+  <link rel="stylesheet" href="assets/css/design-system.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/perfil.css" />
 </head>
 <body>
   <!-- Navbar -->
+  <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
   <nav class="navbar">
     <div class="navbar-container">
       <a href="cooperado.html" class="navbar-logo"><img src="assets/logos/recynet-colorida.png" class="brand-mark" alt="" aria-hidden="true" width="48" height="48"><span>RecyNet</span></a>
-      
+
       <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle menu">
         ☰
       </button>
-      
-      <div class="navbar-menu" id="navbarMenu">
-        <a href="locais.html" class="nav-link">Locais de Coleta</a>
-        <a href="relatorio.html" class="nav-link">Relatório</a>
-        <a href="ranking.html" class="nav-link">Ranking</a>
-        <a href="pontuacao.html" class="nav-link">Pontuação</a>
-        <a href="noticias.html" class="nav-link">Notícias</a>
-        <a href="recompensas.html" class="nav-link">Recompensas</a>
-      </div>
-      
-      <div class="navbar-actions" id="navbarActions">
-        <a href="cooperado.html">Home</a>
-        <a href="perfil.html">Perfil</a>
-        <a href="index.html">Sobre Nós</a>
-        <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+
+      <div class="navbar-panel">
+        <div class="navbar-menu" id="navbarMenu">
+          <a href="locais.html" class="nav-link">Locais de Coleta</a>
+          <a href="relatorio.html" class="nav-link">Relatório</a>
+          <a href="ranking.html" class="nav-link">Ranking</a>
+          <a href="pontuacao.html" class="nav-link">Pontuação</a>
+          <a href="noticias.html" class="nav-link">Notícias</a>
+          <a href="recompensas.html" class="nav-link">Recompensas</a>
+        </div>
+
+        <div class="navbar-actions" id="navbarActions">
+          <a href="cooperado.html">Home</a>
+          <a href="perfil.html">Perfil</a>
+          <a href="index.html">Sobre Nós</a>
+          <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+        </div>
       </div>
     </div>
   </nav>
 
   <!-- Conteúdo Principal -->
-  <main class="main-content">
+  <main id="conteudo-principal" tabindex="-1" class="main-content">
     <div class="container fade-in-up">
 
       <!-- Header -->
@@ -48,7 +51,7 @@
 
       <!-- Grid de Perfil -->
       <div class="profile-grid">
-        
+
         <!-- Card de Informações Pessoais -->
         <div class="card profile-card fade-in-up">
           <div class="card-header">
@@ -87,26 +90,26 @@
                 <span class="stat-value" id="userLevel">0</span>
                 <span class="stat-label">Nível</span>
               </div>
-              
+
               <div class="stat-item">
                 <span class="stat-icon">⭐</span>
                 <span class="stat-value" id="userPoints">0</span>
                 <span class="stat-label">Pontos</span>
               </div>
-              
+
               <div class="stat-item">
                 <span class="stat-icon">♻️</span>
                 <span class="stat-value" id="userKg">0 kg</span>
                 <span class="stat-label">Reciclado</span>
               </div>
-              
+
               <div class="stat-item">
                 <span class="stat-icon">🎁</span>
                 <span class="stat-value" id="userRedeems">0</span>
                 <span class="stat-label">Resgates</span>
               </div>
             </div>
-            
+
             <!-- Barra de Progresso -->
             <div class="level-progress">
               <div class="progress-header">
@@ -130,7 +133,7 @@
         </div>
         <div class="card-body">
           <div id="ranking-position"></div>
-          <a href="relatorio.html" class="btn btn-primary">Ver Ranking Completo</a>
+          <a href="ranking.html" class="btn btn-primary">Ver Ranking Completo</a>
         </div>
       </div>
 
@@ -157,34 +160,53 @@
     </div>
   </main>
 
+  <dialog id="editarPerfilDialog" aria-labelledby="editarPerfilTitulo">
+    <h2 id="editarPerfilTitulo">Editar perfil</h2>
+    <form id="editarPerfilForm">
+      <label for="editarNome">Nome</label><input id="editarNome" class="form-input" required minlength="3" autocomplete="name">
+      <label for="editarEmail">Email</label><input id="editarEmail" type="email" class="form-input" required autocomplete="email">
+      <p id="editarPerfilErro" role="alert"></p>
+      <button class="btn btn-primary" type="submit">Salvar perfil</button>
+      <button class="btn btn-outline" type="button" onclick="document.getElementById('editarPerfilDialog').close()">Cancelar</button>
+    </form>
+  </dialog>
+  <dialog id="trocarSenhaDialog" aria-labelledby="trocarSenhaTitulo">
+    <h2 id="trocarSenhaTitulo">Trocar senha</h2>
+    <form id="trocarSenhaForm">
+      <label for="senhaAtual">Senha atual</label><input id="senhaAtual" type="password" class="form-input" required autocomplete="current-password">
+      <label for="novaSenha">Nova senha</label><input id="novaSenha" type="password" class="form-input" required minlength="8" autocomplete="new-password" aria-describedby="novaSenhaAjuda">
+      <p id="novaSenhaAjuda">Use 8 caracteres ou mais, com maiúscula, minúscula, número e símbolo.</p>
+      <label for="confirmarNovaSenha">Confirmar nova senha</label><input id="confirmarNovaSenha" type="password" class="form-input" required autocomplete="new-password">
+      <p id="trocarSenhaErro" role="alert"></p>
+      <button class="btn btn-primary" type="submit">Salvar senha</button>
+      <button class="btn btn-outline" type="button" onclick="document.getElementById('trocarSenhaDialog').close()">Cancelar</button>
+    </form>
+  </dialog>
+
   <!-- Rodapé -->
   <footer class="footer">
     <p>© 2026 RecyNet - Plataforma Sustentável</p>
   </footer>
 
   <!-- Scripts -->
-  <script src="database.js"></script>
-  <script src="auth.js"></script>
-  <script src="ranking_system.js"></script>
-  <script src="level-bar.js"></script>
-  <script src="utils.js"></script>
+  <script src="assets/js/database.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ranking_system.js"></script>
+  <script src="assets/js/level-bar.js"></script>
+  <script src="assets/js/utils.js"></script>
   <script>
     // Proteção de página e carregamento de dados
     document.addEventListener('DOMContentLoaded', function() {
-      RecyNetAuth.protegerPagina();
-      const usuarioLogado = RecyNetAuth.getUsuarioLogado();
-      
-      if (!usuarioLogado) {
-        window.location.href = 'recynet.html';
-        return;
-      }
-      
+      const usuarioLogado = RecyNetAuth.protegerCooperado();
+
+      if (!usuarioLogado) return;
+
       // Atualizar dados do usuário do banco
       const usuarioAtualizado = RecyNetDB.getUsuarioPorId(usuarioLogado.id);
       if (usuarioAtualizado) {
         RecyNetAuth.setUsuarioLogado(usuarioAtualizado);
       }
-      
+
       renderizarPerfil(usuarioAtualizado || usuarioLogado);
     });
 
@@ -193,33 +215,33 @@
       // Nome e email
       document.getElementById('userName').textContent = usuario.nome;
       document.getElementById('userEmail').textContent = usuario.email;
-      
+
       // Iniciais no avatar
       const iniciais = usuario.nome.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
       document.getElementById('userInitials').textContent = iniciais;
-      
+
       // Data de cadastro
       const dataCadastro = new Date(usuario.dataCriacao || usuario.dataCadastro || Date.now());
       document.getElementById('memberSince').textContent = dataCadastro.toLocaleDateString('pt-BR');
-      
+
       // Stats principais
       document.getElementById('userLevel').textContent = usuario.nivel || 1;
-      document.getElementById('userPoints').textContent = Math.floor(usuario.pontosDisponiveis || 0);
-      document.getElementById('userKg').textContent = (usuario.totalKg || 0).toFixed(2) + ' kg';
-      
+      document.getElementById('userPoints').textContent = RecyNetDB.formatarPontos(usuario.pontosDisponiveis || 0);
+      document.getElementById('userKg').textContent = RecyNetDB.formatarKg(usuario.totalKg || 0);
+
       // Contar resgates
       const resgates = (usuario.historico || []).filter(h => h.tipo === 'resgate').length;
       document.getElementById('userRedeems').textContent = resgates;
-      
+
       // Barra de progresso
       renderizarProgresso(usuario);
-      
+
       // Ranking
       renderizarRanking(usuario);
-      
+
       // Conquistas
       renderizarConquistas(usuario);
-      
+
       // Histórico
       renderizarHistorico(usuario);
     }
@@ -232,7 +254,7 @@
       document.getElementById('progressLabel').textContent = `Progresso para Nível ${progresso.proximoNivel}`;
       document.getElementById('progressPercent').textContent = progresso.porcentagem.toFixed(0) + '%';
       document.getElementById('progressBar').style.width = progresso.porcentagem + '%';
-      document.getElementById('kgToNext').textContent = progresso.kgFaltando.toFixed(2) + ' kg';
+      document.getElementById('kgToNext').textContent = RecyNetDB.formatarKg(progresso.kgFaltando);
     }
 
 
@@ -243,15 +265,15 @@
         console.error('Container ranking-position não encontrado');
         return;
       }
-      
+
       if (typeof RankingSystem === 'undefined') {
         console.error('RankingSystem não carregado');
         container.innerHTML = '<p>Sistema de ranking não disponível.</p>';
         return;
       }
-      
+
       const posicao = RankingSystem.obterPosicaoUsuario(usuario.id);
-      
+
       if (!posicao) {
         container.innerHTML = `
           <div class="ranking-personal">
@@ -262,10 +284,10 @@
         `;
         return;
       }
-      
+
       const badge = RankingSystem.obterBadge(posicao);
       const percentil = RankingSystem.calcularPercentil(usuario.id);
-      
+
       container.innerHTML = `
         <div class="ranking-personal">
           <div class="ranking-badge">
@@ -274,7 +296,7 @@
           </div>
           <div class="ranking-info">
             <p>Você está no <strong>top ${percentil}%</strong> dos recicladores!</p>
-            <p class="ranking-detail">${(usuario.totalKg || 0).toFixed(2)} kg reciclados</p>
+            <p class="ranking-detail">${RecyNetDB.formatarKg(usuario.totalKg || 0)} reciclados</p>
           </div>
         </div>
       `;
@@ -284,58 +306,58 @@
     function renderizarConquistas(usuario) {
       const container = document.getElementById('achievementsGrid');
       if (!container) return;
-      
+
       const conquistas = [
-        { 
-          nome: 'Primeira Coleta', 
+        {
+          nome: 'Primeira Coleta',
           descricao: 'Primeira coleta registrada',
           icone: '🌱',
-          desbloqueada: (usuario.totalKg || 0) > 0 
+          desbloqueada: (usuario.totalKg || 0) > 0
         },
-        { 
-          nome: 'Iniciante', 
+        {
+          nome: 'Iniciante',
           descricao: 'Alcançar Nível 2',
           icone: '⭐',
-          desbloqueada: (usuario.nivel || 1) >= 2 
+          desbloqueada: (usuario.nivel || 1) >= 2
         },
-        { 
-          nome: 'Compromisso Verde', 
+        {
+          nome: 'Compromisso Verde',
           descricao: '10 kg reciclados',
           icone: '♻️',
-          desbloqueada: (usuario.totalKg || 0) >= 10 
+          desbloqueada: (usuario.totalKg || 0) >= 10
         },
-        { 
-          nome: 'Veterano', 
+        {
+          nome: 'Veterano',
           descricao: 'Alcançar Nível 5',
           icone: '🔥',
-          desbloqueada: (usuario.nivel || 1) >= 5 
+          desbloqueada: (usuario.nivel || 1) >= 5
         },
-        { 
-          nome: 'Centenário', 
+        {
+          nome: 'Centenário',
           descricao: '100 kg reciclados',
           icone: '💯',
-          desbloqueada: (usuario.totalKg || 0) >= 100 
+          desbloqueada: (usuario.totalKg || 0) >= 100
         },
-        { 
-          nome: 'Mestre', 
+        {
+          nome: 'Mestre',
           descricao: 'Alcançar Nível 10',
           icone: '🎯',
-          desbloqueada: (usuario.nivel || 1) >= 10 
+          desbloqueada: (usuario.nivel || 1) >= 10
         },
-        { 
-          nome: 'Herói Ambiental', 
+        {
+          nome: 'Herói Ambiental',
           descricao: '1000 kg reciclados',
           icone: '🌍',
-          desbloqueada: (usuario.totalKg || 0) >= 1000 
+          desbloqueada: (usuario.totalKg || 0) >= 1000
         },
-        { 
-          nome: 'Lendário', 
+        {
+          nome: 'Lendário',
           descricao: 'Alcançar Nível 20',
           icone: '👑',
-          desbloqueada: (usuario.nivel || 1) >= 20 
+          desbloqueada: (usuario.nivel || 1) >= 20
         }
       ];
-      
+
       container.innerHTML = conquistas.map(c => `
         <div class="achievement ${c.desbloqueada ? 'unlocked' : 'locked'}">
           <span class="achievement-icon">${c.icone}</span>
@@ -349,24 +371,24 @@
     function renderizarHistorico(usuario) {
       const container = document.getElementById('history-list');
       if (!container) return;
-      
+
       const historico = usuario.historico || [];
-      
+
       if (historico.length === 0) {
         container.innerHTML = '<p style="text-align: center; color: #666;">Nenhuma atividade registrada ainda.</p>';
         return;
       }
-      
-      const ultimas = historico.slice(-10).reverse();
-      
+
+      const ultimas = historico.slice(0, 10);
+
       container.innerHTML = ultimas.map(ativ => {
         const data = new Date(ativ.data).toLocaleDateString('pt-BR');
         let texto = '';
         let icone = '⭐';
-        
+
         if (ativ.tipo === 'coleta') {
           icone = '♻️';
-          texto = `Reciclou ${(ativ.kg || 0).toFixed(2)}kg de ${ativ.material || 'material'}`;
+          texto = `Reciclou ${RecyNetDB.formatarKg(ativ.kg || 0)} de ${ativ.material || 'material'}`;
         } else if (ativ.tipo === 'resgate') {
           icone = '🎁';
           texto = `Resgatou ${ativ.recompensa || 'uma recompensa'}`;
@@ -376,7 +398,10 @@
         } else {
           texto = ativ.descricao || 'Atividade registrada';
         }
-        
+
+        const ajuste = RecyNetUtils.formatarAjusteHistorico(ativ);
+        if (ajuste) ({ icone, texto } = ajuste);
+
         return `
           <div class="history-item">
             <span class="history-icon">${icone}</span>
@@ -389,22 +414,67 @@
       }).join('');
     }
 
-    // Funções de ação
+    let perfilEmEdicao = null;
     function editarPerfil() {
-      if (typeof RecyNetUtils !== 'undefined' && RecyNetUtils.showToast) {
-        RecyNetUtils.showToast('Funcionalidade em desenvolvimento', 'info');
-      } else {
-        alert('Funcionalidade em desenvolvimento');
-      }
+      const usuario = RecyNetDB.getUsuarioAutenticado();
+      if (!usuario || usuario.tipo !== 'user') return;
+      document.getElementById('editarPerfilForm').reset();
+      perfilEmEdicao = { id: usuario.id, nome: usuario.nome, email: usuario.email };
+      document.getElementById('editarNome').value = usuario.nome;
+      document.getElementById('editarEmail').value = usuario.email;
+      document.getElementById('editarPerfilErro').textContent = '';
+      document.getElementById('editarPerfilDialog').showModal();
     }
-
     function trocarSenha() {
-      if (typeof RecyNetUtils !== 'undefined' && RecyNetUtils.showToast) {
-        RecyNetUtils.showToast('Funcionalidade em desenvolvimento', 'info');
-      } else {
-        alert('Funcionalidade em desenvolvimento');
-      }
+      document.getElementById('trocarSenhaForm').reset();
+      document.getElementById('trocarSenhaErro').textContent = '';
+      document.getElementById('trocarSenhaDialog').showModal();
     }
-  </script>
+    for (const [dialogId, formId, erroId] of [
+      ['editarPerfilDialog', 'editarPerfilForm', 'editarPerfilErro'],
+      ['trocarSenhaDialog', 'trocarSenhaForm', 'trocarSenhaErro']
+    ]) {
+      const dialog = document.getElementById(dialogId);
+      const encerrarRascunho = () => {
+        document.getElementById(formId).reset();
+        document.getElementById(erroId).textContent = '';
+        if (dialogId === 'editarPerfilDialog') perfilEmEdicao = null;
+      };
+      dialog.addEventListener('cancel', encerrarRascunho);
+      dialog.addEventListener('close', () => { if (!dialog.open) encerrarRascunho(); });
+    }
+    document.getElementById('editarPerfilForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const atual = RecyNetDB.getUsuarioAutenticado();
+      if (!atual || atual.id !== perfilEmEdicao?.id) { document.getElementById('editarPerfilErro').textContent = 'A sessão mudou. Abra a edição novamente.'; return; }
+      const nomeDigitado = document.getElementById('editarNome').value;
+      const emailDigitado = document.getElementById('editarEmail').value;
+      // Reaplicar somente campos alterados no rascunho; preservar mudanças alheias nos demais.
+      const result = await RecyNetAuth.atualizarPerfil(nomeDigitado, emailDigitado, {
+        alterarNome: nomeDigitado !== perfilEmEdicao.nome,
+        alterarEmail: emailDigitado !== perfilEmEdicao.email
+      });
+      if (!result.sucesso) { document.getElementById('editarPerfilErro').textContent = result.erro; return; }
+      renderizarPerfil(result.usuario);
+      document.getElementById('editarPerfilDialog').close();
+      document.getElementById('editarPerfilForm').reset();
+      document.getElementById('syncDraftNotice')?.remove();
+      RecyNetUtils.showToast('Perfil atualizado', 'success');
+    });
+    document.getElementById('trocarSenhaForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      const botao = event.submitter;
+      botao.disabled = true;
+      try {
+        const result = await RecyNetAuth.alterarSenha(document.getElementById('senhaAtual').value, document.getElementById('novaSenha').value, document.getElementById('confirmarNovaSenha').value);
+        if (!result.sucesso) { document.getElementById('trocarSenhaErro').textContent = result.erro; return; }
+        document.getElementById('trocarSenhaDialog').close();
+        document.getElementById('trocarSenhaForm').reset();
+        RecyNetUtils.showToast('Senha alterada', 'success');
+      } finally { botao.disabled = false; }
+    });
+
+RecyNetUtils.aoAtualizarDados(u => { renderizarPerfil(u); });
+</script>
 </body>
 </html>

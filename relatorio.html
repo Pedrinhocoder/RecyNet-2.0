@@ -5,41 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>RecyNet - Relatório</title>
   <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
-  <link rel="stylesheet" href="design-system.css" />
-  <link rel="stylesheet" href="components.css" />
-  <link rel="stylesheet" href="relatorio.css" />
+  <link rel="stylesheet" href="assets/css/design-system.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/relatorio.css" />
 </head>
 <body>
 
   <!-- Navbar -->
+  <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
   <nav class="navbar">
     <div class="navbar-container">
       <a href="cooperado.html" class="navbar-logo"><img src="assets/logos/recynet-colorida.png" class="brand-mark" alt="" aria-hidden="true" width="48" height="48"><span>RecyNet</span></a>
-      
+
       <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle menu">
         ☰
       </button>
-      
-      <div class="navbar-menu" id="navbarMenu">
-        <a href="locais.html" class="nav-link">Locais de Coleta</a>
-        <a href="relatorio.html" class="nav-link active">Relatório</a>
-        <a href="ranking.html" class="nav-link">Ranking</a>
-        <a href="pontuacao.html" class="nav-link">Pontuação</a>
-        <a href="noticias.html" class="nav-link">Notícias</a>
-        <a href="recompensas.html" class="nav-link">Recompensas</a>
-      </div>
-      
-      <div class="navbar-actions" id="navbarActions">
-        <a href="cooperado.html">Home</a>
-        <a href="perfil.html">Perfil</a>
-        <a href="index.html">Sobre Nós</a>
-        <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+
+      <div class="navbar-panel">
+        <div class="navbar-menu" id="navbarMenu">
+          <a href="locais.html" class="nav-link">Locais de Coleta</a>
+          <a href="relatorio.html" class="nav-link active">Relatório</a>
+          <a href="ranking.html" class="nav-link">Ranking</a>
+          <a href="pontuacao.html" class="nav-link">Pontuação</a>
+          <a href="noticias.html" class="nav-link">Notícias</a>
+          <a href="recompensas.html" class="nav-link">Recompensas</a>
+        </div>
+
+        <div class="navbar-actions" id="navbarActions">
+          <a href="cooperado.html">Home</a>
+          <a href="perfil.html">Perfil</a>
+          <a href="index.html">Sobre Nós</a>
+          <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+        </div>
       </div>
     </div>
   </nav>
 
   <!-- Conteúdo Principal -->
-  <main class="main-content">
+  <main id="conteudo-principal" tabindex="-1" class="main-content">
     <div class="container fade-in-up">
 
       <!-- Header -->
@@ -47,7 +50,7 @@
         <h1 class="page-title">📊 Seu Relatório</h1>
         <p class="page-subtitle">Acompanhe sua jornada de reciclagem</p>
       </div>
-      
+
       <!-- Barra de Nível (DESTAQUE) -->
       <div id="level-bar-container" class="level-bar-highlight-container"></div>
 
@@ -97,8 +100,9 @@
           </div>
           <div class="card-body">
             <div class="chart-container">
-              <canvas id="materialsChart"></canvas>
+              <canvas id="materialsChart" role="img" aria-label="Quilos reciclados por material" aria-describedby="materialsSummary"></canvas>
             </div>
+            <p id="materialsSummary" class="chart-summary"></p>
           </div>
         </div>
 
@@ -107,22 +111,23 @@
           <div class="card-header">
             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-sm);">
               <h2 class="card-title">📈 Evolução da Reciclagem</h2>
-              <div class="temporal-filters">
-                <button class="filter-btn active" data-period="week">Semana</button>
-                <button class="filter-btn" data-period="month">Mês</button>
-                <button class="filter-btn" data-period="year">Ano</button>
+              <div class="temporal-filters" role="group" aria-label="Período do gráfico">
+                <button class="filter-btn active" type="button" aria-pressed="true" aria-controls="temporalChart" data-period="week" title="Últimos sete dias">Semana</button>
+                <button class="filter-btn" type="button" aria-pressed="false" aria-controls="temporalChart" data-period="month" title="Últimas quatro semanas">Mês</button>
+                <button class="filter-btn" type="button" aria-pressed="false" aria-controls="temporalChart" data-period="year" title="Últimos doze meses">Ano</button>
               </div>
             </div>
             <p class="card-subtitle">Total de KG reciclados ao longo do tempo</p>
           </div>
           <div class="card-body">
             <div class="chart-container">
-              <canvas id="temporalChart"></canvas>
+              <canvas id="temporalChart" role="img" aria-label="Coletas por período" aria-describedby="temporalSummary"></canvas>
             </div>
+            <p id="temporalSummary" class="chart-summary" aria-live="polite"></p>
           </div>
         </div>
 
-        
+
 
       </div>
 
@@ -133,7 +138,7 @@
           <p class="card-subtitle">Baseado no total de KG reciclados</p>
         </div>
         <div class="card-body">
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--spacing-xl); align-items: start;">
+          <div class="ranking-grid">
             <div style="text-align: center;">
               <h3 class="card-subtitle" style="margin-bottom: var(--spacing-md); text-align: left;">Pódio</h3>
               <div id="podio-container"></div>
@@ -167,17 +172,17 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="database.js"></script>
-  <script src="auth.js"></script>
-  <script src="ranking_system.js"></script>
-  <script src="level-bar.js"></script>
-  <script src="utils.js"></script>
+  <script src="assets/vendor/chart.umd.js"></script>
+  <script src="assets/js/database.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ranking_system.js"></script>
+  <script src="assets/js/level-bar.js"></script>
+  <script src="assets/js/utils.js"></script>
   <script>
     // ========================================
     // INICIALIZAÇÃO DA PÁGINA
     // ========================================
-    
+
     let usuarioLogado = null;
     let chartMaterials = null;
     let chartTemporal = null;
@@ -205,7 +210,7 @@
         if (chart.config.type !== 'bar') return;
         const { ctx, data } = chart;
         ctx.save();
-        
+
         // Calcular o total de cada barra para mostrar o label no topo
         const totals = new Array(data.labels.length).fill(0);
         data.datasets.forEach(dataset => {
@@ -228,16 +233,27 @@
         ctx.restore();
       }
     };
-    Chart.register(valueLabelPlugin);
-    Chart.defaults.animation = false;
+    if (typeof Chart !== 'undefined') {
+      Chart.register(valueLabelPlugin);
+      Chart.defaults.animation = false;
+    }
+
+    function graficoDisponivel(canvas) {
+      if (typeof Chart !== 'undefined') return true;
+      if (!canvas.parentElement.querySelector('.chart-unavailable')) {
+        const aviso = document.createElement('p');
+        aviso.className = 'chart-unavailable';
+        aviso.textContent = 'Gráfico indisponível. Recarregue a página para tentar novamente.';
+        canvas.parentElement.appendChild(aviso);
+      }
+      canvas.hidden = true;
+      return false;
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
       // Proteger página
-      usuarioLogado = RecyNetAuth.getUsuarioLogado();
-      if (!usuarioLogado) {
-        window.location.href = 'recynet.html';
-        return;
-      }
+      usuarioLogado = RecyNetAuth.protegerCooperado();
+      if (!usuarioLogado) return;
 
       // Carregar dados atualizados
       const usuarioAtualizado = RecyNetDB.getUsuarioPorId(usuarioLogado.id);
@@ -259,7 +275,7 @@
     // ========================================
     // RESUMO DO RANKING
     // ========================================
-    
+
     function renderizarResumoRanking() {
       RankingSystem.renderizarPodio('podio-container');
       RankingSystem.renderizarPosicaoUsuario('my-position-container', usuarioLogado.id);
@@ -269,19 +285,19 @@
     // ========================================
     // BARRA DE NÍVEL (DESTAQUE)
     // ========================================
-    
+
     function renderizarBarraNivel() {
       const container = document.getElementById('level-bar-container');
       if (!container) {
         console.error('Container level-bar-container não encontrado');
         return;
       }
-      
+
       if (typeof LevelBar === 'undefined') {
         console.error('LevelBar não carregado');
         return;
       }
-      
+
       // Destaque para relatório (igual cooperado)
       container.innerHTML = LevelBar.renderHighlight(usuarioLogado);
     }
@@ -289,19 +305,19 @@
     // ========================================
     // RESUMO ESTATÍSTICO
     // ========================================
-    
+
     function renderizarResumoEstatistico() {
       // Nível
       document.getElementById('overviewLevel').textContent = usuarioLogado.nivel || 1;
-      
+
       // Pontos
-      document.getElementById('overviewPoints').textContent = 
-        Math.floor(usuarioLogado.pontosDisponiveis || 0).toLocaleString('pt-BR');
-      
+      document.getElementById('overviewPoints').textContent =
+        RecyNetDB.formatarPontos(usuarioLogado.pontosDisponiveis || 0);
+
       // Total KG
-      document.getElementById('overviewKg').textContent = 
-        `${(usuarioLogado.totalKg || 0).toFixed(2)} kg`;
-      
+      document.getElementById('overviewKg').textContent =
+        `${RecyNetDB.formatarKg(usuarioLogado.totalKg || 0)}`;
+
       // Posição no Ranking
       const posicao = RankingSystem.obterPosicaoUsuario(usuarioLogado.id);
       document.getElementById('overviewRank').textContent = posicao ? `#${posicao}` : '-';
@@ -310,7 +326,7 @@
     // ========================================
     // GRÁFICO DE MATERIAIS
     // ========================================
-    
+
     function renderizarGraficoMateriais() {
       const materiais = usuarioLogado.materiais || {
         papel: 0,
@@ -320,12 +336,13 @@
         eletronico: 0
       };
 
+      document.getElementById('materialsSummary').textContent = Object.entries(materiais).map(([material, kg]) => `${material}: ${RecyNetDB.formatarKg(kg)}`).join('; ');
      const canvas = document.getElementById('materialsChart');
-     if (!canvas) return;
+     if (!canvas || !graficoDisponivel(canvas)) return;
 
      const ctx = canvas.getContext('2d');
- 
-      
+
+
       // Destruir gráfico anterior se existir
       if (chartMaterials) {
         chartMaterials.destroy();
@@ -381,7 +398,7 @@
                   const label = context.label || '';
                   const value = context.parsed || 0;
                   const percent = totalKg > 0 ? ((value / totalKg) * 100).toFixed(1) : '0.0';
-                  return `${label}: ${value.toFixed(2)} kg (${percent}%)`;
+                  return `${label}: ${RecyNetDB.formatarKg(value)} (${percent}%)`;
                 }
               }
             }
@@ -393,12 +410,13 @@
     // ========================================
     // GRÁFICO TEMPORAL
     // ========================================
-    
+
     function renderizarGraficoTemporal(periodo) {
+      document.getElementById('temporalSummary').textContent = 'Os registros de coleta deste usuário estão detalhados no histórico de atividades.';
       const canvas = document.getElementById('temporalChart');
-      if (!canvas) return;
+      if (!canvas || !graficoDisponivel(canvas)) return;
       const container = canvas.parentElement;
-      
+
       const historico = usuarioLogado.historico || [];
       const coletas = historico.filter(h => h.tipo === 'coleta');
 
@@ -408,7 +426,7 @@
           configurarFiltrosTemporal();
           return;
         }
-        
+
         // Criar elemento de mensagem mantendo o canvas oculto
         canvas.style.display = 'none';
         const emptyDiv = document.createElement('div');
@@ -425,7 +443,7 @@
       if (emptyDiv) emptyDiv.remove();
 
       const ctx = canvas.getContext('2d');
-      
+
       // Destruir gráfico anterior
       if (chartTemporal) {
         chartTemporal.destroy();
@@ -443,7 +461,7 @@
           dataFim.setDate(dataFim.getDate() - i);
           const dataInicio = new Date(dataFim);
           dataInicio.setHours(0, 0, 0, 0);
-          
+
           labels.push(dataFim.toLocaleDateString('pt-BR', { weekday: 'short' }));
           datasIntervalos.push({ inicio: dataInicio, fim: dataFim });
         }
@@ -451,21 +469,23 @@
         for (let i = 3; i >= 0; i--) {
           const dataFim = new Date(agora);
           dataFim.setDate(dataFim.getDate() - (i * 7));
+          dataFim.setHours(23, 59, 59, 999);
           const dataInicio = new Date(dataFim);
           dataInicio.setDate(dataInicio.getDate() - 6);
           dataInicio.setHours(0, 0, 0, 0);
-          
+
           labels.push(`Sem ${4 - i}`);
           datasIntervalos.push({ inicio: dataInicio, fim: dataFim });
         }
       } else if (periodo === 'year') {
         for (let i = 11; i >= 0; i--) {
           const dataRef = new Date(agora);
+          dataRef.setDate(1);
           dataRef.setMonth(dataRef.getMonth() - i);
-          
+
           const dataInicio = new Date(dataRef.getFullYear(), dataRef.getMonth(), 1, 0, 0, 0, 0);
           const dataFim = new Date(dataRef.getFullYear(), dataRef.getMonth() + 1, 0, 23, 59, 59, 999);
-          
+
           labels.push(dataRef.toLocaleDateString('pt-BR', { month: 'short' }));
           datasIntervalos.push({ inicio: dataInicio, fim: dataFim });
         }
@@ -478,7 +498,7 @@
           return coletas
             .filter(c => {
               const d = new Date(c.data);
-              return d >= intervalo.inicio && d <= intervalo.fim && c.material === key;
+              return d >= intervalo.inicio && d <= intervalo.fim && d <= agora && c.material === key;
             })
             .reduce((sum, c) => sum + (c.kg || 0), 0);
         });
@@ -493,13 +513,15 @@
       });
 
       // Calcular o total máximo para escala do gráfico
-      const totaisPorBarra = datasIntervalos.map((_, i) => 
+      const totaisPorBarra = datasIntervalos.map((_, i) =>
         datasets.reduce((sum, ds) => sum + ds.data[i], 0)
       );
-      
+
       const maxV = Math.max(...totaisPorBarra, 1);
       const step = maxV <= 2 ? 0.5 : maxV <= 10 ? 1 : maxV <= 50 ? 5 : 10;
       const niceMax = Math.ceil(maxV / step) * step * 1.2;
+
+      document.getElementById('temporalSummary').textContent = labels.map((label, i) => `${label}: ${RecyNetDB.formatarKg(datasets.reduce((total, conjunto) => total + (conjunto.data[i] || 0), 0))}`).join('; ');
 
       chartTemporal = new Chart(ctx, {
         type: 'bar',
@@ -508,10 +530,11 @@
           datasets: datasets
         },
         options: {
+          animation: { duration: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1000 },
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { 
+            legend: {
               display: true,
               position: 'top',
               labels: {
@@ -524,7 +547,7 @@
               mode: 'index',
               intersect: false,
               callbacks: {
-                label: (context) => `${context.dataset.label}: ${context.parsed.y.toFixed(2)} kg`
+                label: (context) => `${context.dataset.label}: ${RecyNetDB.formatarKg(context.parsed.y)}`
               }
             }
           },
@@ -535,9 +558,9 @@
               max: niceMax,
               ticks: { callback: v => v.toFixed(1) + ' kg' }
             },
-            x: { 
+            x: {
               stacked: true, // Habilitar empilhamento no eixo X
-              grid: { display: false } 
+              grid: { display: false }
             }
           }
         }
@@ -548,18 +571,22 @@
       // Selecionar apenas os botões dentro do card de evolução
       const filtersContainer = document.querySelector('.temporal-filters');
       if (!filtersContainer) return;
-      
+
       const botoes = filtersContainer.querySelectorAll('.filter-btn');
       botoes.forEach(btn => {
         // Remover listener anterior se existir (cloneNode limpa listeners)
         const novoBtn = btn.cloneNode(true);
+        novoBtn.setAttribute('aria-pressed', String(novoBtn.classList.contains('active')));
         btn.parentNode.replaceChild(novoBtn, btn);
-        
+
         novoBtn.addEventListener('click', function() {
           const period = this.dataset.period;
           const todosBotoes = filtersContainer.querySelectorAll('.filter-btn');
-          todosBotoes.forEach(b => b.classList.remove('active'));
-          this.classList.add('active');
+          todosBotoes.forEach(b => {
+            const selecionado = b === this;
+            b.classList.toggle('active', selecionado);
+            b.setAttribute('aria-pressed', String(selecionado));
+          });
           renderizarGraficoTemporal(period);
         });
       });
@@ -568,11 +595,11 @@
     // ========================================
     // HISTÓRICO DE ATIVIDADES
     // ========================================
-    
+
     function renderizarHistorico() {
       const container = document.getElementById('activity-timeline');
       const historico = usuarioLogado.historico || [];
-      
+
       if (historico.length === 0) {
         container.innerHTML = `
           <div class="activities-empty" style="text-align: center; padding: var(--spacing-2xl); color: var(--color-gray-500);">
@@ -585,14 +612,14 @@
       }
 
       // Pegar últimas 10 atividades
-      const ultimas = historico.slice(-10).reverse();
-      
+      const ultimas = historico.slice(0, 10);
+
       let html = '';
-      
+
       ultimas.forEach(atividade => {
         const data = new Date(atividade.data);
-        const dataFormatada = data.toLocaleDateString('pt-BR', { 
-          day: '2-digit', 
+        const dataFormatada = data.toLocaleDateString('pt-BR', {
+          day: '2-digit',
           month: 'long',
           year: 'numeric',
           hour: '2-digit',
@@ -602,34 +629,29 @@
         let icone = '📌';
         let pontosBadge = '';
         let titulo = 'Atividade registrada';
-        
+
         if (atividade.tipo === 'coleta') {
           icone = '♻️';
           const kg = atividade.kg || 0;
-          const pontos = Math.floor(atividade.pontosGanhos || 0);
-          titulo = `Reciclou ${kg.toFixed(2)}kg de ${atividade.material || 'material'}`;
+          const pontos = RecyNetDB.formatarPontos(atividade.pontosGanhos || 0);
+          titulo = `Reciclou ${RecyNetDB.formatarKg(kg)} de ${atividade.material || 'material'}`;
           pontosBadge = `<span class="activity-points">+${pontos} pontos</span>`;
         } else if (atividade.tipo === 'resgate') {
           icone = '🎁';
-          const custo = Math.floor(atividade.custo || 0);
+          const custo = RecyNetDB.formatarPontos(atividade.custo || 0);
           titulo = `Resgatou ${atividade.recompensa || 'uma recompensa'}`;
           pontosBadge = `<span class="activity-points negative">-${custo} pontos</span>`;
         } else if (atividade.tipo === 'nivel') {
           icone = '🏆';
           titulo = `Subiu para nível ${atividade.novoNivel || ''}`;
           pontosBadge = '<span class="activity-badge">Conquista!</span>';
-        } else if (atividade.tipo === 'ajuste') {
-          icone = '⚙️';
-          const pontos = Math.floor(atividade.pontos || 0);
-          const sinal = pontos >= 0 ? '+' : '';
-          titulo = atividade.motivo || 'Ajuste de pontos';
-          pontosBadge = `<span class="activity-points">${sinal}${pontos} pontos</span>`;
-        } else if (atividade.tipo === 'ajuste_kg') {
-          icone = '⚖️';
-          const kg = atividade.kg || 0;
-          titulo = atividade.motivo || `Ajuste de ${kg.toFixed(2)}kg`;
         }
-        
+        const ajuste = RecyNetUtils.formatarAjusteHistorico(atividade);
+        if (ajuste) {
+          icone = ajuste.icone;
+          titulo = ajuste.texto;
+        }
+
         html += `
           <div class="activity-item">
             <div class="activity-icon">${icone}</div>
@@ -641,11 +663,13 @@
           </div>
         `;
       });
-      
+
       container.innerHTML = html;
     }
 
-  </script>
+
+RecyNetUtils.aoAtualizarDados(u => { usuarioLogado = u; renderizarBarraNivel(); renderizarResumoEstatistico(); renderizarGraficoMateriais(); const selecionado = document.querySelector('[data-period].active')?.dataset.period || 'week'; renderizarGraficoTemporal(selecionado); renderizarResumoRanking(); renderizarHistorico(); });
+</script>
 
 </body>
 </html>

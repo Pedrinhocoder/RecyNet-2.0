@@ -4,29 +4,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RecyNet - Plataforma Sustentável</title>
   <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
-  <link rel="stylesheet" href="design-system.css" />
-  <link rel="stylesheet" href="components.css" />
-  <link rel="stylesheet" href="index.css" />
+  <link rel="stylesheet" href="assets/css/design-system.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/index.css" />
 </head>
 <body>
+  <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
   <nav class="navbar">
     <div class="navbar-container">
       <a href="index.html" class="navbar-logo"><img src="assets/logos/recynet-colorida.png" class="brand-mark" alt="" aria-hidden="true" width="48" height="48"><span>RecyNet</span></a>
-      
+
       <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle menu">
         ☰
       </button>
-      
-      <div class="navbar-menu" id="navbarMenu">
-        <a href="#sobre" class="nav-link">Sobre</a>
-        <a href="#projetos" class="nav-link">Atuação</a>
-        <a href="#impacto" class="nav-link">Visão</a>
-        <a href="cadastro.html" class="nav-link active">Entrar</a>
+
+      <div class="navbar-panel">
+        <div class="navbar-menu" id="navbarMenu">
+          <a href="#sobre" class="nav-link">Sobre</a>
+          <a href="#projetos" class="nav-link">Atuação</a>
+          <a href="#impacto" class="nav-link">Visão</a>
+          <a href="recynet.html" class="nav-link active">Entrar</a>
+        </div>
       </div>
     </div>
   </nav>
 
-  <main class="home-container">
+  <main id="conteudo-principal" tabindex="-1" class="home-container">
     <section class="hero-section">
       <h1 class="hero-title">RecyNet: Transformando Reciclagem em Valor Real</h1>
       <p class="hero-subtitle">
@@ -108,19 +111,6 @@
     <p>© 2026 RecyNet – Plataforma de Incentivo Sustentável</p>
   </footer>
 
-  <script>
-    const navbarToggle = document.getElementById('navbarToggle');
-    const navbarMenu = document.getElementById('navbarMenu');
-    
-    navbarToggle.addEventListener('click', () => {
-      navbarMenu.classList.toggle('active');
-    });
-
-    document.querySelectorAll('.nav-link').forEach(link => {
-      link.addEventListener('click', () => {
-        navbarMenu.classList.remove('active');
-      });
-    });
-  </script>
+  <script src="assets/js/utils.js"></script>
 </body>
 </html>

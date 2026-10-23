@@ -1,327 +1,93 @@
-# ♻️ RecyNet — Versão 2.0
+# RecyNet 2.0
 
-**RecyNet** é um protótipo de plataforma web que utiliza **gamificação para incentivar a reciclagem**.
-O sistema permite que usuários registrem materiais reciclados, acumulem pontos, subam de nível e participem de rankings, criando um ambiente interativo que estimula práticas sustentáveis.
+Protótipo local de incentivo à reciclagem, com cadastro, coletas, pontos, níveis, ranking e recompensas simuladas. O repositório [Pedrinhocoder/RecyNet-2.0](https://github.com/Pedrinhocoder/RecyNet-2.0) reúne a versão revisada do projeto, seus recursos, testes e documentação, organizados em pastas próprias.
 
-A **versão 2.0** representa uma evolução significativa do projeto, trazendo melhorias estruturais, organização de código, expansão de funcionalidades e preparação da arquitetura para futuras integrações com backend e banco de dados.
+## Executar
 
-O projeto atualmente funciona como um **MVP (Minimum Viable Product)** voltado para **testes de usabilidade, engajamento e validação da ideia**.
+Requer Node.js 20 ou superior; Node.js 22 é usado na automação de testes.
 
-Link do protótipo: https://pedrinhocoder.github.io/RecyNet-2.0/
-
----
-
-# 🌍 Objetivo do Projeto
-
-O objetivo do RecyNet é **incentivar a reciclagem através de mecânicas de gamificação**, criando um sistema onde o usuário pode:
-
-* Registrar materiais reciclados
-* Acumular pontos
-* Evoluir de nível
-* Participar de rankings
-* Visualizar seu impacto ambiental
-
-A proposta é transformar a reciclagem em **uma experiência mais motivadora, competitiva e mensurável**.
-
----
-
-# 🧠 Conceito do Sistema
-
-O RecyNet utiliza um ciclo de engajamento inspirado em mecânicas de jogos:
-
-Usuário cria conta
-↓
-Registra reciclagem
-↓
-Recebe pontos
-↓
-Sobe de nível
-↓
-Aparece no ranking
-↓
-Continua reciclando para evoluir
-
-Esse sistema cria **motivação contínua para participação**.
-
----
-
-# 🚀 Funcionalidades do Protótipo
-
-## 👤 Sistema de Usuários
-
-* Cadastro de usuário
-* Sistema de login
-* Perfis individuais
-* Diferenciação de tipos de usuário (ex: administrador / usuário)
-
-Cada usuário possui:
-
-* Pontuação acumulada
-* Nível atual
-* Total de material reciclado (kg)
-
----
-
-## ♻️ Registro de Reciclagem
-
-O usuário pode registrar materiais reciclados dentro do sistema.
-
-Esse registro gera:
-
-* Pontos
-* Atualização de estatísticas
-* Progressão no sistema
-
----
-
-## 📈 Sistema de Níveis
-
-O RecyNet possui um **sistema de progressão baseado em pontos**.
-
-Quanto mais pontos o usuário acumula:
-
-* maior seu nível
-* maior sua posição no ranking
-
-A progressão é **gradual**, incentivando participação contínua.
-
----
-
-## 🏆 Ranking
-
-O sistema possui um **ranking de usuários baseado em pontuação**.
-
-Isso cria um elemento de **competição saudável**, incentivando maior participação e engajamento.
-
----
-
-## 📍 Mapa de Pontos de Coleta
-
-O sistema apresenta **locais reais de coleta de recicláveis**.
-
-O usuário pode:
-
-* visualizar pontos de coleta
-* filtrar locais disponíveis
-* identificar onde descartar materiais recicláveis
-
----
-
-## 🎁 Sistema de Recompensas
-
-O protótipo inclui um sistema de recompensas baseado em pontuação, permitindo que usuários troquem pontos por benefícios dentro do sistema.
-
----
-
-## 📊 Estatísticas de Impacto
-
-O sistema registra dados importantes como:
-
-* quantidade de material reciclado
-* pontuação total
-* progresso do usuário
-
-Essas informações ajudam o usuário a visualizar **seu impacto ambiental individual**.
-
----
-
-# 🧱 Tecnologias Utilizadas
-
-O projeto foi desenvolvido utilizando tecnologias web fundamentais:
-
-* **HTML**
-* **CSS**
-* **JavaScript**
-
-O sistema atualmente funciona **100% no front-end**, utilizando armazenamento local para simular persistência de dados.
-
----
-
-# ⚙️ Armazenamento de Dados
-
-Na versão atual, os dados são armazenados utilizando:
-
-**localStorage**
-
-Isso permite que o sistema funcione como **protótipo funcional**, simulando comportamento de um sistema completo.
-
-Versões futuras podem integrar:
-
-* Backend real
-* Banco de dados
-* API funcional
-
----
-
-# 🔌 Estrutura de API (Planejada)
-
-A versão 2.0 já inclui **estrutura de API planejada**, preparando o projeto para futuras integrações.
-
-Exemplos de endpoints definidos:
-
-```
-POST /auth/login
-POST /auth/register
-
-GET /users/me
-
-POST /collections
-GET /collections
-
-GET /ranking
-
-GET /rewards
-POST /rewards/redeem
+```sh
+npm ci
+npm start
 ```
 
-Essa estrutura facilita a futura implementação de um backend completo.
+Abra **http://127.0.0.1:8080**. A documentação da API planejada fica em **http://127.0.0.1:8080/api-docs.html**. A variável `PORT` permite mudar a porta. Os atalhos `iniciar-api-docs.bat` e `iniciar-api-docs.ps1` usam o mesmo servidor Node a partir da pasta do projeto.
 
----
+Crie uma conta em `cadastro.html`. A senha exige oito caracteres ou mais, maiúscula, minúscula, número e símbolo. Para demonstrar a área administrativa, use `admin@fortes.com.br` e `123456`, credencial pública da demonstração.
 
-# 📦 Estrutura do Projeto
+## Organização
 
-Estrutura simplificada:
-
-```
-RecyNet/
-│
-├── index.html
-├── cadastro.html
-├── perfil.html
-├── ranking.html
-├── locais.html
-│
-├── css/
-├── js/
-│
-├── docs/
-└── reports/
+```text
+*.html                      21 páginas; URLs preservadas no GitHub Pages
+api-spec.yaml               fonte da API planejada
+api-spec.json               versão gerada para a documentação
+assets/
+  css/                      estilos compartilhados e de página
+  js/                       regras, armazenamento e controladores
+  images/                   imagens originais do projeto
+  logos/                    logos e orientação de uso
+  vendor/                   Chart.js e licença
+scripts/                    servidor local e geração da OpenAPI
+tests/                      lógica, estrutura, servidor, navegador e acessibilidade
+docs/                       estado atual, revisões e relatórios históricos
+.github/                    automação de testes e modelo de pull request
 ```
 
----
+O servidor Node local expõe somente as páginas HTML, recursos em `assets/`, especificação da API, documentos em `/docs/` e o script isolado necessário ao Worker de diagnóstico. `node_modules/`, configuração do projeto e os demais testes não são arquivos públicos. A estrutura detalhada e o mapa de migração estão em [docs/ORGANIZACAO.md](docs/ORGANIZACAO.md).
 
-# 🔄 Evolução do Projeto
+O GitHub Pages existente continua usando as páginas da raiz, com os mesmos endereços. A pasta `assets/` concentra os recursos, e `.nojekyll` conserva a publicação estática.
 
-## 🧩 Versão 1.0
+## Funcionalidades
 
-A versão inicial do RecyNet apresentou:
+- Cadastro, login, perfil e troca de senha; emails normalizados e permissões administrativas verificadas nas telas e ações.
+- Coletas a partir de 100 g com precisão de gramas; pontos com até três casas decimais; um nível por 2 kg.
+- Registro administrativo com data atual ou retroativa, preservando a sessão do administrador.
+- Ajustes por material e pontos, com motivo textual de até 500 caracteres; resgates pelo ID e preço do catálogo.
+- Histórico, ranking e relatórios, com Chart.js distribuído localmente e resumo textual.
+- Gravações coordenadas entre abas; envios repetidos bloqueados durante a operação; rascunhos de perfil preservados e conflitos tratados por campo.
+- Exportação e restauração de backup, validação de dados, cópia anterior e tratamento de falhas de gravação/download.
+- Demonstração que preserva contas existentes; diagnóstico em Worker isolado, com cancelamento e limite de 30 segundos.
+- Navegação por teclado, responsividade, mensagens acessíveis, contraste e respeito a movimento reduzido.
 
-* Estrutura básica do sistema
-* Primeiras páginas HTML
-* Sistema inicial de usuários
-* Sistema básico de pontuação
-* Estrutura inicial de ranking
-* Interface inicial do projeto
+Os locais, horários, mapas, notícias e recompensas são demonstrativos. Pontos e resgates não geram benefícios reais. Não existe módulo de IA nem backend implementado.
 
-Essa versão teve como objetivo **provar a ideia central do sistema**.
+## Dados locais e recuperação
 
----
+As contas são confirmadas em IndexedDB; `localStorage` mantém um espelho para as telas e a sessão. As alterações usam Web Locks e só retornam sucesso após confirmação. Use navegador atualizado, em `localhost` ou HTTPS, com IndexedDB e Web Locks disponíveis.
 
-## 🚀 Versão 2.0 — Melhorias e Expansões
+A primeira gravação incorpora dados locais existentes. Depois disso, editar ou apagar somente o espelho não substitui o estado confirmado: use as ações de limpeza e restauração do sistema. Uma mudança de origem ou porta cria outro armazenamento do navegador; faça um backup antes de mover o uso para outro endereço. Para remover tudo, limpe os dados completos do site no navegador.
 
-A versão 2.0 trouxe uma evolução significativa em diversas áreas.
+Exporte o JSON em **Utilidades administrativas**. A página `recuperar-dados.html` valida o arquivo, apresenta uma prévia e solicita confirmação. A restauração exige sessão administrativa ou base local ilegível; preserva a base anterior em `recynet_backup_anterior` e encerra a sessão.
 
-### 🏗️ Melhorias de Estrutura
+O esquema valida tipos, versão, peso, pontos, materiais, nível e somas do histórico. Dados inválidos são preservados e bloqueiam novas alterações. Legados íntegros sem versão recebem `versaoDados: 1` ao gravar. Resíduos numéricos antigos de kg/gramas podem ser normalizados na importação dentro da tolerância prevista e com aviso. Saldos e históricos não são inventados nem reparados por suposição.
 
-* Melhor organização do código
-* Separação mais clara entre arquivos JS
-* Modularização da lógica do sistema
-* Melhor estrutura de arquivos CSS
-* Organização do projeto para facilitar manutenção
+A autenticação é uma simulação controlada pelo próprio navegador. A senha administrativa pública, hashes SHA-256 sem salt e backups legíveis não representam segurança de um serviço real. Use dados fictícios.
 
----
+## Testes
 
-### ⚙️ Melhorias de Sistema
+```sh
+npm test
+npx playwright install chromium
+npm run test:browser
+npm run test:accessibility
+```
 
-* Aprimoramento do sistema de login
-* Melhor gerenciamento de usuários
-* Melhor estrutura do sistema de pontuação
-* Aprimoramento do cálculo de níveis
-* Melhor funcionamento do ranking
+A suíte reúne **50 testes do modelo, 3 estruturais, 1 teste real do servidor, 65 cenários no Chromium e 42 auditorias de acessibilidade/layout**. Para Chromium já instalado, defina `CHROMIUM_PATH`. Os testes usam dados fictícios e contextos isolados; evidências temporárias ficam em `work/`, fora do versionamento.
 
----
+O workflow [Validar projeto](.github/workflows/ci.yml) executa os testes em pushes e pull requests. A definição do workflow está incluída; sua execução remota depende da publicação e da configuração de Actions no GitHub.
 
-### 🌍 Novas Funcionalidades
+Consulte [tests/README.md](tests/README.md) e [CONTRIBUTING.md](CONTRIBUTING.md).
 
-Adições importantes da versão 2.0:
+## Documentação e API
 
-* Filtros de locais de reciclagem
-* Estatísticas de impacto ambiental
-* Melhorias no sistema de relatórios
-* Melhor estrutura de perfil do usuário
+- [Índice da documentação](docs/README.md)
+- [Estado atual e correções](docs/ESTADO-ATUAL.md)
+- [Revisão técnica completa](docs/REVISAO-COMPLETA-2026-10-23.md)
+- [Organização e migração dos arquivos](docs/ORGANIZACAO.md)
+- [Guia da API planejada](docs/README-API.md)
 
----
+A fonte da OpenAPI está em `api-spec.yaml`. Após alterá-la, execute `npm run build:api` para atualizar `api-spec.json`. Os testes verificam equivalência e referências. A documentação não envia alterações a um servidor de contas.
 
-### 📊 Melhorias de Interface
+Os relatórios históricos e o README anterior foram preservados em `docs/`; podem mencionar os caminhos e contagens das etapas anteriores. As licenças dos componentes distribuídos permanecem junto aos arquivos de terceiros em `assets/vendor/`.
 
-* Correções de responsividade
-* Melhor organização visual
-* Ajustes de layout
-* Melhor experiência de navegação
-* Adição de CSS global
-* Simulação de banco de dados em JavaScript
-
----
-
-### 🔧 Melhorias Técnicas
-
-* Correção de bugs
-* melhorias na lógica JavaScript
-* melhorias na organização do código
-* melhorias na estrutura do projeto
-
----
-
-### 📚 Documentação
-
-A versão 2.0 também introduziu **documentação técnica completa**, incluindo:
-
-* relatórios de debug
-* relatórios de análise do sistema
-* guias de teste
-* resumos executivos do projeto
-
----
-
-# 🧪 Objetivo da Versão 2.0
-
-A versão 2.0 foi desenvolvida para:
-
-* melhorar a estrutura do projeto
-* corrigir problemas encontrados
-* expandir funcionalidades
-* preparar o sistema para testes reais
-
-Essa versão permite **avaliar o engajamento dos usuários com o sistema de gamificação aplicado à reciclagem**.
-
----
-
-# 🔮 Possíveis Evoluções Futuras
-
-Versões futuras do RecyNet podem incluir:
-
-* Backend completo
-* Banco de dados real
-* Sistema antifraude
-* Integração com cooperativas
-* Parcerias com empresas
-* Sistema de recompensas reais
-* Aplicativo mobile
-* Expansão para uso em cidades
-
----
-
-# 👨‍💻 Autor
-
-Pedro Cauã
-
-Projeto desenvolvido como protótipo e estudo de aplicação de **gamificação em sistemas de incentivo à reciclagem**.
-
----
-
-# 🌱 Visão do Projeto
-
-O RecyNet busca explorar como **tecnologia, gamificação e sustentabilidade** podem trabalhar juntas para incentivar comportamentos ambientalmente responsáveis.
-
-Pequenas ações individuais podem gerar **grandes impactos coletivos**.
-
+Autor do projeto: Pedro Cauã.

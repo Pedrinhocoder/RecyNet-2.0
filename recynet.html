@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RecyNet - Login</title>
   <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
-  <link rel="stylesheet" href="design-system.css">
-  <link rel="stylesheet" href="components.css">
-  <link rel="stylesheet" href="cadastro.css">
-  <link rel="stylesheet" href="recynet.css">
+  <link rel="stylesheet" href="assets/css/design-system.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="stylesheet" href="assets/css/cadastro.css">
+  <link rel="stylesheet" href="assets/css/recynet.css">
 </head>
 <body>
   <div class="auth-container">
@@ -30,13 +30,8 @@
           <input type="password" id="senha" class="form-input" placeholder="Digite sua senha" required autocomplete="current-password" aria-required="true">
         </div>
 
-        <div class="form-options">
-          <div class="form-checkbox">
-            <input type="checkbox" id="lembrar">
-            <label for="lembrar">Lembrar-me</label>
-          </div>
-          <a href="#" class="link-primary">Esqueceu a senha?</a>
-        </div>
+        <p class="text-sm">Sua sessão fica salva neste navegador até você sair.</p>
+        <p><a href="recuperar-dados.html">Preciso restaurar meus dados locais</a></p>
 
         <button type="submit" class="btn btn-primary btn-full btn-lg">Entrar</button>
       </form>
@@ -50,8 +45,9 @@
   <!-- Toast Container -->
   <div id="toast-container"></div>
 
-  <script src="database.js"></script>
-  <script src="auth.js"></script>
+  <script src="assets/js/database.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/utils.js"></script>
   <script>
     // Sistema de Toast
     function mostrarToast(mensagem, tipo = 'info') {
@@ -60,13 +56,13 @@
       toast.className = `toast toast-${tipo}`;
       toast.setAttribute('role', 'alert');
       toast.textContent = mensagem;
-      
+
       container.appendChild(toast);
-      
+
       setTimeout(() => {
         toast.classList.add('toast-show');
       }, 100);
-      
+
       setTimeout(() => {
         toast.classList.remove('toast-show');
         setTimeout(() => toast.remove(), 300);
@@ -85,7 +81,7 @@
     // Sistema de Login com Hash
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      
+
       const email = document.getElementById('email').value.trim();
       const senha = document.getElementById('senha').value;
 
@@ -104,10 +100,10 @@
       try {
         // Usar RecyNetAuth para login
         const resultado = await RecyNetAuth.login(email, senha);
-        
+
         if (resultado.sucesso) {
           mostrarToast('Login realizado com sucesso!', 'success');
-          
+
           // Redirecionar baseado no tipo de usuário
           setTimeout(() => {
             if (resultado.usuario.tipo === 'admin') {
@@ -125,7 +121,7 @@
       }
     });
 
-    // Estilos de toast agora estão em recynet.css
+    // Estilos de toast agora estão em assets/css/recynet.css
   </script>
 </body>
 </html>

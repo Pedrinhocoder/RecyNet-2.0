@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil do Administrador - RecyNet</title>
     <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
-    <link rel="stylesheet" href="design-system.css">
-    <link rel="stylesheet" href="components.css">
-    <link rel="stylesheet" href="admin.css">
+    <link rel="stylesheet" href="assets/css/design-system.css">
+    <link rel="stylesheet" href="assets/css/components.css">
+    <link rel="stylesheet" href="assets/css/admin.css">
     <style>
         /* Ajustes específicos para manter o design do admin.html */
         .navbar-admin {
@@ -20,17 +20,17 @@
             color: white !important;
             margin-bottom: var(--spacing-xl);
         }
-        
+
         .admin-header h1 {
             color: white !important;
             font-weight: var(--font-weight-bold);
         }
-        
+
         .admin-header p {
             color: white !important;
             opacity: 1 !important;
         }
-        
+
         /* Garantir que o navbar tenha textos brancos */
         .navbar-admin .navbar-logo,
         .navbar-admin .nav-link,
@@ -38,17 +38,17 @@
         .navbar-admin a {
             color: white !important;
         }
-        
+
         /* Responsividade adicional */
         @media (max-width: 768px) {
             .profile-card {
                 margin: 0 var(--spacing-md) var(--spacing-xl);
             }
-            
+
             .profile-details {
                 grid-template-columns: 1fr;
             }
-            
+
             .stats-grid-profile {
                 grid-template-columns: 1fr;
             }
@@ -172,20 +172,23 @@
 </head>
 <body>
     <!-- Navbar Admin -->
-    <nav class="navbar navbar-admin" role="navigation" aria-label="Navegação administrativa">
+    <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
+  <nav class="navbar navbar-admin" role="navigation" aria-label="Navegação administrativa">
         <div class="navbar-container">
             <a href="admin.html" class="navbar-logo"><img src="assets/logos/recynet-clara.png" class="brand-mark" alt="" aria-hidden="true" width="48" height="48"><span>RecyNet Admin</span></a>
             <button class="navbar-toggle" id="navbarToggle" type="button" aria-label="Abrir menu">☰</button>
-            <div class="navbar-menu" id="navbarMenu">
-                <a href="admin.html" class="nav-link">Dashboard</a>
-                <a href="perfil-admin.html" class="nav-link active">Perfil</a>
-                <a href="utilidades-admin.html" class="nav-link">Utilidades</a>
+            <div class="navbar-panel">
+              <div class="navbar-menu" id="navbarMenu">
+                  <a href="admin.html" class="nav-link">Dashboard</a>
+                  <a href="perfil-admin.html" class="nav-link active">Perfil</a>
+                  <a href="utilidades-admin.html" class="nav-link">Utilidades</a>
+              </div>
+              <div class="navbar-actions" id="navbarActions">
+                  <span class="admin-badge">ADMIN</span>
+                  <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+              </div>
             </div>
-            <div class="navbar-actions" id="navbarActions">
-                <span class="admin-badge">ADMIN</span>
-                <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
-            </div>
-        </div>
+          </div>
     </nav>
 
     <!-- Header -->
@@ -196,7 +199,7 @@
         </div>
     </header>
 
-    <div class="admin-container">
+    <main id="conteudo-principal" tabindex="-1" class="admin-container">
         <!-- Perfil Principal -->
         <div class="profile-card fade-in-up">
             <div class="profile-banner"></div>
@@ -205,7 +208,7 @@
                 <div class="profile-info">
                     <h1 id="adminNome">Carregando...</h1>
                     <span class="admin-badge-large">🔐 ADMINISTRADOR DO SISTEMA</span>
-                    
+
                     <div class="profile-details">
                         <div class="detail-item">
                             <label>E-mail</label>
@@ -233,7 +236,7 @@
                     <span class="stat-label">Usuários Ativos</span>
                 </div>
             </div>
-            
+
             <div class="stat-card stat-card-profile fade-in-up">
                 <div class="stat-icon">♻️</div>
                 <div class="stat-data">
@@ -241,7 +244,7 @@
                     <span class="stat-label">Total Gerenciado</span>
                 </div>
             </div>
-            
+
             <div class="stat-card stat-card-profile fade-in-up">
                 <div class="stat-icon">📦</div>
                 <div class="stat-data">
@@ -249,7 +252,7 @@
                     <span class="stat-label">Coletas Registradas</span>
                 </div>
             </div>
-            
+
             <div class="stat-card stat-card-profile fade-in-up">
                 <div class="stat-icon">⭐</div>
                 <div class="stat-data">
@@ -272,7 +275,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <!-- Footer -->
     <footer class="footer">
@@ -282,9 +285,9 @@
     </footer>
 
     <!-- Scripts -->
-    <script src="database.js"></script>
-    <script src="auth.js"></script>
-    <script src="utils.js"></script>
+    <script src="assets/js/database.js"></script>
+    <script src="assets/js/auth.js"></script>
+    <script src="assets/js/utils.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const admin = RecyNetAuth.protegerAdmin();
@@ -298,28 +301,28 @@
         function carregarPerfil(admin) {
             document.getElementById('adminNome').textContent = admin.nome;
             document.getElementById('adminEmail').textContent = admin.email;
-            
-            const dataCriacao = admin.dataCadastro ? new Date(admin.dataCadastro) : new Date();
+
+            const dataCriacao = admin.dataCriacao ? new Date(admin.dataCriacao) : new Date();
             document.getElementById('adminSince').textContent = dataCriacao.toLocaleDateString('pt-BR');
-            
-            const ultimoAcesso = admin.ultimoAcesso ? new Date(admin.ultimoAcesso) : new Date();
-            document.getElementById('adminLastAccess').textContent = ultimoAcesso.toLocaleString('pt-BR');
+
+            const ultimoAcesso = admin.ultimoAcesso ? new Date(admin.ultimoAcesso) : null;
+            document.getElementById('adminLastAccess').textContent = ultimoAcesso ? ultimoAcesso.toLocaleString('pt-BR') : 'Sem registro de acesso';
         }
 
         function carregarEstatisticas() {
             const stats = RecyNetDB.getEstatisticasGerais();
             if (!stats) return;
             document.getElementById('statUsuarios').textContent = stats.totalUsuarios;
-            document.getElementById('statKg').textContent = stats.totalKg.toFixed(1) + ' kg';
+            document.getElementById('statKg').textContent = RecyNetDB.formatarKg(stats.totalKg);
             document.getElementById('statColetas').textContent = stats.totalColetas;
-            document.getElementById('statPontos').textContent = Math.floor(stats.totalPontos);
+            document.getElementById('statPontos').textContent = RecyNetDB.formatarPontos(stats.totalPontos);
         }
 
         function carregarAtividades() {
             const stats = RecyNetDB.getEstatisticasGerais();
             if (!stats) return;
             const container = document.getElementById('adminActivities');
-            
+
             if (stats.coletasRecentes.length === 0) {
                 container.innerHTML = '<p style="text-align: center; color: #000000; padding: var(--spacing-xl); font-weight: 600;">Nenhuma atividade registrada ainda.</p>';
                 return;
@@ -330,13 +333,13 @@
                 const data = new Date(coleta.data).toLocaleString('pt-BR', {
                     day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
                 });
-                
+
                 html += `
                     <div class="activity-item">
                         <div class="activity-icon">♻️</div>
                         <div class="activity-content">
                             <strong>${RecyNetUtils.escapeHTML(coleta.usuarioNome)}</strong> registrou
-                            <strong>${coleta.kg.toFixed(2)} kg</strong> de 
+                            <strong>${RecyNetDB.formatarKg(coleta.kg)}</strong> de
                             <strong>${RecyNetUtils.escapeHTML(coleta.material)}</strong>
                             <div class="activity-time">${data}</div>
                         </div>
@@ -345,6 +348,8 @@
             });
             container.innerHTML = html;
         }
-    </script>
+
+RecyNetUtils.aoAtualizarDados(u => { carregarPerfil(u); carregarEstatisticas(); carregarAtividades(); });
+</script>
 </body>
 </html>

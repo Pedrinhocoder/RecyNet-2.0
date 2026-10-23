@@ -5,46 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RecyNet - Início</title>
   <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
-  <link rel="stylesheet" href="design-system.css" />
-  <link rel="stylesheet" href="components.css" />
-  <link rel="stylesheet" href="cooperado.css" />
+  <link rel="stylesheet" href="assets/css/design-system.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/cooperado.css" />
 </head>
 <body>
 
   <!-- Navbar -->
+  <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
   <nav class="navbar">
     <div class="navbar-container">
       <a href="cooperado.html" class="navbar-logo"><img src="assets/logos/recynet-colorida.png" class="brand-mark" alt="" aria-hidden="true" width="48" height="48"><span>RecyNet</span></a>
-      
+
       <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle menu">
         ☰
       </button>
-      
-      <div class="navbar-menu" id="navbarMenu">
-        <a href="locais.html" class="nav-link">Locais de Coleta</a>
-        <a href="relatorio.html" class="nav-link">Relatório</a>
-        <a href="ranking.html" class="nav-link">Ranking</a>
-        <a href="pontuacao.html" class="nav-link">Pontuação</a>
-        <a href="noticias.html" class="nav-link">Notícias</a>
-        <a href="recompensas.html" class="nav-link">Recompensas</a>
-      </div>
-      
-      <div class="navbar-actions" id="navbarActions">
-        <a href="cooperado.html">Home</a>
-        <a href="perfil.html">Perfil</a>
-        <a href="index.html">Sobre Nós</a>
-        <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+
+      <div class="navbar-panel">
+        <div class="navbar-menu" id="navbarMenu">
+          <a href="locais.html" class="nav-link">Locais de Coleta</a>
+          <a href="relatorio.html" class="nav-link">Relatório</a>
+          <a href="ranking.html" class="nav-link">Ranking</a>
+          <a href="pontuacao.html" class="nav-link">Pontuação</a>
+          <a href="noticias.html" class="nav-link">Notícias</a>
+          <a href="recompensas.html" class="nav-link">Recompensas</a>
+        </div>
+
+        <div class="navbar-actions" id="navbarActions">
+          <a href="cooperado.html">Home</a>
+          <a href="perfil.html">Perfil</a>
+          <a href="index.html">Sobre Nós</a>
+          <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+        </div>
       </div>
     </div>
   </nav>
 
   <!-- Conteúdo Principal -->
-  <main class="main-content">
+  <main id="conteudo-principal" tabindex="-1" class="main-content">
     <div class="container fade-in-up">
-      
+
       <!-- Barra de Nível (DESTAQUE) -->
       <div id="level-bar-container" class="level-bar-highlight-container"></div>
-      
+
       <!-- Bem-vindo -->
       <section class="welcome-section">
         <div class="card">
@@ -58,7 +61,7 @@
 
       <!-- Grid de Conteúdo -->
       <div class="content-grid">
-        
+
         <!-- Mapa de Pontos de Coleta -->
         <section class="map-section">
           <div class="card">
@@ -66,7 +69,7 @@
               <h2 class="card-title">📍 Pontos de Coleta Próximos</h2>
             </div>
             <div class="card-body map-container">
-              <iframe
+              <iframe title="Mapa de pontos de coleta"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3761.3021400004016!2d-40.31662482579249!3d-20.210083243480797!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xb817bfa364b607%3A0xd7ed741740ed1065!2sR.%20Jos%C3%A9%20do%20Patroc%C3%ADnio%2C%2056%20-%20Maru%C3%ADpe%2C%20Vit%C3%B3ria%20-%20ES%2C%2029020-100!5e0!3m2!1spt-BR!2sbr!4v1718142697260!5m2!1spt-BR!2sbr"
                 width="100%"
                 height="300"
@@ -93,7 +96,7 @@
                   <span class="stat-label">Nível</span>
                 </div>
               </div>
-              
+
               <div class="stat-box">
                 <div class="stat-icon">⭐</div>
                 <div class="stat-content">
@@ -101,7 +104,7 @@
                   <span class="stat-label">Pontos</span>
                 </div>
               </div>
-              
+
               <div class="stat-box">
                 <div class="stat-icon">♻️</div>
                 <div class="stat-content">
@@ -109,7 +112,7 @@
                   <span class="stat-label">Total Reciclado</span>
                 </div>
               </div>
-              
+
               <div class="stat-box">
                 <div class="stat-icon">🏅</div>
                 <div class="stat-content">
@@ -122,7 +125,7 @@
         </section>
 
       </div>
-      
+
       <!-- Atividades Recentes -->
       <section class="activities-section">
         <div class="card">
@@ -143,17 +146,17 @@
             <span class="action-icon">📝</span>
             <span class="action-title">Registrar Coleta</span>
           </a>
-          
+
           <a href="recompensas.html" class="action-card">
             <span class="action-icon">🎁</span>
             <span class="action-title">Ver Recompensas</span>
           </a>
-          
+
           <a href="relatorio.html" class="action-card">
             <span class="action-icon">🏅</span>
             <span class="action-title">Ranking</span>
           </a>
-          
+
           <a href="relatorio.html" class="action-card">
             <span class="action-icon">📊</span>
             <span class="action-title">Meu Relatório</span>
@@ -170,11 +173,11 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="database.js"></script>
-  <script src="auth.js"></script>
-  <script src="ranking_system.js"></script>
-  <script src="level-bar.js"></script>
-  <script src="cooperado.js"></script>
-  <script src="utils.js"></script>
+  <script src="assets/js/database.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ranking_system.js"></script>
+  <script src="assets/js/level-bar.js"></script>
+  <script src="assets/js/cooperado.js"></script>
+  <script src="assets/js/utils.js"></script>
 </body>
 </html>

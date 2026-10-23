@@ -24,7 +24,7 @@
       max-width: 600px;
       width: 100%;
     }
-    h1 { color: #10b981; text-align: center; margin-bottom: 10px; }
+    h1 { color: #087f5b; text-align: center; margin-bottom: 10px; }
     h2 { color: #666; font-size: 18px; text-align: center; margin-bottom: 30px; }
     .step {
       background: #f9fafb;
@@ -33,7 +33,7 @@
       border-radius: 8px;
       border-left: 4px solid #10b981;
     }
-    .step.pending { opacity: 0.5; border-left-color: #ccc; }
+    .step.pending { opacity: 1; border-left-color: #ccc; }
     .step.running { border-left-color: #f59e0b; animation: pulse 1s infinite; }
     .step.done { border-left-color: #10b981; }
     .step.error { border-left-color: #ef4444; }
@@ -43,7 +43,7 @@
     button {
       width: 100%;
       padding: 15px;
-      background: #10b981;
+      background: #087f5b;
       color: white;
       border: none;
       border-radius: 8px;
@@ -95,13 +95,13 @@
     </div>
 
     <button id="btnStart" onclick="iniciarSetup()">Iniciar Setup</button>
-    
+
     <div class="console" id="console"></div>
   </div>
 
-  <script src="database.js"></script>
-  <script src="auth.js"></script>
-  <script src="demo-setup.js"></script>
+  <script src="assets/js/database.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/demo-setup.js"></script>
 
   <script>
     function log(msg, type = 'info') {
@@ -118,9 +118,9 @@
     function setStepStatus(step, status) {
       const stepEl = document.getElementById(`step${step}`);
       const iconEl = document.getElementById(`icon${step}`);
-      
+
       stepEl.className = 'step ' + status;
-      
+
       if (status === 'running') {
         iconEl.textContent = '⏳';
       } else if (status === 'done') {
@@ -146,7 +146,7 @@
         if (!resultado.sucesso) throw new Error(resultado.erro);
         document.getElementById('demoCredenciais').textContent =
           `Email: ${resultado.email} | Senha: ${resultado.senha}`;
-        
+
         // Sucesso!
         log('======================================', 'success');
         log('🎉 SETUP CONCLUÍDO COM SUCESSO!', 'success');
@@ -159,10 +159,10 @@
         log('- Total KG: 1 kg', 'success');
         log('', 'success');
         log('Redirecionando para o relatório...', 'success');
-        
+
         btn.textContent = '✅ Concluído! Redirecionando...';
         btn.style.background = '#10b981';
-        
+
         setTimeout(() => {
           window.location.href = 'relatorio.html';
         }, 2000);

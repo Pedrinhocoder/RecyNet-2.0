@@ -5,41 +5,44 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RecyNet - Recompensas</title>
   <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
-  <link rel="stylesheet" href="design-system.css" />
-  <link rel="stylesheet" href="components.css" />
-  <link rel="stylesheet" href="recompensas.css" />
+  <link rel="stylesheet" href="assets/css/design-system.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/recompensas.css" />
 </head>
 <body>
 
   <!-- Navbar -->
+  <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
   <nav class="navbar">
     <div class="navbar-container">
       <a href="cooperado.html" class="navbar-logo"><img src="assets/logos/recynet-colorida.png" class="brand-mark" alt="" aria-hidden="true" width="48" height="48"><span>RecyNet</span></a>
-      
+
       <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle menu">
         ☰
       </button>
-      
-      <div class="navbar-menu" id="navbarMenu">
-        <a href="locais.html" class="nav-link">Locais de Coleta</a>
-        <a href="relatorio.html" class="nav-link">Relatório</a>
-        <a href="ranking.html" class="nav-link">Ranking</a>
-        <a href="pontuacao.html" class="nav-link">Pontuação</a>
-        <a href="noticias.html" class="nav-link">Notícias</a>
-        <a href="recompensas.html" class="nav-link active">Recompensas</a>
-      </div>
-      
-      <div class="navbar-actions" id="navbarActions">
-        <a href="cooperado.html">Home</a>
-        <a href="perfil.html">Perfil</a>
-        <a href="index.html">Sobre Nós</a>
-        <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+
+      <div class="navbar-panel">
+        <div class="navbar-menu" id="navbarMenu">
+          <a href="locais.html" class="nav-link">Locais de Coleta</a>
+          <a href="relatorio.html" class="nav-link">Relatório</a>
+          <a href="ranking.html" class="nav-link">Ranking</a>
+          <a href="pontuacao.html" class="nav-link">Pontuação</a>
+          <a href="noticias.html" class="nav-link">Notícias</a>
+          <a href="recompensas.html" class="nav-link active">Recompensas</a>
+        </div>
+
+        <div class="navbar-actions" id="navbarActions">
+          <a href="cooperado.html">Home</a>
+          <a href="perfil.html">Perfil</a>
+          <a href="index.html">Sobre Nós</a>
+          <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+        </div>
       </div>
     </div>
   </nav>
 
   <!-- Conteúdo principal -->
-  <main class="main-content">
+  <main id="conteudo-principal" tabindex="-1" class="main-content">
     <div class="container fade-in-up">
       <div class="page-header">
         <h1 class="page-title">🎁 Recompensas Disponíveis</h1>
@@ -48,7 +51,7 @@
           <span class="balance-value" id="userBalance">Carregando...</span>
         </div>
       </div>
-      
+
       <!-- Barra de Nível (compacta) -->
       <div id="level-bar-container" class="mb-md"></div>
 
@@ -71,14 +74,14 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="database.js"></script>
-  <script src="auth.js"></script>
-  <script src="ranking_system.js"></script>
-  <script src="level-bar.js"></script>
-  <script src="utils.js"></script>
+  <script src="assets/js/database.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ranking_system.js"></script>
+  <script src="assets/js/level-bar.js"></script>
+  <script src="assets/js/utils.js"></script>
   <script>
     // Proteção de página
-    const usuarioLogado = RecyNetAuth.protegerPagina();
+    const usuarioLogado = RecyNetAuth.protegerCooperado();
 
     // Renderizar barra de nível
     function renderizarBarraNivel() {
@@ -87,12 +90,12 @@
         console.error('Container level-bar-container não encontrado');
         return;
       }
-      
+
       if (typeof LevelBar === 'undefined') {
         console.error('LevelBar não carregado');
         return;
       }
-      
+
       // DISCRETA para recompensas
       const usuario = RecyNetAuth.getUsuarioLogado();
       container.innerHTML = LevelBar.renderCompact(usuario);
@@ -102,14 +105,14 @@
     function carregarSaldo() {
       const usuario = RecyNetAuth.getUsuarioLogado();
       const pontos = (usuario && usuario.pontosDisponiveis != null) ? usuario.pontosDisponiveis : 0;
-      document.getElementById('userBalance').textContent = `${Math.floor(pontos)} pontos`;
+      document.getElementById('userBalance').textContent = `${RecyNetDB.formatarPontos(pontos)} pontos`;
     }
 
     // Carregar catálogo de recompensas
     function carregarCatalogo() {
       const catalogo = RecyNetDB.getCatalogoRecompensas();
       const grid = document.getElementById('rewardsGrid');
-      
+
       if (!catalogo || catalogo.length === 0) {
         grid.innerHTML = `
           <div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #6b7280; background: white; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
@@ -122,22 +125,22 @@
       }
 
       grid.innerHTML = '';
-      
+
       catalogo.forEach(recompensa => {
         const card = document.createElement('div');
         card.className = 'reward-card';
-        
+
         card.innerHTML = `
           <div class="reward-info">
             <h2 class="reward-title">${recompensa.nome}</h2>
             <p class="reward-description">${recompensa.descricao}</p>
             <div class="reward-footer">
               <span class="reward-points">${recompensa.custo} pontos</span>
-              <button class="btn btn-primary" onclick="resgatar('${recompensa.nome}', ${recompensa.custo})">Resgatar</button>
+              <button class="btn btn-primary" onclick="resgatar(${recompensa.id})">Resgatar</button>
             </div>
           </div>
         `;
-        
+
         grid.appendChild(card);
       });
     }
@@ -147,7 +150,7 @@
       const usuario = RecyNetAuth.getUsuarioLogado();
       const historico = (usuario && usuario.historico ? usuario.historico : []).filter(h => h.tipo === 'resgate');
       const container = document.getElementById('historyContainer');
-      
+
       if (!historico || historico.length === 0) {
         container.innerHTML = `
           <div class="empty-state" style="text-align: center; padding: 20px; color: #6b7280;">
@@ -159,7 +162,7 @@
       }
 
       let html = '<div class="history-list">';
-      
+
       historico.forEach(item => {
         const data = new Date(item.data).toLocaleDateString('pt-BR');
         html += `
@@ -168,20 +171,23 @@
               <strong>${RecyNetUtils.escapeHTML(item.recompensa || 'Resgate de recompensa')}</strong>
               <span class="history-date">${data}</span>
             </div>
-            <span class="history-points">-${Math.floor(item.custo || 0)} pontos</span>
+            <span class="history-points">-${RecyNetDB.formatarPontos(item.custo || 0)} pontos</span>
           </div>
         `;
       });
-      
+
       html += '</div>';
       container.innerHTML = html;
     }
 
     // Sistema de resgate
-    function resgatar(nomeRecompensa, custo) {
+    async function resgatar(recompensaId) {
+      const recompensa = RecyNetDB.getCatalogoRecompensas().find(r => r.id === recompensaId);
+      if (!recompensa) return;
+      const { nome: nomeRecompensa, custo } = recompensa;
       const usuarioSessao = RecyNetAuth.getUsuarioLogado();
       const pontosDisponiveis = (usuarioSessao && usuarioSessao.pontosDisponiveis != null) ? usuarioSessao.pontosDisponiveis : 0;
-      
+
       if (custo > pontosDisponiveis) {
         if (typeof RecyNetUtils !== 'undefined' && RecyNetUtils.showToast) {
           RecyNetUtils.showToast(`Você não tem pontos suficientes para resgatar "${nomeRecompensa}".`, 'error');
@@ -191,34 +197,38 @@
         return;
       }
 
-      const confirmar = confirm(`Deseja realmente resgatar ${nomeRecompensa} por ${custo} pontos?`);
-      
-      if (confirmar) {
-        const resultado = RecyNetDB.resgatarRecompensa(
-          usuarioSessao.id,
-          nomeRecompensa,
-          custo
-        );
+      return await RecyNetUtils.executarEnvioUnico(document.getElementById('rewardsGrid'), async () => {
+        const confirmar = confirm(`Deseja realmente resgatar ${nomeRecompensa} por ${custo} pontos?`);
 
-        if (resultado.sucesso) {
-          RecyNetUtils.showToast(`Parabéns! Você resgatou: ${nomeRecompensa}.`, 'success');
-          // Recarregar interface
-          carregarSaldo();
-          carregarHistorico();
-          renderizarBarraNivel();
-        } else {
-          RecyNetUtils.showToast(resultado.mensagem || 'Erro ao resgatar recompensa.', 'error');
+        if (confirmar) {
+          const resultado = (await RecyNetDB.resgatarRecompensa(
+            usuarioSessao.id,
+            recompensaId
+          ));
+
+          if (resultado.sucesso) {
+            RecyNetUtils.showToast(`Parabéns! Você resgatou: ${nomeRecompensa}.`, 'success');
+            // Recarregar interface
+            carregarSaldo();
+            carregarHistorico();
+            renderizarBarraNivel();
+          } else {
+            RecyNetUtils.showToast(resultado.erro || 'Erro ao resgatar recompensa.', 'error');
+          }
         }
-      }
+      });
     }
 
     // Inicialização
     window.addEventListener('DOMContentLoaded', () => {
+      if (!usuarioLogado) return;
       renderizarBarraNivel();
       carregarSaldo();
       carregarCatalogo();
       carregarHistorico();
     });
-  </script>
+
+RecyNetUtils.aoAtualizarDados(u => { carregarSaldo(); carregarHistorico(); renderizarBarraNivel(); });
+</script>
 </body>
 </html>

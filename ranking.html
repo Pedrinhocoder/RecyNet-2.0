@@ -5,40 +5,43 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>RecyNet - Ranking Global</title>
   <link rel="icon" type="image/png" href="assets/logos/recynet-colorida.png">
-  <link rel="stylesheet" href="design-system.css" />
-  <link rel="stylesheet" href="components.css" />
-  <link rel="stylesheet" href="relatorio.css" />
+  <link rel="stylesheet" href="assets/css/design-system.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/relatorio.css" />
 </head>
 <body>
 
   <!-- Navbar -->
+  <a class="skip-link" href="#conteudo-principal">Pular para o conteúdo</a>
   <nav class="navbar">
     <div class="navbar-container">
       <a href="cooperado.html" class="navbar-logo"><img src="assets/logos/recynet-colorida.png" class="brand-mark" alt="" aria-hidden="true" width="48" height="48"><span>RecyNet</span></a>
-      
+
       <button class="navbar-toggle" id="navbarToggle" aria-label="Toggle menu">
         ☰
       </button>
-      
-      <div class="navbar-menu" id="navbarMenu">
-        <a href="locais.html" class="nav-link">Locais de Coleta</a>
-        <a href="relatorio.html" class="nav-link">Relatório</a>
-        <a href="ranking.html" class="nav-link active">Ranking</a>
-        <a href="pontuacao.html" class="nav-link">Pontuação</a>
-        <a href="noticias.html" class="nav-link">Notícias</a>
-        <a href="recompensas.html" class="nav-link">Recompensas</a>
-      </div>
-      
-      <div class="navbar-actions" id="navbarActions">
-        <a href="cooperado.html">Home</a>
-        <a href="perfil.html">Perfil</a>
-        <a href="index.html">Sobre Nós</a>
-        <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+
+      <div class="navbar-panel">
+        <div class="navbar-menu" id="navbarMenu">
+          <a href="locais.html" class="nav-link">Locais de Coleta</a>
+          <a href="relatorio.html" class="nav-link">Relatório</a>
+          <a href="ranking.html" class="nav-link active">Ranking</a>
+          <a href="pontuacao.html" class="nav-link">Pontuação</a>
+          <a href="noticias.html" class="nav-link">Notícias</a>
+          <a href="recompensas.html" class="nav-link">Recompensas</a>
+        </div>
+
+        <div class="navbar-actions" id="navbarActions">
+          <a href="cooperado.html">Home</a>
+          <a href="perfil.html">Perfil</a>
+          <a href="index.html">Sobre Nós</a>
+          <a href="#" onclick="RecyNetAuth.logout(); return false;">Sair</a>
+        </div>
       </div>
     </div>
   </nav>
 
-  <main class="main-content">
+  <main id="conteudo-principal" tabindex="-1" class="main-content">
     <div class="container fade-in-up">
       <div class="page-header">
         <h1 class="page-title">🏆 Ranking Global</h1>
@@ -69,18 +72,20 @@
     <p>© 2026 RecyNet - Plataforma Sustentável</p>
   </footer>
 
-  <script src="database.js"></script>
-  <script src="auth.js"></script>
-  <script src="ranking_system.js"></script>
-  <script src="utils.js"></script>
+  <script src="assets/js/database.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/ranking_system.js"></script>
+  <script src="assets/js/utils.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const usuarioLogado = RecyNetAuth.protegerPagina();
+      const usuarioLogado = RecyNetAuth.protegerCooperado();
       if (!usuarioLogado) return;
 
       RankingSystem.renderizarPodio('full-podio-container');
       RankingSystem.renderizarRanking('full-ranking-container', usuarioLogado.id);
     });
-  </script>
+
+RecyNetUtils.aoAtualizarDados(u => { RankingSystem.renderizarPodio('full-podio-container'); RankingSystem.renderizarRanking('full-ranking-container', u.id); });
+</script>
 </body>
 </html>
