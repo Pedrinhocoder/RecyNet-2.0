@@ -2,7 +2,17 @@
 
 Protótipo local de incentivo à reciclagem, com cadastro, coletas, pontos, níveis, ranking e recompensas simuladas. O repositório [Pedrinhocoder/RecyNet-2.0](https://github.com/Pedrinhocoder/RecyNet-2.0) reúne a versão revisada do projeto, seus recursos, testes e documentação, organizados em pastas próprias.
 
-## Executar
+## Testar no navegador
+
+### [▶ Abrir o protótipo RecyNet 2.0](https://pedrinhocoder.github.io/RecyNet-2.0/)
+
+O protótipo está publicado no GitHub Pages. Basta abrir o link acima no computador ou celular; não é necessário instalar nada.
+
+Para testar, [crie uma conta](https://pedrinhocoder.github.io/RecyNet-2.0/cadastro.html) ou entre na [tela inicial](https://pedrinhocoder.github.io/RecyNet-2.0/). Para a demonstração administrativa, use **admin@fortes.com.br** e a senha **123456**.
+
+Use dados fictícios. As contas e alterações ficam somente no navegador e dispositivo utilizados; não são compartilhadas entre visitantes. Pontos, coletas e recompensas são simulados.
+
+## Executar localmente
 
 Requer Node.js 20 ou superior; Node.js 22 é usado na automação de testes.
 
