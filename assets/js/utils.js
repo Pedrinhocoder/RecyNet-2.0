@@ -60,13 +60,25 @@ function initNavbar() {
     mobile.addEventListener('change', () => definirMenu(false));
   }
 
-  // Manter o estado visual e a página atual acessível sincronizados.
-  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+  // Cloudflare usa /relatorio; o servidor local e o GitHub também usam
+  // /relatorio.html. Comparar caminhos normalizados mantém o mesmo item ativo.
+  const normalizarCaminho = caminho => caminho.replace(/\/+$/, '')
+    .replace(/\/index(?:\.html)?$/, '').replace(/\.html$/, '') || '/';
+  const caminhoAtual = normalizarCaminho(window.location.pathname);
+  const correspondePagina = link => {
+    const href = link.getAttribute('href');
+    if (!href || href.startsWith('#')) return false;
+    try {
+      const alvo = new URL(href, window.location.href);
+      return alvo.origin === window.location.origin && !alvo.hash &&
+        normalizarCaminho(alvo.pathname) === caminhoAtual;
+    } catch { return false; }
+  };
   const links = [...document.querySelectorAll('.navbar-menu a, .navbar-actions a')];
   let encontrouAtual = false;
   links.forEach(link => {
-    const atual = link.getAttribute('href') === currentPage;
-    if (link.classList.contains('nav-link')) link.classList.toggle('active', atual);
+    const atual = !encontrouAtual && correspondePagina(link);
+    link.classList.toggle('active', atual);
     link.removeAttribute('aria-current');
     if (atual) {
       link.setAttribute('aria-current', 'page');
@@ -75,8 +87,10 @@ function initNavbar() {
   });
   const marca = document.querySelector('.navbar-logo');
   if (marca) {
+    const atual = !encontrouAtual && correspondePagina(marca);
+    marca.classList.toggle('active', atual);
     marca.removeAttribute('aria-current');
-    if (!encontrouAtual && marca.getAttribute('href') === currentPage) marca.setAttribute('aria-current', 'page');
+    if (atual) marca.setAttribute('aria-current', 'page');
   }
 }
 

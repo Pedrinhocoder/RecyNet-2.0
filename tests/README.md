@@ -37,3 +37,5 @@ As regressões RV-01 a RV-03 mantêm uma trava de escrita ocupada para testar cl
 Após a organização do repositório, os testes carregam a aplicação da raiz com recursos em `assets/`. A varredura estrutural percorre os estilos e scripts em `assets/`. O teste de servidor também confere que dependências, configuração e testes internos não são publicados; somente `tests/isolated-checks.js` é servido para o Worker.
 
 A progressão cobre marcos exatos e 1 g abaixo, níveis acima de 100, avanços múltiplos, peso máximo, contas e backups da curva antiga, gravação transacional e persistência após recarregar.
+
+A navegação é exercitada nas 12 páginas com menu, com e sem `.html`, na raiz e em subpasta, com query/fragmento, em desktop e celular. A regressão confere um único `aria-current="page"`, fundo verde escuro, texto branco e navegação real entre relatório, ranking, perfil e Home.

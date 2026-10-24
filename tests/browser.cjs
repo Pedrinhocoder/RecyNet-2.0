@@ -959,21 +959,60 @@ async function main() {
       assert.equal(await page.locator('.recynet-toast').evaluate(el=>getComputedStyle(el).animationName),'none');
     }, {reducedMotion:'reduce'});
 
-    await check('navegação identifica uma única página atual no desktop e no menu móvel', async ({ page, go, cadastrar, admin }) => {
-      await page.route('https://**/*',route=>route.abort()); await cadastrar();
-      for(const arquivo of ['index.html','cooperado.html','perfil.html','pontuacao.html','ranking.html','relatorio.html','recompensas.html','noticias.html','locais.html','admin.html','perfil-admin.html','utilidades-admin.html']) {
-        if(arquivo==='admin.html') await admin();
-        await page.setViewportSize({width:1280,height:900}); await go(arquivo);
+    await check('navegação destaca a página em verde escuro com URLs HTML e limpas, na raiz e em subpasta', async ({ page, go, cadastrar, admin }) => {
+      await page.route('https://**/*',route=>route.abort());
+      const user=await cadastrar();
+      const arquivos=['index.html','cooperado.html','perfil.html','pontuacao.html','ranking.html','relatorio.html','recompensas.html','noticias.html','locais.html','admin.html','perfil-admin.html','utilidades-admin.html'];
+      // Simular as URLs públicas do Cloudflare e a subpasta do GitHub Pages,
+      // mantendo o HTML e os recursos reais, sem mudar o servidor do protótipo.
+      await page.route(`${base}/**`, async route=>{
+        const url=new URL(route.request().url());
+        const prefixo='/RecyNet-2.0';
+        let caminho=url.pathname.startsWith(prefixo+'/') ? url.pathname.slice(prefixo.length) : url.pathname;
+        if(route.request().resourceType()==='document'&&arquivos.includes(caminho.slice(1)+'.html')) caminho+='.html';
+        if(caminho!==url.pathname) {
+          url.pathname=caminho;
+          await route.fulfill({response:await route.fetch({url:url.href})});
+        } else await route.continue();
+      });
+      const conferir=async arquivo=>{
         const atual=page.locator('.navbar a[aria-current="page"]');
         assert.equal(await atual.count(),1,arquivo);
         assert.equal(await atual.getAttribute('href'),arquivo);
-        assert(await page.locator('.navbar-menu .nav-link').evaluateAll((es,arquivo)=>es.every(el=>el.classList.contains('active')===(el.getAttribute('href')===arquivo)),arquivo));
-        await page.setViewportSize({width:390,height:844}); await page.locator('#navbarToggle').click();
-        assert.equal(await page.locator('.navbar a[aria-current="page"]').count(),1,arquivo);
-        await page.keyboard.press('Escape');
+        assert.equal(await atual.evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(27, 94, 32)',arquivo);
+        assert.equal(await atual.evaluate(el=>getComputedStyle(el).color),'rgb(255, 255, 255)',arquivo);
+        assert.equal(await page.locator('.navbar a.active').count(),1,arquivo);
+        assert.equal(await page.locator('.navbar a[onclick][aria-current]').count(),0,'Sair não representa uma página');
+      };
+      for(const arquivo of arquivos) {
+        if(arquivo==='admin.html') await admin();
+        for(const prefixo of ['', 'RecyNet-2.0/']) for(const extensao of [true,false]) {
+          const caminho=prefixo+(extensao?arquivo:arquivo.replace(/\.html$/,''));
+          await page.setViewportSize({width:1280,height:900});
+          await go(caminho+'?origem=menu#conteudo-principal');
+          await conferir(arquivo);
+          await page.setViewportSize({width:390,height:844}); await page.locator('#navbarToggle').click();
+          await conferir(arquivo);
+          assert(await page.locator('.navbar a[aria-current="page"]').isVisible(),arquivo);
+          await page.keyboard.press('Escape');
+        }
       }
-      await go('index.html'); await page.goto(page.url().replace('/index.html','/'));
-      assert.equal(await page.locator('.navbar a[aria-current="page"]').getAttribute('href'),'index.html');
+      for(const raiz of ['', 'RecyNet-2.0/']) {
+        await go(raiz);
+        await conferir('index.html');
+        assert.equal(await page.locator('.navbar-menu a[aria-current]').count(),0,'Âncoras de seção não são outras páginas');
+      }
+      await go('recynet.html');
+      await page.evaluate(({email,senha})=>RecyNetAuth.login(email,senha),{email:user.email,senha});
+      await page.setViewportSize({width:1280,height:900}); await go('relatorio');
+      await page.getByRole('link',{name:'Ranking',exact:true}).click();
+      await page.waitForURL('**/ranking.html'); await conferir('ranking.html');
+      await page.setViewportSize({width:390,height:844}); await page.locator('#navbarToggle').click();
+      await page.getByRole('link',{name:'Perfil',exact:true}).click();
+      await page.waitForURL('**/perfil.html'); await page.locator('#navbarToggle').click(); await conferir('perfil.html');
+      await page.setViewportSize({width:1280,height:900});
+      await page.getByRole('link',{name:'Home',exact:true}).click();
+      await page.waitForURL('**/cooperado.html'); await conferir('cooperado.html');
     }, {reducedMotion:'reduce'});
 
     await check('filtros do relatório sincronizam seleção acessível, teclado e dados do gráfico', async ({ page, go, cadastrar }) => {

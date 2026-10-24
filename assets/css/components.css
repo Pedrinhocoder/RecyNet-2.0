@@ -84,7 +84,7 @@
 }
 
 .navbar-menu .nav-link.active {
-  background: var(--color-primary);
+  background: var(--color-primary-dark);
   color: var(--color-white);
 }
 
@@ -567,7 +567,7 @@
   }
 
   .navbar-menu .nav-link.active {
-    background: var(--color-success);
+    background: var(--color-primary-dark);
     color: var(--color-white);
     box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.3);
   }
@@ -1530,7 +1530,12 @@ dialog button { margin-top: 1rem; }
 }
 .skip-link:focus { transform: translateY(0); }
 #conteudo-principal { scroll-margin-top: 8rem; }
-.navbar-actions a[aria-current="page"] {
+.navbar .navbar-actions a[aria-current="page"],
+.navbar .navbar-logo[aria-current="page"] {
+  background: var(--color-primary-dark);
+  color: var(--color-white);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 .35rem var(--color-primary-dark);
   text-decoration: underline;
   text-underline-offset: .2em;
 }

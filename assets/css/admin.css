@@ -345,7 +345,7 @@ footer {
 }
 
 .navbar-admin .navbar-menu .nav-link.active {
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--color-primary-dark);
   color: white !important;
   border-color: white;
 }
@@ -534,7 +534,7 @@ footer {
   }
 
   .navbar-admin .navbar-menu .nav-link.active {
-    background: rgba(255, 255, 255, 0.4) !important;
+    background: var(--color-primary-dark) !important;
     color: white !important;
     border-color: white;
     box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.4);
