@@ -979,8 +979,14 @@ async function main() {
         const atual=page.locator('.navbar a[aria-current="page"]');
         assert.equal(await atual.count(),1,arquivo);
         assert.equal(await atual.getAttribute('href'),arquivo);
-        assert.equal(await atual.evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(27, 94, 32)',arquivo);
-        assert.equal(await atual.evaluate(el=>getComputedStyle(el).color),'rgb(255, 255, 255)',arquivo);
+        if(await atual.evaluate(el=>el.classList.contains('navbar-logo'))) {
+          assert.equal(await atual.evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)',arquivo);
+          assert.equal(await atual.evaluate(el=>getComputedStyle(el).color),'rgb(27, 94, 32)',arquivo);
+          assert.equal(await atual.evaluate(el=>getComputedStyle(el).textDecorationLine),'none',arquivo);
+        } else {
+          assert.equal(await atual.evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(27, 94, 32)',arquivo);
+          assert.equal(await atual.evaluate(el=>getComputedStyle(el).color),'rgb(255, 255, 255)',arquivo);
+        }
         assert.equal(await page.locator('.navbar a.active').count(),1,arquivo);
         assert.equal(await page.locator('.navbar a[onclick][aria-current]').count(),0,'Sair não representa uma página');
       };

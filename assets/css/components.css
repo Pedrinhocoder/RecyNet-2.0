@@ -1530,8 +1530,7 @@ dialog button { margin-top: 1rem; }
 }
 .skip-link:focus { transform: translateY(0); }
 #conteudo-principal { scroll-margin-top: 8rem; }
-.navbar .navbar-actions a[aria-current="page"],
-.navbar .navbar-logo[aria-current="page"] {
+.navbar .navbar-actions a[aria-current="page"] {
   background: var(--color-primary-dark);
   color: var(--color-white);
   border-radius: var(--radius-md);
