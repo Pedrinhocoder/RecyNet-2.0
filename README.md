@@ -30,7 +30,7 @@ Crie uma conta em `cadastro.html`. A senha exige oito caracteres ou mais, maiús
 ## Organização
 
 ```text
-*.html                      21 páginas; URLs preservadas no GitHub Pages
+*.html                      22 páginas, incluindo a página de erro; URLs preservadas no GitHub Pages
 api-spec.yaml               fonte da API planejada
 api-spec.json               versão gerada para a documentação
 assets/
@@ -48,6 +48,8 @@ docs/                       estado atual, revisões e relatórios históricos
 O servidor Node local expõe somente as páginas HTML, recursos em `assets/`, especificação da API, documentos em `/docs/` e o script isolado necessário ao Worker de diagnóstico. `node_modules/`, configuração do projeto e os demais testes não são arquivos públicos. A estrutura detalhada e o mapa de migração estão em [docs/ORGANIZACAO.md](docs/ORGANIZACAO.md).
 
 O GitHub Pages existente continua usando as páginas da raiz, com os mesmos endereços. A pasta `assets/` concentra os recursos, e `.nojekyll` conserva a publicação estática.
+
+`404.html` fica na raiz da publicação. No Cloudflare Pages, esse arquivo desativa o fallback automático da página inicial para URLs inexistentes, que passam a receber uma resposta 404. Ele não carrega scripts nem recursos relativos, evitando requisições repetidas em caminhos desconhecidos. Para aplicar no domínio, envie a versão atualizada como um novo deployment de produção no mesmo projeto.
 
 ## Funcionalidades
 
@@ -86,7 +88,7 @@ npm run test:browser
 npm run test:accessibility
 ```
 
-A suíte reúne **56 testes do modelo, 3 estruturais, 1 teste real do servidor, 66 cenários no Chromium e 42 auditorias de acessibilidade/layout**. Para Chromium já instalado, defina `CHROMIUM_PATH`. Os testes usam dados fictícios e contextos isolados; evidências temporárias ficam em `work/`, fora do versionamento.
+A suíte reúne **56 testes do modelo, 3 estruturais, 1 teste real do servidor, 66 cenários no Chromium e 44 auditorias de acessibilidade/layout**. Para Chromium já instalado, defina `CHROMIUM_PATH`. Os testes usam dados fictícios e contextos isolados; evidências temporárias ficam em `work/`, fora do versionamento.
 
 O workflow [Validar projeto](.github/workflows/ci.yml) executa os testes em pushes e pull requests. A definição do workflow está incluída; sua execução remota depende da publicação e da configuração de Actions no GitHub.
 

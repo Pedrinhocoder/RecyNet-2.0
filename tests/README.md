@@ -17,7 +17,7 @@ Também é possível usar `CHROMIUM_PATH=/caminho/do/chromium` para um Chromium 
 - `structure.test.cjs`: 3 verificações de referências locais, sintaxe e sincronização YAML/JSON da OpenAPI, incluindo referências internas.
 - `server.test.cjs`: inicia o servidor real a partir de outra pasta, com porta configurada; verifica documentação, loopback informado, cabeçalho e bloqueio de arquivos ocultos. Esse teste usa rede local e processo filho.
 - `browser.cjs`: 66 cenários no Chromium com interface, XSS, permissões, sessões em duas abas, históricos, datas, menu móvel com rolagem, toque e teclado em telas baixas, layout em 320 px, contraste, âncoras, cadastro com erros associados, avisos empilhados, limpeza explícita e movimento reduzido, página atual acessível, filtros por teclado, atalho para conteúdo e animações válidas, perfil, senha, recuperação, clipboard, precisão, diagnóstico isolado e gráficos.
-- `accessibility.cjs`: axe com tags WCAG 2 A/AA e 2.1 AA nas 21 páginas, em 1280 e 390 pixels, mais verificação de excesso de largura. O conteúdo de mapas externos é substituído no teste. O relatório temporário é salvo em `work/accessibility.json`.
+- `accessibility.cjs`: axe com tags WCAG 2 A/AA e 2.1 AA nas 22 páginas, em 1280 e 390 pixels, mais verificação de excesso de largura. O conteúdo de mapas externos é substituído no teste. O relatório temporário é salvo em `work/accessibility.json`.
 - `isolated-checks.js`: seis verificações executadas pelo Worker da página de diagnóstico, com dados somente em memória.
 
 Para conferir cálculos fora do fuso do executor, use `TZ=Asia/Tokyo node tests/core.test.cjs`. Para auditar uma página específica, use `AUDIT_PAGES=relatorio.html npm run test:accessibility`.
