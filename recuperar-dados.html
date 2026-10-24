@@ -44,7 +44,7 @@
       const texto = await arquivo.text();
       if (!leituraAtual()) return;
       const result = RecyNetDB.validarBackup(texto);
-      document.getElementById('backupPreview').textContent = result.sucesso ? `${arquivo.name}: ${result.total} conta(s) de cooperados no backup.${result.gramasNormalizados ? ` ${result.gramasNormalizados} registro(s) terão os gramas normalizados para corrigir precisão numérica.` : ''}` : result.erro;
+      document.getElementById('backupPreview').textContent = result.sucesso ? `${arquivo.name}: ${result.total} conta(s) de cooperados no backup.${result.niveisRecalculados ? ` ${result.niveisRecalculados} nível(is) serão recalculados pela nova progressão; pesos, pontos e históricos serão preservados.` : ''}${result.gramasNormalizados ? ` ${result.gramasNormalizados} registro(s) terão os gramas normalizados para corrigir precisão numérica.` : ''}` : result.erro;
       if (result.sucesso) {
         conteudo = texto;
         arquivoValidado = arquivo;

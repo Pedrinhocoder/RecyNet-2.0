@@ -504,7 +504,7 @@ test('componente de nível usa a mesma progressão e mantém títulos entre marc
    assert.equal(a.context.LevelBar.getTitulo(a.db.calcularNivel(kg)),a.db.getTituloNivel(a.db.calcularNivel(kg)));
  }
  assert.equal(a.db.getTituloNivel(6),'Coletor Urbano');
- assert.equal(a.db.calcularProgressoNivel(10).titulo,'Coletor Urbano');
+ assert.equal(a.db.calcularProgressoNivel(5.5).titulo,'Coletor Urbano');
 });
 
 test('backups incompletos ou com tipos inválidos são rejeitados sem alterar contas, sessão ou cópia anterior', async () => {
@@ -834,4 +834,111 @@ test('perfil reaplica somente os campos editados após outras alterações na fi
   liberar();await segurando;
   assert.equal((await outra).sucesso,true);assert.equal((await rascunho).sucesso,true);
   const atual=a.db.getUsuarioPorId(user.id);assert.equal(atual.nome,'Nome do rascunho');assert.equal(atual.email,'externo@example.test');
+});
+
+
+test('requisito linear segue todos os exemplos e mantém níveis acima de 100 sem teto', () => {
+  const {db}=app();
+  for(const [nivel,kg] of [[1,1],[2,1.25],[5,2],[10,3.25],[25,7],[50,13.25],[100,25.75],[101,26],[1000,250.75]]) {
+    assert.equal(db.calcularKgNecessario(nivel),kg);
+  }
+  const marcos=[0,1,2.25,3.75,5.5,7.5,9.75,12.25,15,18,21.25];
+  marcos.forEach((kg,i)=>assert.equal(db.calcularKgMinimoNivel(i+1),kg));
+  // Oráculo independente: acumular cada requisito, em vez de usar a inversa.
+  let gramas=0;
+  for(let n=1;n<=1000;n++) {
+    assert.equal(db.calcularKgMinimoNivel(n),gramas/1000);
+    assert.equal(db.calcularNivel(gramas/1000),n);
+    if(n>1) assert.equal(db.calcularNivel((gramas-1)/1000),n-1);
+    assert.equal(db.calcularNivel((gramas+1)/1000),n);
+    gramas+=1000+250*(n-1);
+  }
+  assert.equal(db.calcularKgMinimoNivel(100),1311.75);
+  assert.equal(db.calcularNivel(1337.5),101);
+});
+
+test('progresso linear usa peso adicional, zera no marco e não mostra 100% antecipadamente', () => {
+  const a=app(),{db}=a;
+  const p=db.calcularProgressoNivel(2);
+  assert.equal(p.nivel,2);assert.equal(p.kgAtual,1);assert.equal(p.kgNecessario,1.25);
+  assert.equal(p.kgFaltando,0.25);assert.equal(p.kgInicioNivel,1);assert.equal(p.kgProximoNivel,2.25);
+  assert.equal(p.porcentagem,80);
+  const marco=db.calcularProgressoNivel(2.25);
+  assert.equal(marco.nivel,3);assert.equal(marco.kgAtual,0);assert.equal(marco.porcentagem,0);assert.equal(marco.kgFaltando,1.5);
+  const max=db.calcularProgressoNivel(db.MAX_VALOR);
+  assert(Number.isSafeInteger(max.nivel));assert(max.nivel>100);
+  assert(max.porcentagem>=0&&max.porcentagem<100);assert(max.kgFaltando>0&&max.kgFaltando<=max.kgNecessario);
+  for(const valor of [-1,NaN,Infinity,'2',db.MAX_VALOR+1]) assert.throws(()=>db.calcularNivel(valor));
+  for(const nivel of [0,-1,1.5,Infinity,'2']) assert.throws(()=>db.calcularKgNecessario(nivel));
+  vm.runInContext(fs.readFileSync(path.join(__dirname,'..','assets/js/level-bar.js'),'utf8'),a.context);
+  for(const kg of [2.249,1337.499]) {
+    assert.equal(db.calcularProgressoNivel(kg).kgFaltando,0.001);
+    assert(!a.context.LevelBar.renderCompact({totalKg:kg}).includes('100%'));
+    assert(!a.context.LevelBar.renderHighlight({totalKg:kg}).includes('100%'));
+  }
+});
+
+test('contas antigas têm nível recalibrado sem escrita na leitura nem perda de dados', async () => {
+  const a=app(),user=await cadastrar(a);await a.db.registrarColeta(user.id,'papel',10000);
+  const antigo=JSON.parse(JSON.stringify(a.db.getUsuarioPorId(user.id)));
+  delete antigo.versaoProgressao;antigo.nivel=6;
+  const raw=JSON.stringify([antigo]);a.storage.set('recynet_usuarios',raw);
+  const atual=a.db.getUsuarioPorId(user.id);
+  assert.equal(atual.nivel,7);assert.equal(atual.versaoProgressao,3);
+  assert.equal(a.storage.get('recynet_usuarios'),raw);
+  const comparavel=JSON.parse(JSON.stringify(atual));delete comparavel.versaoProgressao;comparavel.nivel=6;
+  assert.deepEqual(comparavel,antigo);
+  assert.equal((await a.db.registrarColeta(user.id,'papel',2250)).sucesso,true);
+  const gravado=JSON.parse(a.storage.get('recynet_usuarios')).find(u=>u.id===user.id);
+  assert.equal(gravado.nivel,8);assert.equal(gravado.versaoProgressao,3);
+  assert.equal(gravado.totalKg,12.25);assert.equal(gravado.totalPontosGanhos,61.25);
+});
+
+test('backup antigo recalcula níveis só depois de validar e mantém o arquivo original', async () => {
+  const a=app(),user=await cadastrar(a);await a.db.registrarColeta(user.id,'papel',10000);await admin(a);
+  const antigo=JSON.parse(JSON.stringify(a.db.getUsuarioPorId(user.id)));
+  delete antigo.versaoProgressao;antigo.nivel=6;
+  const raw=JSON.stringify([antigo]),antes=[...a.storage];
+  const preview=a.db.validarBackup(raw);
+  assert.equal(preview.sucesso,true);assert.equal(preview.niveisRecalculados,1);
+  assert.equal(preview.usuarios[0].nivel,7);assert.equal(preview.usuarios[0].versaoProgressao,3);
+  assert.deepEqual([...a.storage],antes);assert.equal(JSON.stringify([antigo]),raw);
+  assert.equal((await a.db.restaurarBackup(raw)).sucesso,true);
+  assert.equal(a.db.getUsuarioPorId(user.id).nivel,7);
+  assert.equal(a.db.getUsuarioPorId(user.id).totalPontosGanhos,50);
+  for(const alterar of [u=>u.nivel=999,u=>u.totalKg=11,u=>u.versaoProgressao=99,u=>u.versaoProgressao='3',u=>u.versaoProgressao=3]) {
+    const invalido=JSON.parse(raw);alterar(invalido[0]);
+    assert.equal(a.db.validarBackup(JSON.stringify(invalido)).sucesso,false);
+    a.storage.set('recynet_usuarios',JSON.stringify(invalido));assert(a.db.lerUsuarios().erro);
+  }
+});
+
+test('100 gramas, salto de múltiplos níveis e resgate preservam pontos e classificação por peso', async () => {
+  const a=app(),user=await cadastrar(a);
+  assert.equal((await a.db.registrarColeta(user.id,'papel',99)).sucesso,false);
+  for(let i=0;i<10;i++) assert.equal((await a.db.registrarColeta(user.id,'papel',100)).sucesso,true);
+  let u=a.db.getUsuarioPorId(user.id);
+  assert.equal(u.nivel,2);assert.equal(u.totalKg,1);assert.equal(u.pontosDisponiveis,5);
+  const r=await a.db.registrarColeta(user.id,'papel',1336500);
+  assert.equal(r.sucesso,true);assert.equal(r.novoNivel,101);
+  u=a.db.getUsuarioPorId(user.id);
+  assert.equal(u.totalKg,1337.5);assert.equal(u.nivel,101);assert.equal(u.pontosDisponiveis,6687.5);
+  const ranking=JSON.stringify(a.db.getRanking());
+  assert.equal((await a.db.resgatarRecompensa(user.id,1)).sucesso,true);
+  u=a.db.getUsuarioPorId(user.id);
+  assert.equal(u.nivel,101);assert.equal(u.totalKg,1337.5);assert.equal(u.pontosDisponiveis,6637.5);
+  assert.equal(JSON.stringify(a.db.getRanking()),ranking);
+});
+
+test('contas da prévia exponencial versão 2 migram somente após validação integral', async () => {
+  const a=app(),user=await cadastrar(a);await a.db.registrarColeta(user.id,'papel',10000);
+  const anterior=JSON.parse(JSON.stringify(a.db.getUsuarioPorId(user.id)));
+  anterior.versaoProgressao=2;anterior.nivel=4;
+  const raw=JSON.stringify([anterior]);
+  assert.equal(a.db.validarBackup(raw).sucesso,true);
+  a.storage.set('recynet_usuarios',raw);
+  const atual=a.db.getUsuarioPorId(user.id);
+  assert.equal(atual.nivel,7);assert.equal(atual.versaoProgressao,3);
+  assert.equal(atual.totalPontosGanhos,50);assert.equal(a.storage.get('recynet_usuarios'),raw);
+  anterior.nivel=8;assert.equal(a.db.validarBackup(JSON.stringify([anterior])).sucesso,false);
 });

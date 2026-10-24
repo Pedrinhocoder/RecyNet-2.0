@@ -1,8 +1,8 @@
-# Estado atual do protótipo — 23/10/2026
+# Estado atual do protótipo — 24/10/2026
 
 A entrega final concluiu JS-11: exportação administrativa agora remove links e libera URLs temporárias em sucesso ou falha. Os 11 achados da revisão anterior de JavaScript e os 20 achados de UX/CSS estão concluídos. Também foi atualizado `js-yaml` para 4.3.2, eliminando os alertas conhecidos da dependência na auditoria desta data.
 
-Validação atual: **50 testes do modelo, 3 estruturais, 1 de execução do servidor, 65 cenários no Chromium e 42 auditorias de acessibilidade/layout aprovados; zero vulnerabilidades conhecidas no `npm audit`.** A OpenAPI 3.0.3 passou também em validação completa de esquema com Swagger Parser.
+Validação atual: **56 testes do modelo, 3 estruturais, 1 de execução do servidor, 66 cenários no Chromium e 42 auditorias de acessibilidade/layout aprovados; zero vulnerabilidades conhecidas no `npm audit`.** A OpenAPI 3.0.3 passou também em validação completa de esquema com Swagger Parser.
 
 Os três pontos adicionais RV-01 a RV-03 também estão corrigidos: envios repetidos são bloqueados durante gravações; os atalhos Windows usam o servidor Node da pasta do projeto; cancelar/fechar a edição limpa o rascunho e o aviso antigo. Não há pendências abertas entre os achados registrados dessas revisões; as recomendações de evolução estrutural permanecem separadas. Ver inventário, evidências, melhorias e recomendações em [REVISAO-COMPLETA-2026-10-23.md](REVISAO-COMPLETA-2026-10-23.md).
 
@@ -20,7 +20,7 @@ O escopo permanece o protótipo local, sem migração para backend. As seções 
 | Perfil | Os botões de editar perfil e trocar senha funcionam; a troca de senha verifica a credencial atual. |
 | Coletas e pontos | Mínimo de 100 g, precisão de gramas e milésimos de ponto, cálculos e mensagens consistentes. A repetição de coletas pequenas não perde o nível por erro de ponto flutuante. |
 | Ajustes | Material obrigatório para ajustar peso; remoções que excedam o saldo são rejeitadas. Histórico exibe valor, sinal e motivo. |
-| Progressão | Banco e barra de nível compartilham progressão de 2 kg por nível e mantêm o título conquistado entre marcos. |
+| Progressão | Níveis ilimitados: cada avanço exige `1 + 0.25 × (nível atual − 1)` kg adicionais. Banco e indicadores usam a mesma fórmula. Contas anteriores válidas têm somente o nível recalculado. Consulte PROGRESSAO-NIVEIS.md. |
 | Ranking | Classificação única, contas sem coleta fora do ranking, posições acima de mil usuários e percentual “top” corrigido. |
 | Datas | Data administrativa é preservada e validada; histórico fica em ordem decrescente; sequência conta dias distintos; totais mensais usam o mês do calendário. |
 | Relatórios | Gráfico anual funciona no dia 31; filtros têm períodos identificados e excluem dados futuros; existe resumo textual dos valores. Gráficos usam uma versão local do Chart.js e a página funciona mesmo se ela falhar. |

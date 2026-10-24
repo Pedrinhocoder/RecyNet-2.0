@@ -6,6 +6,8 @@ Protótipo local de incentivo à reciclagem, com cadastro, coletas, pontos, nív
 
 ### [▶ Abrir o protótipo RecyNet 2.0](https://pedrinhocoder.github.io/RecyNet-2.0/)
 
+Também está disponível no [Cloudflare Pages](https://recynet.pages.dev/), atualizado por upload manual dos arquivos.
+
 O protótipo está publicado no GitHub Pages. Basta abrir o link acima no computador ou celular; não é necessário instalar nada.
 
 Para testar, [crie uma conta](https://pedrinhocoder.github.io/RecyNet-2.0/cadastro.html) ou entre na [tela inicial](https://pedrinhocoder.github.io/RecyNet-2.0/). Para a demonstração administrativa, use **admin@fortes.com.br** e a senha **123456**.
@@ -50,7 +52,7 @@ O GitHub Pages existente continua usando as páginas da raiz, com os mesmos ende
 ## Funcionalidades
 
 - Cadastro, login, perfil e troca de senha; emails normalizados e permissões administrativas verificadas nas telas e ações.
-- Coletas a partir de 100 g com precisão de gramas; pontos com até três casas decimais; um nível por 2 kg.
+- Coletas a partir de 100 g com precisão de gramas; pontos com até três casas decimais; níveis ilimitados com requisito adicional de `1 + 0.25 × (nível atual − 1)` kg por avanço.
 - Registro administrativo com data atual ou retroativa, preservando a sessão do administrador.
 - Ajustes por material e pontos, com motivo textual de até 500 caracteres; resgates pelo ID e preço do catálogo.
 - Histórico, ranking e relatórios, com Chart.js distribuído localmente e resumo textual.
@@ -71,6 +73,8 @@ Exporte o JSON em **Utilidades administrativas**. A página `recuperar-dados.htm
 
 O esquema valida tipos, versão, peso, pontos, materiais, nível e somas do histórico. Dados inválidos são preservados e bloqueiam novas alterações. Legados íntegros sem versão recebem `versaoDados: 1` ao gravar. Resíduos numéricos antigos de kg/gramas podem ser normalizados na importação dentro da tolerância prevista e com aviso. Saldos e históricos não são inventados nem reparados por suposição.
 
+A progressão linear usa `versaoProgressao: 3`. Contas e backups antigos íntegros são validados pela regra de origem e têm somente o nível recalculado, preservando pesos, pontos e históricos. A leitura não grava dados; a próxima transação confirma a nova versão.
+
 A autenticação é uma simulação controlada pelo próprio navegador. A senha administrativa pública, hashes SHA-256 sem salt e backups legíveis não representam segurança de um serviço real. Use dados fictícios.
 
 ## Testes
@@ -82,7 +86,7 @@ npm run test:browser
 npm run test:accessibility
 ```
 
-A suíte reúne **50 testes do modelo, 3 estruturais, 1 teste real do servidor, 65 cenários no Chromium e 42 auditorias de acessibilidade/layout**. Para Chromium já instalado, defina `CHROMIUM_PATH`. Os testes usam dados fictícios e contextos isolados; evidências temporárias ficam em `work/`, fora do versionamento.
+A suíte reúne **56 testes do modelo, 3 estruturais, 1 teste real do servidor, 66 cenários no Chromium e 42 auditorias de acessibilidade/layout**. Para Chromium já instalado, defina `CHROMIUM_PATH`. Os testes usam dados fictícios e contextos isolados; evidências temporárias ficam em `work/`, fora do versionamento.
 
 O workflow [Validar projeto](.github/workflows/ci.yml) executa os testes em pushes e pull requests. A definição do workflow está incluída; sua execução remota depende da publicação e da configuração de Actions no GitHub.
 
@@ -92,6 +96,7 @@ Consulte [tests/README.md](tests/README.md) e [CONTRIBUTING.md](CONTRIBUTING.md)
 
 - [Índice da documentação](docs/README.md)
 - [Estado atual e correções](docs/ESTADO-ATUAL.md)
+- [Progressão linear de níveis e migração](docs/PROGRESSAO-NIVEIS.md)
 - [Revisão técnica completa](docs/REVISAO-COMPLETA-2026-10-23.md)
 - [Organização e migração dos arquivos](docs/ORGANIZACAO.md)
 - [Guia da API planejada](docs/README-API.md)

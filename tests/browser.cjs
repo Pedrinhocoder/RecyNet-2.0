@@ -303,20 +303,45 @@ async function main() {
       }, user.id), { data: '2026-09-15', kg: 2, sessao: 'admin_123' });
     }, { timezoneId: 'America/Sao_Paulo' });
 
-    await check('coletas atualizam nível e pontos imediatamente, inclusive após recarregar', async ({ page, go, cadastrar }) => {
+    await check('coletas atualizam nível e pontos pela curva progressiva, inclusive após recarregar', async ({ page, go, cadastrar }) => {
       await cadastrar();
       await go('pontuacao.html');
       assert.equal(await page.locator('.level-bar-compact-badge').innerText(), '1');
-      for (const nivel of [2, 3]) {
+      for (const [kg,nivel,pontos] of [['0.1',1,0.5],['0.9',2,5],['1',2,10],['0.25',3,11.25]]) {
         await page.locator('#materialSelect').selectOption('papel');
-        await page.locator('#quantityInput').fill('2');
+        await page.locator('#quantityInput').fill(kg);
         await page.locator('#btnRegistrar').click();
-        await page.waitForFunction(n=>document.querySelector('.level-bar-compact-badge').textContent.trim()===String(n),nivel);
+        await page.waitForFunction(p=>document.getElementById('totalPoints').textContent.trim()===p&&!document.getElementById('btnRegistrar').disabled,new Intl.NumberFormat('pt-BR',{maximumFractionDigits:3}).format(pontos));
         assert.equal(await page.locator('.level-bar-compact-badge').innerText(), String(nivel));
-        assert.equal(await page.locator('#totalPoints').innerText(), String((nivel - 1) * 10));
       }
       await page.reload();
       assert.equal(await page.locator('.level-bar-compact-badge').innerText(), '3');
+      await go('perfil.html');
+      assert.equal(await page.locator('#kgToNext').innerText(),'1,50 kg');
+      assert((await page.locator('#levelGoal').innerText()).includes('3,75 kg'));
+    });
+
+    await check('migração da curva preserva IndexedDB e histórico e confirma o novo nível na próxima coleta', async ({page,go,cadastrar})=>{
+      const user=await cadastrar();
+      await page.evaluate(async id=>{
+        await RecyNetDB.registrarColeta(id,'papel',10000);
+        const usuarios=RecyNetDB.getUsuarios();const u=usuarios.find(u=>u.id===id);
+        delete u.versaoProgressao;u.nivel=6;
+        const raw=JSON.stringify(usuarios);
+        await RecyNetDB.persistencia.gravar(raw);localStorage.setItem('recynet_usuarios',raw);
+      },user.id);
+      await go('perfil.html');
+      assert.equal(await page.locator('#userLevel').innerText(),'7');
+      assert.equal(await page.evaluate(id=>RecyNetDB.getUsuarioPorId(id).totalPontosGanhos,user.id),50);
+      assert.equal(await page.evaluate(id=>JSON.parse(localStorage.getItem('recynet_usuarios')).find(u=>u.id===id).nivel,user.id),6);
+      const result=await page.evaluate(id=>RecyNetDB.registrarColeta(id,'papel',2250),user.id);
+      assert.equal(result.sucesso,true);assert.equal(result.usuario.nivel,8);
+      await page.reload();
+      assert.equal(await page.locator('#userLevel').innerText(),'8');
+      assert.equal(await page.evaluate(async id=>{
+        const estado=await RecyNetDB.persistencia.ler();const u=JSON.parse(estado.dados).find(u=>u.id===id);
+        return u.versaoProgressao===3&&u.nivel===8&&u.totalKg===12.25&&u.historico.filter(h=>h.tipo==='coleta').length===2;
+      },user.id),true);
     });
 
     await check('menu móvel comunica estado, responde ao teclado e sincroniza ao redimensionar', async ({ page, go, cadastrar, admin }) => {
@@ -435,7 +460,7 @@ async function main() {
         const usuario = RecyNetDB.getUsuarioPorId(id);
         usuario.totalKg = 10;
         usuario.historico = ['2026-03-01T02:59:59Z', '2026-03-01T03:00:00Z', '2026-03-02T03:00:00Z'].map((data,i) => ({id:`mes-${i}`,tipo:'coleta',data:new Date(data).toISOString(),material:'papel',gramas:i===2?8000:1000,kg:i===2?8:1,pontosGanhos:i===2?40:5}));
-        usuario.materiais.papel=10;usuario.nivel=6;usuario.totalPontosGanhos=50;usuario.pontosDisponiveis=50;
+        usuario.materiais.papel=10;usuario.nivel=RecyNetDB.calcularNivel(10);usuario.totalPontosGanhos=50;usuario.pontosDisponiveis=50;
         (await RecyNetDB.salvarUsuario(usuario));
         for(let i=1;i<10;i++) {
           const u=RecyNetDB.criarUsuario(`Pessoa ${i}`,`p${i}@example.test`,'a'.repeat(64));

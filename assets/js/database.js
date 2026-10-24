@@ -26,6 +26,7 @@ const RecyNetDB = {
 
   // Três casas decimais: precisão de gramas e de milésimos de ponto.
   MAX_VALOR: 1e9,
+  PROGRESSAO_NIVEL: Object.freeze({ versao: 3, baseKg: 1, incrementoKg: 0.25 }),
   arredondar(valor) { return Math.round(valor * 1000) / 1000; },
   valorValido(valor) { return Number.isFinite(valor) && Math.abs(valor) <= this.MAX_VALOR; },
   getTituloNivel(nivel) {
@@ -36,7 +37,7 @@ const RecyNetDB = {
   gravarUsuarios(usuarios) {
     const erro = this.validarBaseUsuarios(usuarios);
     if (erro) throw new Error(erro);
-    const dados = usuarios.map(u => u.id === this.ADMIN_ESTATICO.id ? u : { ...u, versaoDados: 1 });
+    const dados = usuarios.map(u => u.id === this.ADMIN_ESTATICO.id ? u : { ...this.atualizarProgressaoUsuario(u), versaoDados: 1 });
     try { localStorage.setItem('recynet_usuarios', JSON.stringify(dados)); }
     catch { throw new Error('Não foi possível salvar. Verifique o espaço e a permissão de armazenamento do navegador.'); }
   },
@@ -93,7 +94,8 @@ const RecyNetDB = {
           return false;
       }
     };
-    return objeto(usuario) && (usuario.versaoDados === undefined || usuario.versaoDados === 1) && texto(usuario.id) && texto(usuario.nome) &&
+    return objeto(usuario) && (usuario.versaoDados === undefined || usuario.versaoDados === 1) &&
+      (usuario.versaoProgressao === undefined || [1, 2, 3].includes(usuario.versaoProgressao)) && texto(usuario.id) && texto(usuario.nome) &&
       ['totalKg', 'totalPontosGanhos', 'pontosDisponiveis', 'pontosGastos'].every(campo => numero(usuario[campo])) &&
       Number.isSafeInteger(usuario.nivel) && usuario.nivel >= 1 && usuario.nivel <= this.MAX_VALOR &&
       objeto(usuario.materiais) && Object.keys(this.PONTOS_POR_KG).every(m => numero(usuario.materiais[m])) &&
@@ -111,7 +113,9 @@ const RecyNetDB = {
     const preciso = v => Number.isFinite(v) && Math.abs(v * 1000 - mil(v)) < 0.000001;
     const materiais = Object.keys(this.PONTOS_POR_KG);
     if (![u.totalKg, u.totalPontosGanhos, u.pontosDisponiveis, u.pontosGastos, ...Object.values(u.materiais)].every(preciso)) return false;
-    if (u.nivel !== this.calcularNivel(u.totalKg) ||
+    const nivelEsperado = u.versaoProgressao === this.PROGRESSAO_NIVEL.versao
+      ? this.calcularNivel(u.totalKg) : this.calcularNivelLegado(u.totalKg, u.versaoProgressao);
+    if (u.nivel !== nivelEsperado ||
         mil(u.totalPontosGanhos) - mil(u.pontosGastos) !== mil(u.pontosDisponiveis) ||
         materiais.reduce((n,m) => n + mil(u.materiais[m]), 0) !== mil(u.totalKg)) return false;
     let peso = 0, ganhos = 0, gastos = 0, geral = false;
@@ -189,7 +193,8 @@ const RecyNetDB = {
         this.normalizarEmail(u.email) === this.ADMIN_ESTATICO.email)) {
       return { sucesso: false, erro: 'O backup contém emails duplicados, contas reservadas ou credenciais inválidas' };
     }
-    return { sucesso: true, usuarios: usuarios.map(u => ({ ...u, email: this.normalizarEmail(u.email) })), total: usuarios.length, gramasNormalizados };
+    const niveisRecalculados = usuarios.filter(u => u.versaoProgressao !== this.PROGRESSAO_NIVEL.versao && u.nivel !== this.calcularNivel(u.totalKg)).length;
+    return { sucesso: true, usuarios: usuarios.map(u => ({ ...this.atualizarProgressaoUsuario(u), email: this.normalizarEmail(u.email) })), total: usuarios.length, gramasNormalizados, niveisRecalculados };
   },
 
   restaurarBackup(conteudo) {
@@ -228,6 +233,7 @@ const RecyNetDB = {
     return {
       id: this.gerarId(),
       versaoDados: 1,
+      versaoProgressao: this.PROGRESSAO_NIVEL.versao,
       nome,
       email: this.normalizarEmail(email),
       senha: senhaHash,
@@ -288,7 +294,7 @@ const RecyNetDB = {
   lerUsuarios(conteudo, { estruturaSomente = false } = {}) {
     try {
       const data = conteudo === undefined ? localStorage.getItem('recynet_usuarios') : conteudo;
-      const usuarios = data === null ? [] : JSON.parse(data);
+      let usuarios = data === null ? [] : JSON.parse(data);
       const objeto = valor => valor && typeof valor === 'object' && !Array.isArray(valor);
       const valido = u => {
         if (!objeto(u) || !['id', 'nome', 'email', 'senha', 'tipo'].every(campo => typeof u[campo] === 'string')) return false;
@@ -303,6 +309,9 @@ const RecyNetDB = {
       if (!Array.isArray(usuarios) || !usuarios.every(valido) || new Set(usuarios.map(u => u.id)).size !== usuarios.length) throw new Error('Formato inválido');
       const erro = estruturaSomente ? null : this.validarBaseUsuarios(usuarios);
       if (erro) return { usuarios: [], erro: 'Não foi possível ler as contas salvas. Os dados foram preservados. ' + erro + ' Restaure um backup válido para continuar.' };
+      // Só adaptar contas previamente validadas. A leitura não grava nem altera
+      // saldos/históricos; a próxima transação confirma a versão nova no disco.
+      if (!estruturaSomente) usuarios = usuarios.map(u => this.atualizarProgressaoUsuario(u));
       usuarios.forEach(usuario => versoesUsuarios.set(usuario, JSON.stringify(usuario)));
       versoesBases.set(usuarios, data);
       return { usuarios, erro: null };
@@ -546,34 +555,77 @@ const RecyNetDB = {
     };
   },
 
-  // === SISTEMA DE NÍVEIS (FIXO: 2KG POR NÍVEL) ===
+  // === NÍVEIS: +250 G NO REQUISITO DE CADA AVANÇO, SEM TETO DE NÍVEL ===
+  atualizarProgressaoUsuario(usuario) {
+    if (usuario.id === this.ADMIN_ESTATICO.id || usuario.versaoProgressao === this.PROGRESSAO_NIVEL.versao) return usuario;
+    return { ...usuario, nivel: this.calcularNivel(usuario.totalKg), versaoProgressao: this.PROGRESSAO_NIVEL.versao };
+  },
+
+  // Usado exclusivamente para validar dados anteriores antes da migração.
+  calcularNivelLegado(totalKg, versao) {
+    let gramas = Math.round(totalKg * 1000);
+    if (versao !== 2) return 1 + Math.floor(gramas / 2000);
+    for (let nivel = 1; nivel < 14; nivel++) {
+      const custo = Math.round(2000 * 1.2 ** (nivel - 1));
+      if (gramas < custo) return nivel;
+      gramas -= custo;
+    }
+    return 14 + Math.floor(gramas / 20000);
+  },
+
+  // Quantidade ADICIONAL para ir do nível atual ao próximo.
+  calcularKgNecessario(nivel) {
+    if (!Number.isSafeInteger(nivel) || nivel < 1) throw new RangeError('Nível inválido');
+    const p = this.PROGRESSAO_NIVEL;
+    return p.baseKg + p.incrementoKg * (nivel - 1);
+  },
+
+  calcularKgMinimoNivel(nivel) {
+    if (!Number.isSafeInteger(nivel) || nivel < 1) throw new RangeError('Nível inválido');
+    if (nivel === 1) return 0;
+    // Soma da progressão aritmética, em gramas inteiros, sem percorrer níveis.
+    const etapas = nivel - 1;
+    const primeiro = Math.round(this.calcularKgNecessario(1) * 1000);
+    const ultimo = Math.round(this.calcularKgNecessario(nivel - 1) * 1000);
+    const gramas = etapas * (primeiro + ultimo) / 2;
+    if (!Number.isSafeInteger(gramas)) throw new RangeError('Peso fora da precisão suportada');
+    return gramas / 1000;
+  },
+
   calcularNivel(totalKg) {
-    // Nível 1: 0kg a 1.99kg
-    // Nível 2: 2kg a 3.99kg
-    // Nível 3: 4kg a 5.99kg
-    // Fórmula: 1 + floor(totalKg / 2)
-    return 1 + Math.floor(this.arredondar(totalKg) / 2);
+    if (!this.valorValido(totalKg) || totalKg < 0) throw new RangeError('Peso total inválido');
+    const gramas = Math.round(totalKg * 1000);
+    const primeiro = Math.round(this.calcularKgNecessario(1) * 1000);
+    const incremento = Math.round((this.calcularKgNecessario(2) - this.calcularKgNecessario(1)) * 1000);
+    // Inversa da soma da PA: a*k² + b*k = gramas, com k = nível - 1.
+    const a = incremento / 2, b = primeiro - a;
+    let nivel = 1 + Math.floor((Math.sqrt(b * b + 4 * a * gramas) - b) / (2 * a));
+    // A raiz é uma estimativa: comparar os limiares inteiros evita erros na borda.
+    while (Math.round(this.calcularKgMinimoNivel(nivel + 1) * 1000) <= gramas) nivel++;
+    while (Math.round(this.calcularKgMinimoNivel(nivel) * 1000) > gramas) nivel--;
+    return nivel;
   },
 
   calcularProgressoNivel(totalKg) {
     const nivel = this.calcularNivel(totalKg);
 
-    // Kg necessário para o próximo nível (sempre 2kg por nível)
-    const kgNecessario = 2;
-
-    // Kg atual dentro do nível (resto da divisão por 2)
-    const kgNoNivelAtual = this.arredondar(this.arredondar(totalKg) % 2);
+    const kgNecessario = this.calcularKgNecessario(nivel);
+    const kgInicioNivel = this.calcularKgMinimoNivel(nivel);
+    const kgProximoNivel = this.calcularKgMinimoNivel(nivel + 1);
+    const kgNoNivelAtual = (Math.round(totalKg * 1000) - Math.round(kgInicioNivel * 1000)) / 1000;
 
     // Porcentagem do progresso para o próximo nível
     const porcentagem = (kgNoNivelAtual / kgNecessario) * 100;
 
     // Kg que faltam para o próximo nível
-    const kgFaltando = kgNecessario - kgNoNivelAtual;
+    const kgFaltando = this.arredondar(kgNecessario - kgNoNivelAtual);
 
     return {
       nivel,
       kgAtual: kgNoNivelAtual,
       kgNecessario,
+      kgInicioNivel,
+      kgProximoNivel,
       kgFaltando,
       porcentagem: Math.min(porcentagem, 100),
       proximoNivel: nivel + 1,

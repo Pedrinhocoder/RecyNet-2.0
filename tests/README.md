@@ -13,10 +13,10 @@ Também é possível usar `CHROMIUM_PATH=/caminho/do/chromium` para um Chromium 
 
 ## Cobertura atual
 
-- `core.test.cjs`: 50 testes com os scripts reais em uma VM e armazenamento isolado, cobrindo cadastro, sessão, autorização, demonstração, coletas, resgates, ajustes, precisão, datas, ranking, funcionamento dos locais, armazenamento inválido, falhas de escrita, perfil/senha e backups.
+- `core.test.cjs`: 56 testes com os scripts reais em uma VM e armazenamento isolado, cobrindo cadastro, sessão, autorização, demonstração, coletas, resgates, ajustes, precisão, datas, ranking, funcionamento dos locais, armazenamento inválido, falhas de escrita, perfil/senha e backups.
 - `structure.test.cjs`: 3 verificações de referências locais, sintaxe e sincronização YAML/JSON da OpenAPI, incluindo referências internas.
 - `server.test.cjs`: inicia o servidor real a partir de outra pasta, com porta configurada; verifica documentação, loopback informado, cabeçalho e bloqueio de arquivos ocultos. Esse teste usa rede local e processo filho.
-- `browser.cjs`: 65 cenários no Chromium com interface, XSS, permissões, sessões em duas abas, históricos, datas, menu móvel com rolagem, toque e teclado em telas baixas, layout em 320 px, contraste, âncoras, cadastro com erros associados, avisos empilhados, limpeza explícita e movimento reduzido, página atual acessível, filtros por teclado, atalho para conteúdo e animações válidas, perfil, senha, recuperação, clipboard, precisão, diagnóstico isolado e gráficos.
+- `browser.cjs`: 66 cenários no Chromium com interface, XSS, permissões, sessões em duas abas, históricos, datas, menu móvel com rolagem, toque e teclado em telas baixas, layout em 320 px, contraste, âncoras, cadastro com erros associados, avisos empilhados, limpeza explícita e movimento reduzido, página atual acessível, filtros por teclado, atalho para conteúdo e animações válidas, perfil, senha, recuperação, clipboard, precisão, diagnóstico isolado e gráficos.
 - `accessibility.cjs`: axe com tags WCAG 2 A/AA e 2.1 AA nas 21 páginas, em 1280 e 390 pixels, mais verificação de excesso de largura. O conteúdo de mapas externos é substituído no teste. O relatório temporário é salvo em `work/accessibility.json`.
 - `isolated-checks.js`: seis verificações executadas pelo Worker da página de diagnóstico, com dados somente em memória.
 
@@ -35,3 +35,5 @@ A regressão JS-11 realiza dois downloads de backup e valida a revogação poste
 As regressões RV-01 a RV-03 mantêm uma trava de escrita ocupada para testar cliques e submits repetidos nas coletas, ajustes e resgates. Verificam uma única operação pendente, liberação dos controles após falha e nova tentativa. O perfil é validado após Cancelar e Escape, incluindo nova atualização recebida com o diálogo fechado e reabertura sem aviso antigo. Os inicializadores Windows foram revisados estaticamente; o servidor compartilhado foi executado de outra pasta. Não houve execução nativa de CMD/PowerShell neste ambiente.
 
 Após a organização do repositório, os testes carregam a aplicação da raiz com recursos em `assets/`. A varredura estrutural percorre os estilos e scripts em `assets/`. O teste de servidor também confere que dependências, configuração e testes internos não são publicados; somente `tests/isolated-checks.js` é servido para o Worker.
+
+A progressão cobre marcos exatos e 1 g abaixo, níveis acima de 100, avanços múltiplos, peso máximo, contas e backups da curva antiga, gravação transacional e persistência após recarregar.

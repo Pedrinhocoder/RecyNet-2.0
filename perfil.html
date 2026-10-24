@@ -120,6 +120,8 @@
                 <div class="progress-fill" id="progressBar" style="width: 0%"></div>
               </div>
               <p class="progress-text">Faltam <strong id="kgToNext">0 kg</strong> para o próximo nível</p>
+              <p class="progress-text" id="levelGoal"></p>
+              <p class="progress-text">O primeiro avanço exige 1 kg. Cada avanço seguinte exige 250 g a mais, sem limite de níveis.</p>
             </div>
           </div>
         </div>
@@ -252,9 +254,10 @@
       const progresso = RecyNetDB.calcularProgressoNivel(totalKg);
 
       document.getElementById('progressLabel').textContent = `Progresso para Nível ${progresso.proximoNivel}`;
-      document.getElementById('progressPercent').textContent = progresso.porcentagem.toFixed(0) + '%';
+      document.getElementById('progressPercent').textContent = Math.floor(progresso.porcentagem) + '%';
       document.getElementById('progressBar').style.width = progresso.porcentagem + '%';
       document.getElementById('kgToNext').textContent = RecyNetDB.formatarKg(progresso.kgFaltando);
+      document.getElementById('levelGoal').textContent = `Meta do nível ${progresso.proximoNivel}: ${RecyNetDB.formatarKg(progresso.kgProximoNivel)} acumulados. Nesta etapa: ${RecyNetDB.formatarKg(progresso.kgAtual)} de ${RecyNetDB.formatarKg(progresso.kgNecessario)}.`;
     }
 
 
