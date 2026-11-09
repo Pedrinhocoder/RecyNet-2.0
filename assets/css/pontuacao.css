@@ -74,17 +74,12 @@
   color: #143b17;
 }
 
-.material-icon {
-  font-size: var(--font-size-2xl);
-}
-
 /* === CALCULADORA === */
 .calculator-box {
-  margin-top: var(--spacing-2xl);
   padding: var(--spacing-xl);
   background: var(--color-accent-lightest);
   border-radius: var(--radius-lg);
-  border: 2px dashed var(--color-primary);
+  border: 1px solid var(--color-primary);
 }
 
 .calculator-title {
@@ -92,12 +87,6 @@
   font-weight: var(--font-weight-bold);
   color: var(--color-primary);
   margin-bottom: var(--spacing-xs);
-}
-
-.calculator-subtitle {
-  font-size: var(--font-size-sm);
-  color: var(--color-gray-600);
-  margin-bottom: var(--spacing-lg);
 }
 
 .calculator-form {
@@ -180,7 +169,53 @@
     padding: var(--spacing-md);
   }
 
-  .table-container {
-    overflow-x: auto;
-  }
+}
+.page-header.coleta-cabecalho { margin-bottom: var(--spacing-md); animation: none; }
+.coleta-formulario { margin-bottom: var(--spacing-lg); }
+#solicitar-coleta, #solicitacoes { scroll-margin-top: 6rem; }
+.coleta-formulario .form-input,
+.coleta-formulario .form-select { font-size: max(16px, 1rem); }
+.coleta-formulario .form-group { margin-bottom: 0; }
+#registroAjuda { margin-block: var(--spacing-md) var(--spacing-sm); }
+
+.solicitacao-feedback {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--color-primary-dark);
+}
+.solicitacao-feedback:not(:empty) { margin-top: var(--spacing-sm); }
+.taxas-materiais, .taxas-materiais dd { margin: 0; }
+.taxas-materiais > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding-block: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-gray-200);
+}
+.taxas-materiais > div:last-child { border: 0; }
+.taxas-materiais dt { font-weight: var(--font-weight-semibold); }
+.taxas-materiais dd { text-align: right; }
+
+.solicitacoes-lista { list-style: none; margin: 0; padding: 0; }
+.solicitacoes-lista li {
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+.solicitacoes-lista li:last-child { border: 0; }
+.solicitacoes-lista p { margin: var(--spacing-xs) 0 0; }
+.solicitacao-estado {
+  display: inline-block;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--radius-md);
+  color: #453003;
+  background: #ffe9b2;
+}
+.estado-confirmada { color: #143b17; background: #c8e6c9; }
+.estado-recusada { color: #761919; background: #ffe0e0; }
+.solicitacao-protocolo { overflow-wrap: anywhere; }
+
+@media (min-width: 769px) {
+  .calculator-form { display: grid; grid-template-columns: 1fr 1fr; }
+  .calculator-form > button, .calculator-result { grid-column: 1 / -1; }
 }

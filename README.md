@@ -70,7 +70,7 @@ Os locais, horários, mapas, notícias e recompensas são demonstrativos. Pontos
 
 1. Como cooperado, abra **Pontuação**, informe material e peso e clique em **Solicitar conferência**.
 2. No mesmo navegador e endereço, entre como administrador de demonstração e abra **Coletas aguardando conferência**. Confira e ajuste o material e o peso medido.
-3. Informe o código do comprovante físico e confirme. Reuse esse código se a mesma entrega aparecer em outro pedido. O pedido sai da fila e os pontos aparecem na conta do cooperado.
+3. Informe o código do comprovante físico e confirme. Reuse esse código se a mesma entrega aparecer em outro pedido. O pedido sai da fila e os pontos aparecem na conta do cooperado. O protocolo permanece o mesmo em **Minhas solicitações de coleta**, que mostra o pedido pendente, confirmado ou recusado.
 
 A conferência é uma simulação local. A proteção contra duplicidade vale para o pedido e para o código na base ativa. Usar códigos diferentes para a mesma entrega, apagar a conta ou restaurar um backup anterior pode remover essa garantia. Uma operação real precisa emitir comprovantes e validar os créditos no servidor, sem a conta administrativa pública da demo.
 
@@ -97,7 +97,7 @@ npm run test:browser
 npm run test:accessibility
 ```
 
-A suíte reúne **58 testes do modelo, 3 estruturais, 1 teste real do servidor, 66 cenários no Chromium e 44 auditorias de acessibilidade/layout**. Para Chromium já instalado, defina `CHROMIUM_PATH`. Os testes usam dados fictícios e contextos isolados; evidências temporárias ficam em `work/`, fora do versionamento.
+A suíte reúne **58 testes do modelo, 3 estruturais, 1 teste real do servidor, 68 cenários no Chromium e 44 auditorias de acessibilidade/layout**. Para Chromium já instalado, defina `CHROMIUM_PATH`. Os testes usam dados fictícios e contextos isolados; evidências temporárias ficam em `work/`, fora do versionamento.
 
 O workflow [Validar projeto](.github/workflows/ci.yml) executa os testes em pushes e pull requests. A definição do workflow está incluída; sua execução remota depende da publicação e da configuração de Actions no GitHub.
 

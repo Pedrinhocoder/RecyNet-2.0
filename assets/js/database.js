@@ -97,12 +97,16 @@ const RecyNetDB = {
           return false;
       }
     };
+    const solicitacaoValida = s => objeto(s) && texto(s.id) && data(s.data) && material(s.material) &&
+      Number.isSafeInteger(s.gramas) && s.gramas >= 100 && this.valorValido(s.gramas);
+    const recusadas = usuario?.coletasRecusadas;
+    const recusadasValidas = recusadas === undefined || (Array.isArray(recusadas) &&
+      recusadas.every(s => solicitacaoValida(s) && data(s.recusadaEm) && s.recusadaEm >= s.data));
     const pendentes = usuario?.coletasPendentes;
     const pendentesValidas = pendentes === undefined || (Array.isArray(pendentes) && pendentes.length <= 20 &&
-      pendentes.every(s => objeto(s) && texto(s.id) && data(s.data) && material(s.material) &&
-        Number.isSafeInteger(s.gramas) && s.gramas >= 100 && this.valorValido(s.gramas)) &&
+      pendentes.every(solicitacaoValida) &&
       new Set(pendentes.map(s => s.id)).size === pendentes.length);
-    return pendentesValidas && objeto(usuario) && (usuario.versaoDados === undefined || usuario.versaoDados === 1) &&
+    return pendentesValidas && recusadasValidas && objeto(usuario) && (usuario.versaoDados === undefined || usuario.versaoDados === 1) &&
       (usuario.versaoProgressao === undefined || [1, 2, 3].includes(usuario.versaoProgressao)) && texto(usuario.id) && texto(usuario.nome) &&
       ['totalKg', 'totalPontosGanhos', 'pontosDisponiveis', 'pontosGastos'].every(campo => numero(usuario[campo])) &&
       Number.isSafeInteger(usuario.nivel) && usuario.nivel >= 1 && usuario.nivel <= this.MAX_VALOR &&
@@ -171,7 +175,7 @@ const RecyNetDB = {
           (h.tipo === 'coleta' && !['kg','gramas','pontosGanhos'].every(c => Number.isFinite(h[c])))) : -1;
         return `Conta ${i + 1}${atividade >= 0 ? `, histórico ${atividade + 1}` : ''}: dados incompletos, versão desconhecida ou totais incompatíveis com o histórico.`;
       }
-      for (const id of [...(u.coletasPendentes ?? []).map(s => s.id), ...u.historico.map(h => h.solicitacaoId).filter(Boolean)]) {
+      for (const id of [...(u.coletasPendentes ?? []).map(s => s.id), ...(u.coletasRecusadas ?? []).map(s => s.id), ...u.historico.map(h => h.solicitacaoId).filter(Boolean)]) {
         if (solicitacoes.has(id)) return 'A base contém uma solicitação de coleta duplicada.';
         solicitacoes.add(id);
       }
@@ -470,7 +474,11 @@ const RecyNetDB = {
     const lista = usuario?.coletasPendentes;
     const indice = lista?.findIndex(s => s.id === solicitacaoId) ?? -1;
     if (indice < 0) return { sucesso: false, erro: 'Esta solicitação já foi processada ou não existe.' };
-    lista.splice(indice, 1);
+    const [solicitacao] = lista.splice(indice, 1);
+    (usuario.coletasRecusadas ??= []).push({
+      ...solicitacao,
+      recusadaEm: new Date(Math.max(Date.now(), Date.parse(solicitacao.data))).toISOString()
+    });
     this.salvarUsuario(usuario);
     return { sucesso: true };
   },

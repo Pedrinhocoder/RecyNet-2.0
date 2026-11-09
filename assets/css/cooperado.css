@@ -12,7 +12,6 @@
 /* === SEÇÃO DE BOAS-VINDAS === */
 .welcome-section {
   margin-bottom: var(--spacing-2xl);
-  animation: fadeInUp 0.6s ease-out;
 }
 
 .welcome-title {
@@ -230,3 +229,14 @@
 /* Nomes persistidos também precisam caber em telas pequenas. */
 .welcome-title { overflow-wrap: anywhere; }
 .content-grid > *, .stat-content { min-width: 0; }
+
+.welcome-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  margin-block: var(--spacing-md);
+}
+
+@media (max-width: 480px) {
+  .welcome-actions { flex-direction: column; }
+}

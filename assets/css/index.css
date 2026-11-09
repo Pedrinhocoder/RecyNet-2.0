@@ -15,7 +15,6 @@
   text-align: center;
   padding: var(--spacing-3xl) var(--spacing-md);
   margin-bottom: var(--spacing-2xl);
-  animation: fadeInUp 0.8s ease-out;
 }
 
 .hero-title {
@@ -24,7 +23,6 @@
   color: var(--color-primary);
   margin-bottom: var(--spacing-lg);
   line-height: var(--line-height-tight);
-  animation: fadeInUp 1s ease-out;
 }
 
 .hero-subtitle {
@@ -33,25 +31,11 @@
   max-width: 700px;
   margin: 0 auto;
   line-height: var(--line-height-relaxed);
-  animation: fadeInUp 1.2s ease-out;
 }
 
 /* === SECTIONS === */
 .content-section {
   margin-bottom: var(--spacing-2xl);
-  animation: fadeInUp 0.8s ease-out;
-}
-
-.content-section:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.content-section:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-.content-section:nth-child(4) {
-  animation-delay: 0.6s;
 }
 
 /* === CARD BODY CONTENT === */
@@ -169,4 +153,20 @@ html {
   .stat-number {
     font-size: var(--font-size-2xl);
   }
+}
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-block: var(--spacing-lg) var(--spacing-sm);
+}
+
+.hero-note {
+  color: var(--color-gray-700);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 480px) {
+  .hero-actions { flex-direction: column; }
 }

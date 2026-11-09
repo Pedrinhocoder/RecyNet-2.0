@@ -1438,6 +1438,59 @@ async function main() {
       }
     });
 
+    await check('primeira dobra móvel tem acesso, coleta e lista de materiais sem corte', async ({page,go,cadastrar}) => {
+      await page.setViewportSize({width:390,height:844});
+      const cabeNaTela = el => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && Number(getComputedStyle(el).opacity) > 0; };
+      await go('index.html');
+      assert(await page.getByRole('link',{name:'Experimentar demonstração',exact:true}).evaluate(cabeNaTela));
+      assert(await page.getByRole('link',{name:'Entrar na minha conta',exact:true}).evaluate(cabeNaTela));
+      await go('recynet.html');
+      assert(await page.getByRole('textbox',{name:'Email',exact:true}).evaluate(el => parseFloat(getComputedStyle(el).fontSize) >= 16));
+      await cadastrar();
+      await go('cooperado.html');
+      const cta = page.locator('.welcome-actions').getByRole('link',{name:'Solicitar conferência',exact:true});
+      assert(await cta.evaluate(cabeNaTela));
+      await cta.click();
+      await page.waitForURL('**/pontuacao.html#solicitar-coleta');
+      const botao = page.locator('#btnRegistrar');
+      assert(await botao.evaluate(el=>el.getBoundingClientRect().top + scrollY < innerHeight));
+      assert(await page.locator('.taxas-materiais').evaluate(el=>el.scrollWidth <= el.clientWidth));
+      assert(await page.locator('#quantityInput').evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=16));
+    });
+
+    await check('mesmo protocolo mostra pedido pendente, confirmado ou recusado após recarregar', async ({page,go,cadastrar,admin}) => {
+      const usuario = await cadastrar();
+      await go('pontuacao.html');
+      const enviar = async (kg) => {
+        await page.locator('#quantityInput').fill(kg);
+        await page.locator('#btnRegistrar').click();
+        await page.waitForFunction(()=>document.getElementById('quantityInput').value==='');
+      };
+      await enviar('1');
+      const primeiro = await page.locator('#minhasSolicitacoes code').first().innerText();
+      assert((await page.locator('#resultadoSolicitacao').innerText()).includes(primeiro));
+      await enviar('2');
+      const segundo = await page.locator('#minhasSolicitacoes code').last().innerText();
+      assert.notEqual(primeiro,segundo);
+      assert.equal(await page.locator('#totalPoints').innerText(),'0');
+      await admin();
+      await go('admin.html');
+      const aprovar = page.locator('#filaColetas form').filter({hasText:primeiro});
+      await aprovar.locator('[name=codigo]').fill('PROTOCOLO-01');
+      await aprovar.getByRole('button',{name:'Confirmar e creditar'}).click();
+      await aprovar.waitFor({state:'detached'});
+      const recusar = page.locator('#filaColetas form').filter({hasText:segundo});
+      await recusar.getByRole('button',{name:'Recusar solicitação'}).click();
+      await recusar.waitFor({state:'detached'});
+      await page.evaluate(({email, senha}) => RecyNetAuth.login(email, senha), {email:usuario.email, senha});
+      await go('pontuacao.html');
+      await page.reload();
+      const lista = page.locator('#minhasSolicitacoes li');
+      assert.match(await lista.filter({hasText:primeiro}).innerText(), /Confirmada.*\+20 pontos/s);
+      assert.match(await lista.filter({hasText:segundo}).innerText(), /Recusada.*Nenhum ponto creditado/s);
+      assert.equal(await page.locator('#totalPoints').innerText(),'20');
+    });
+
     console.log(`\n${passed} aprovados; ${failed} falhas.`);
     if (failed) process.exitCode = 1;
   } finally {

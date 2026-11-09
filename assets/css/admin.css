@@ -653,3 +653,5 @@ footer {
   width: 100%;
   overflow-x: auto;
 }
+
+.fila-protocolo { overflow-wrap: anywhere; }

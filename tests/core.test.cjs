@@ -987,5 +987,12 @@ test('código repetido em pedidos diferentes não gera crédito; recusa não mud
   assert.equal(a.db.listarColetasPendentes().length, 1);
   assert.equal((await a.db.recusarColeta(user.id, segundo.id)).sucesso, true);
   assert.equal(a.db.getUsuarioPorId(user.id).pontosDisponiveis, 5);
+  const atual = a.db.getUsuarioPorId(user.id);
+  assert.equal(atual.coletasRecusadas[0].id, segundo.id);
+  assert.equal(atual.coletasRecusadas[0].gramas, 1000);
+  assert.equal((await a.db.confirmarColeta(user.id, segundo.id, 'papel', 1000, 'REC-2')).sucesso, false);
+  const backup = JSON.stringify(a.db.getUsuarios());
+  assert.equal((await a.db.restaurarBackup(backup)).sucesso, true);
+  assert.equal(a.db.getUsuarioPorId(user.id).coletasRecusadas[0].id, segundo.id);
   assert.equal(a.db.listarColetasPendentes().length, 0);
 });
