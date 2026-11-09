@@ -138,7 +138,7 @@
 
       try {
         const etapas = ['Validando configuração...', 'Criando conta de demonstração...',
-          'Registrando 1kg de plástico...', 'Confirmando sessão de demonstração...'];
+          'Enviando solicitação de 1 kg de plástico...', 'Confirmando sessão de demonstração...'];
         const resultado = await RecyNetDemo.configurar((step, status) => {
           setStepStatus(step, status);
           if (status === 'running') log(etapas[step - 1]);

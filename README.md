@@ -54,8 +54,9 @@ O GitHub Pages existente continua usando as páginas da raiz, com os mesmos ende
 ## Funcionalidades
 
 - Cadastro, login, perfil e troca de senha; emails normalizados e permissões administrativas verificadas nas telas e ações.
+- O cooperado solicita a conferência. Apenas após o administrador confirmar material, peso e código do comprovante é que o saldo e o ranking mudam. O mesmo código não pode creditar outra entrega na base local ativa.
 - Coletas a partir de 100 g com precisão de gramas; pontos com até três casas decimais; níveis ilimitados com requisito adicional de `1 + 0.25 × (nível atual − 1)` kg por avanço.
-- Registro administrativo com data atual ou retroativa, preservando a sessão do administrador.
+- O administrador pode recusar uma solicitação sem crédito ou registrar uma entrega presencial sem solicitação, com código do comprovante e data atual ou retroativa.
 - Ajustes por material e pontos, com motivo textual de até 500 caracteres; resgates pelo ID e preço do catálogo.
 - Histórico, ranking e relatórios, com Chart.js distribuído localmente e resumo textual.
 - Gravações coordenadas entre abas; envios repetidos bloqueados durante a operação; rascunhos de perfil preservados e conflitos tratados por campo.
@@ -64,6 +65,14 @@ O GitHub Pages existente continua usando as páginas da raiz, com os mesmos ende
 - Navegação por teclado, responsividade, mensagens acessíveis, contraste e respeito a movimento reduzido.
 
 Os locais, horários, mapas, notícias e recompensas são demonstrativos. Pontos e resgates não geram benefícios reais. Não existe módulo de IA nem backend implementado.
+
+## Conferência de entregas na demonstração
+
+1. Como cooperado, abra **Pontuação**, informe material e peso e clique em **Solicitar conferência**.
+2. No mesmo navegador e endereço, entre como administrador de demonstração e abra **Coletas aguardando conferência**. Confira e ajuste o material e o peso medido.
+3. Informe o código do comprovante físico e confirme. Reuse esse código se a mesma entrega aparecer em outro pedido. O pedido sai da fila e os pontos aparecem na conta do cooperado.
+
+A conferência é uma simulação local. A proteção contra duplicidade vale para o pedido e para o código na base ativa. Usar códigos diferentes para a mesma entrega, apagar a conta ou restaurar um backup anterior pode remover essa garantia. Uma operação real precisa emitir comprovantes e validar os créditos no servidor, sem a conta administrativa pública da demo.
 
 ## Dados locais e recuperação
 
@@ -88,7 +97,7 @@ npm run test:browser
 npm run test:accessibility
 ```
 
-A suíte reúne **56 testes do modelo, 3 estruturais, 1 teste real do servidor, 66 cenários no Chromium e 44 auditorias de acessibilidade/layout**. Para Chromium já instalado, defina `CHROMIUM_PATH`. Os testes usam dados fictícios e contextos isolados; evidências temporárias ficam em `work/`, fora do versionamento.
+A suíte reúne **58 testes do modelo, 3 estruturais, 1 teste real do servidor, 66 cenários no Chromium e 44 auditorias de acessibilidade/layout**. Para Chromium já instalado, defina `CHROMIUM_PATH`. Os testes usam dados fictícios e contextos isolados; evidências temporárias ficam em `work/`, fora do versionamento.
 
 O workflow [Validar projeto](.github/workflows/ci.yml) executa os testes em pushes e pull requests. A definição do workflow está incluída; sua execução remota depende da publicação e da configuração de Actions no GitHub.
 
