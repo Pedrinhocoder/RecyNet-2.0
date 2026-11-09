@@ -151,20 +151,25 @@
 
               <div class="calculator-result" id="calculatorResult">
                 <span class="result-icon">✨</span>
-                <span class="result-text">Você ganhará <strong id="resultPoints">0</strong> pontos!</span>
+                <span class="result-text">Estimativa após confirmação: <strong id="resultPoints">0</strong> pontos</span>
               </div>
             </div>
 
-            <p id="registroAjuda">Informe o material e ao menos 100 g (0,1 kg) para registrar a coleta.</p>
+            <p id="registroAjuda">Informe o material e ao menos 100 g (0,1 kg) para enviar a solicitação. Os pontos só entram após o administrador conferir a entrega.</p>
             <!-- Botão para Registrar Coleta -->
             <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
               <button class="btn btn-primary btn-full" aria-describedby="registroAjuda" onclick="registrarColeta()" id="btnRegistrar">
-                📦 Registrar Esta Coleta
+                📦 Solicitar conferência
               </button>
             </div>
           </div>
         </div>
       </div>
+
+      <section class="card" aria-labelledby="tituloSolicitacoes">
+        <div class="card-header"><h2 id="tituloSolicitacoes" class="card-title">Minhas solicitações de coleta</h2></div>
+        <div class="card-body" id="minhasSolicitacoes"></div>
+      </section>
 
       <!-- Dicas -->
       <div class="card card-success fade-in-up">
@@ -315,7 +320,7 @@
 
       return await RecyNetUtils.executarEnvioUnico(document.getElementById('btnRegistrar').closest('.calculator-box'), async () => {
         try {
-          const resultado = (await RecyNetDB.registrarColeta(
+          const resultado = (await RecyNetDB.solicitarColeta(
             usuarioLogado.id,
             materialKey,
             gramas
@@ -323,13 +328,12 @@
 
           if (resultado.sucesso) {
             RecyNetUtils.showToast(
-              `Coleta registrada! +${RecyNetUtils.formatNumber(resultado.pontosGanhos)} pontos`,
+              `Solicitação enviada. Os pontos aguardam a conferência da entrega.`,
               'success'
             );
 
-            // Atualizar imediatamente pontos e nível com o registro persistido.
             carregarDadosUsuario();
-            renderizarBarraNivel();
+            renderizarSolicitacoes();
             document.getElementById('quantityInput').value = '';
             invalidarEstimativa();
           } else {
@@ -342,14 +346,36 @@
       });
     }
 
+    function renderizarSolicitacoes() {
+      const painel = document.getElementById('minhasSolicitacoes');
+      const pendentes = usuarioLogado?.coletasPendentes ?? [];
+      const confirmadas = (usuarioLogado?.historico ?? []).filter(h => h.solicitacaoId).slice(0, 5);
+      painel.replaceChildren();
+      if (!pendentes.length && !confirmadas.length) {
+        painel.textContent = 'Nenhuma solicitação enviada.';
+        return;
+      }
+      const lista = document.createElement('ul');
+      for (const item of [...pendentes, ...confirmadas]) {
+        const linha = document.createElement('li');
+        const status = item.solicitacaoId ? 'Confirmada' : 'Aguardando conferência';
+        const material = document.querySelector('#materialSelect option[value="' + item.material + '"]')?.textContent;
+        linha.textContent = status + ' — ' + (material?.split(' (')[0] || item.material) + ' · ' +
+          RecyNetDB.formatarKg(item.gramas / 1000) + ' · ' + new Date(item.data).toLocaleDateString('pt-BR');
+        lista.append(linha);
+      }
+      painel.append(lista);
+    }
+
     // Inicialização
     window.addEventListener('DOMContentLoaded', () => {
       if (!usuarioLogado) return;
       carregarDadosUsuario();
       renderizarBarraNivel();
+      renderizarSolicitacoes();
     });
 
-RecyNetUtils.aoAtualizarDados(u => { usuarioLogado = u; carregarDadosUsuario(); renderizarBarraNivel(); });
+RecyNetUtils.aoAtualizarDados(u => { usuarioLogado = u; carregarDadosUsuario(); renderizarBarraNivel(); renderizarSolicitacoes(); });
 </script>
 </body>
 </html>

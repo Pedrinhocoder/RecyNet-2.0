@@ -22,6 +22,7 @@ async function main() {
     });
     async function check(name, fn, options = {}) {
       const context = await browser.newContext(options);
+      await context.addInitScript({ path: path.join(__dirname, 'fixture-coleta.js') });
       const page = await context.newPage();
       const errors = [];
       const dialogs = [];
@@ -53,7 +54,7 @@ async function main() {
 
     await check('nome persistido é texto no resumo, ranking, pódio e telas administrativas', async ({ page, go, cadastrar, admin }) => {
       const user = await cadastrar(payload);
-      assert.equal(await page.evaluate(async id => (await RecyNetDB.registrarColeta(id, 'plastico', 1000)).sucesso, user.id), true);
+      assert.equal(await page.evaluate(async id => (await registrarColetaFixture(id, 'plastico', 1000)).sucesso, user.id), true);
       for (const file of ['cooperado.html', 'ranking.html']) {
         await go(file);
         if (file === 'cooperado.html') {
@@ -82,7 +83,7 @@ async function main() {
     await check('campos persistidos no histórico são texto em todas as telas do usuário', async ({ page, go, cadastrar }) => {
       const user = await cadastrar();
       const result = await page.evaluate(async ({ id, payload }) => {
-        (await RecyNetDB.registrarColeta(id, 'plastico', 2500));
+        (await registrarColetaFixture(id, 'plastico', 2500));
         // Arquivo histórico legado: conteúdo não confiável continua sendo renderizado como texto.
         const u=RecyNetDB.getUsuarioPorId(id);u.pontosDisponiveis-=1;u.pontosGastos+=1;
         u.historico.unshift({id:'resgate-legado',tipo:'resgate',recompensa:payload,custo:1,data:new Date().toISOString()});
@@ -185,7 +186,7 @@ async function main() {
       for (const [material, kg] of [['plastico', '2.5'], ['papel', '1']]) {
         await page.locator('#selectUsuario').selectOption(user.id);
         await page.locator('#selectMaterial').selectOption(material);
-        await page.locator('#inputPeso').fill(kg);
+        await page.locator('#inputPeso').fill(kg); await page.locator('#codigoEntrega').fill('TEST-' + Math.random().toString(36).slice(2));
         await page.locator('#formRegistrarColeta button[type="submit"]').click();
         await page.waitForFunction(()=>document.getElementById('inputPeso').value==='');
         assert.equal(await page.evaluate(() => RecyNetDB.getUsuarioLogado().id), 'admin_123');
@@ -204,7 +205,7 @@ async function main() {
     await check('demonstração pela interface preserva dados e funciona em duas execuções', async ({ page, go, cadastrar }) => {
       const user = await cadastrar('Pessoa Existente', 'teste@recynet.com');
       const antes = await page.evaluate(async id => {
-        (await RecyNetDB.registrarColeta(id, 'metal', 1000));
+        (await registrarColetaFixture(id, 'metal', 1000));
         localStorage.setItem('outra-aplicacao', 'preservar');
         return RecyNetDB.getUsuarioPorId(id);
       }, user.id);
@@ -220,8 +221,8 @@ async function main() {
         }), user.id);
         assert.deepEqual(atual.original, antes);
         assert.equal(atual.outra, 'preservar');
-        assert.equal(atual.sessao.totalKg, 1);
-        assert.equal(atual.sessao.pontosDisponiveis, 8);
+        assert.equal(atual.sessao.totalKg, 0);
+        assert.equal(atual.sessao.pontosDisponiveis, 0);
         demos.push(atual.sessao.id);
       }
       assert.notEqual(demos[0], demos[1]);
@@ -232,7 +233,7 @@ async function main() {
       await cadastrar();
       const antes = await page.evaluate(() => ({ usuarios: localStorage.getItem('recynet_usuarios'), sessao: localStorage.getItem('recynet_sessao') }));
       await go('setup-automatico.html');
-      await page.evaluate(() => { RecyNetDB.registrarColeta = () => ({ sucesso: false, erro: 'Falha simulada de coleta' }); });
+      await page.evaluate(() => { RecyNetDB.solicitarColeta = () => ({ sucesso: false, erro: 'Falha simulada de coleta' }); });
       await page.locator('#btnStart').click();
       await page.waitForFunction(() => document.getElementById('btnStart').textContent === 'Tentar Novamente');
       assert.equal(await page.locator('#btnStart').isEnabled(), true);
@@ -243,7 +244,7 @@ async function main() {
     await check('históricos mostram registros recentes e relatório funciona sem CDN', async ({ page, go, cadastrar }) => {
       const user = await cadastrar();
       await page.evaluate(async id => {
-        (await RecyNetDB.registrarColeta(id, 'metal', 10000));
+        (await registrarColetaFixture(id, 'metal', 10000));
         const u=RecyNetDB.getUsuarioPorId(id);
         for (let i=1;i<=12;i++)u.historico.unshift({id:`resgate-${i}`,tipo:'resgate',recompensa:`Prêmio ${i}`,custo:1,data:new Date().toISOString()});
         u.pontosGastos=12;u.pontosDisponiveis-=12;await RecyNetDB.salvarUsuario(u);
@@ -291,7 +292,7 @@ async function main() {
       assert.equal(await page.locator('#inputData').getAttribute('max'), '2026-10-21');
       await page.locator('#selectUsuario').selectOption(user.id);
       await page.locator('#selectMaterial').selectOption('papel');
-      await page.locator('#inputPeso').fill('2');
+      await page.locator('#inputPeso').fill('2'); await page.locator('#codigoEntrega').fill('TEST-' + Math.random().toString(36).slice(2));
       await page.locator('#inputData').fill('2026-09-15');
       await page.locator('#formRegistrarColeta button[type="submit"]').click();
       await page.waitForFunction(()=>document.getElementById('inputPeso').value==='');
@@ -303,14 +304,29 @@ async function main() {
       }, user.id), { data: '2026-09-15', kg: 2, sessao: 'admin_123' });
     }, { timezoneId: 'America/Sao_Paulo' });
 
-    await check('coletas atualizam nível e pontos pela curva progressiva, inclusive após recarregar', async ({ page, go, cadastrar }) => {
-      await cadastrar();
+    await check('coletas confirmadas atualizam nível e pontos inclusive após recarregar', async ({ page, go, cadastrar, admin }) => {
+      const usuario = await cadastrar();
       await go('pontuacao.html');
       assert.equal(await page.locator('.level-bar-compact-badge').innerText(), '1');
       for (const [kg,nivel,pontos] of [['0.1',1,0.5],['0.9',2,5],['1',2,10],['0.25',3,11.25]]) {
         await page.locator('#materialSelect').selectOption('papel');
         await page.locator('#quantityInput').fill(kg);
         await page.locator('#btnRegistrar').click();
+        await page.waitForFunction(() => document.getElementById('minhasSolicitacoes').textContent.includes('Aguardando conferência'));
+        await admin();
+        await go('admin.html');
+        const pedido = page.locator('#filaColetas form').first();
+        if (kg === '0.9') {
+          await pedido.locator('[name=codigo]').fill('nivel-0-1');
+          await pedido.getByRole('button', {name:'Confirmar e creditar'}).click();
+          await page.getByText('Este código de entrega já foi creditado.', {exact:true}).waitFor();
+          assert.equal(await page.locator('#filaColetas form').count(), 1);
+        }
+        await pedido.locator('[name=codigo]').fill('NIVEL-' + kg.replace('.', '-'));
+        await pedido.getByRole('button', {name:'Confirmar e creditar'}).click();
+        await page.waitForFunction(() => document.getElementById('filaColetas').children.length === 0);
+        await page.evaluate(({email, senha}) => RecyNetAuth.login(email, senha), {email:usuario.email, senha});
+        await go('pontuacao.html');
         await page.waitForFunction(p=>document.getElementById('totalPoints').textContent.trim()===p&&!document.getElementById('btnRegistrar').disabled,new Intl.NumberFormat('pt-BR',{maximumFractionDigits:3}).format(pontos));
         assert.equal(await page.locator('.level-bar-compact-badge').innerText(), String(nivel));
       }
@@ -324,7 +340,7 @@ async function main() {
     await check('migração da curva preserva IndexedDB e histórico e confirma o novo nível na próxima coleta', async ({page,go,cadastrar})=>{
       const user=await cadastrar();
       await page.evaluate(async id=>{
-        await RecyNetDB.registrarColeta(id,'papel',10000);
+        await registrarColetaFixture(id,'papel',10000);
         const usuarios=RecyNetDB.getUsuarios();const u=usuarios.find(u=>u.id===id);
         delete u.versaoProgressao;u.nivel=6;
         const raw=JSON.stringify(usuarios);
@@ -334,7 +350,7 @@ async function main() {
       assert.equal(await page.locator('#userLevel').innerText(),'7');
       assert.equal(await page.evaluate(id=>RecyNetDB.getUsuarioPorId(id).totalPontosGanhos,user.id),50);
       assert.equal(await page.evaluate(id=>JSON.parse(localStorage.getItem('recynet_usuarios')).find(u=>u.id===id).nivel,user.id),6);
-      const result=await page.evaluate(id=>RecyNetDB.registrarColeta(id,'papel',2250),user.id);
+      const result=await page.evaluate(id=>registrarColetaFixture(id,'papel',2250),user.id);
       assert.equal(result.sucesso,true);assert.equal(result.usuario.nivel,8);
       await page.reload();
       assert.equal(await page.locator('#userLevel').innerText(),'8');
@@ -426,7 +442,7 @@ async function main() {
       const outra = await context.newPage();
       await outra.goto(`${base}/index.html`);
       await outra.addScriptTag({ url: `${base}/assets/js/database.js` });
-      assert.equal(await outra.evaluate(async id => (await RecyNetDB.registrarColeta(id, 'papel', 2000)).sucesso, user.id), true);
+      assert.equal(await outra.evaluate(async id => (await registrarColetaFixture(id, 'papel', 2000)).sucesso, user.id), true);
       await page.waitForFunction(() => document.getElementById('userLevel')?.textContent === '2');
       assert((await page.locator('#userKg').innerText()).includes('2,00'));
       // Simular uma exclusão recebida de outro consumidor do armazenamento.
@@ -527,7 +543,7 @@ async function main() {
       await cadastrar();await go('pontuacao.html');
       await page.locator('#materialSelect').selectOption('papel');await page.locator('#quantityInput').fill('0.101');
       await page.evaluate(()=>calcularPontos());assert.equal(await page.locator('#resultPoints').innerText(),'0,505');
-      await page.locator('#btnRegistrar').click();await page.waitForFunction(()=>document.getElementById('totalPoints').textContent==='0,505');assert.equal(await page.locator('#totalPoints').innerText(),'0,505');
+      await page.locator('#btnRegistrar').click();await page.waitForFunction(()=>document.getElementById('minhasSolicitacoes').textContent.includes('101'));assert.equal(await page.locator('#totalPoints').innerText(),'0');
       await page.locator('#quantityInput').fill('0.05');await page.locator('#btnRegistrar').click();
       assert((await page.getByRole('status').last().innerText()).includes('0,1 kg'));
     });
@@ -541,7 +557,7 @@ async function main() {
     });
 
     await check('documentação da API filtra endpoints e gráficos carregam da cópia local', async ({page,go,cadastrar})=>{
-      const user=await cadastrar();await page.evaluate(async id=>(await RecyNetDB.registrarColeta(id,'papel',2000)),user.id);
+      const user=await cadastrar();await page.evaluate(async id=>(await registrarColetaFixture(id,'papel',2000)),user.id);
       await go('relatorio.html');assert.equal(await page.evaluate(()=>Boolean(Chart.getChart('materialsChart'))),true);
       await go('api-docs.html');await page.waitForFunction(()=>document.querySelectorAll('.api-operation').length>0);
       await page.locator('#apiSearch').fill('auth');
@@ -562,7 +578,7 @@ async function main() {
 
     await check('gráfico anual tem doze meses distintos no dia 31 e relatório cabe após redimensionar', async ({page,go,cadastrar})=>{
       const user=await cadastrar();
-      await page.evaluate(async id=>(await RecyNetDB.registrarColeta(id,'papel',2000)),user.id);
+      await page.evaluate(async id=>(await registrarColetaFixture(id,'papel',2000)),user.id);
       await page.clock.setFixedTime(new Date('2026-03-31T15:00:00Z'));await go('relatorio.html');
       await page.locator('[data-period="year"]').click();
       const labels=await page.evaluate(()=>Chart.getChart('temporalChart').data.labels);
@@ -648,7 +664,7 @@ async function main() {
 
     await check('1001 gramas mantém precisão nos totais e históricos do usuário e administrador', async ({ page, go, cadastrar, admin }) => {
       const user = await cadastrar();
-      assert.equal(await page.evaluate(async id => (await RecyNetDB.registrarColeta(id, 'papel', 1001)).sucesso, user.id), true);
+      assert.equal(await page.evaluate(async id => (await registrarColetaFixture(id, 'papel', 1001)).sucesso, user.id), true);
       for (const arquivo of ['cooperado.html', 'perfil.html', 'relatorio.html']) {
         await go(arquivo);
         const texto = await page.locator('body').innerText();
@@ -796,7 +812,7 @@ async function main() {
     await check('relatório, ranking e utilidades cabem em 320 px com nomes e identificação completos', async ({ page, go, cadastrar, admin }) => {
       await page.route('https://**/*', route => route.abort());
       const user = await cadastrar('Pessoa Auditoria');
-      await page.evaluate(async id => (await RecyNetDB.registrarColeta(id, 'papel', 1001)), user.id);
+      await page.evaluate(async id => (await registrarColetaFixture(id, 'papel', 1001)), user.id);
       for (const arquivo of ['ranking.html', 'relatorio.html', 'utilidades-admin.html']) {
         if (arquivo === 'utilidades-admin.html') await admin();
         await go(arquivo);
@@ -863,7 +879,7 @@ async function main() {
       assert.equal(await page.locator('#resultPoints').textContent(),'10');
       await page.locator('#btnRegistrar').click();
       await page.waitForFunction(()=>document.getElementById('quantityInput').value==='');
-      assert.equal(await page.evaluate(id=>RecyNetDB.getUsuarioPorId(id).historico.find(h=>h.tipo==='coleta').pontosGanhos,user.id),10);
+      assert.equal(await page.evaluate(id=>RecyNetDB.getUsuarioPorId(id).coletasPendentes[0].gramas,user.id),2000);
       assert(!(await page.locator('.tips-list').innerText()).includes('ganhar bônus'));
     });
 
@@ -947,7 +963,7 @@ async function main() {
 
     await check('movimento reduzido desativa animações e transições inclusive nos gráficos e avisos', async ({ page, go, cadastrar, admin }) => {
       await page.route('https://**/*',route=>route.abort()); const user=await cadastrar();
-      await page.evaluate(async id=>(await RecyNetDB.registrarColeta(id,'papel',1001)),user.id);
+      await page.evaluate(async id=>(await registrarColetaFixture(id,'papel',1001)),user.id);
       for(const arquivo of ['index.html','cadastro.html','recynet.html','cooperado.html','perfil.html','pontuacao.html','ranking.html','relatorio.html','recompensas.html','noticias.html','locais.html','admin.html','perfil-admin.html','utilidades-admin.html']) {
         if(arquivo==='admin.html') await admin(); await go(arquivo);
         assert(await page.evaluate(()=>[...document.querySelectorAll('body *')].every(el=>{
@@ -1023,7 +1039,7 @@ async function main() {
 
     await check('filtros do relatório sincronizam seleção acessível, teclado e dados do gráfico', async ({ page, go, cadastrar }) => {
       const user=await cadastrar();
-      await page.evaluate(async id=>(await RecyNetDB.registrarColeta(id,'papel',1001)),user.id);
+      await page.evaluate(async id=>(await registrarColetaFixture(id,'papel',1001)),user.id);
       await go('relatorio.html');
       const filtros=page.getByRole('group',{name:'Período do gráfico'});
       assert.equal(await filtros.getByRole('button',{pressed:true}).innerText(),'Semana');
@@ -1076,7 +1092,7 @@ async function main() {
     await check('coleta administrativa fracionada exporta e restaura; backup legado informa normalização', async ({ page, go, cadastrar, admin }) => {
       const user=await cadastrar();await admin();await go('admin.html');
       await page.locator('#selectUsuario').selectOption(user.id);await page.locator('#selectMaterial').selectOption('papel');
-      await page.locator('#inputPeso').fill('1.001');await page.getByRole('button',{name:'Registrar Coleta',exact:true}).click();
+      await page.locator('#inputPeso').fill('1.001'); await page.locator('#codigoEntrega').fill('TEST-' + Math.random().toString(36).slice(2));await page.getByRole('button',{name:'Registrar Coleta',exact:true}).click();
       await page.waitForFunction(id=>RecyNetDB.getUsuarioPorId(id).totalKg===1.001,user.id);
       const texto=await page.evaluate(()=>JSON.stringify(RecyNetDB.getUsuarios()));
       assert.equal(JSON.parse(texto).find(u=>u.id===user.id).historico[0].gramas,1001);
@@ -1110,8 +1126,8 @@ async function main() {
       const user=await page.evaluate(async senha=>(await RecyNetAuth.cadastrar('Pessoa Concorrente','concorrente@example.test',senha,senha)).usuario,senha);
       await page.evaluate(()=>{window.__gate=new Promise(r=>window.__release=r);window.__lock=navigator.locks.request('recynet:contas:v1',()=>{window.__held=true;return __gate;});});
       await page.waitForFunction(()=>window.__held);
-      const primeira=page.evaluate(async id=>{const resultados=[];for(let i=0;i<10;i++)resultados.push(await RecyNetDB.registrarColeta(id,'papel',1001));return resultados.map(r=>r.sucesso);},user.id);
-      const segunda=outra.evaluate(async id=>{const resultados=[];for(let i=0;i<10;i++)resultados.push(await RecyNetDB.registrarColeta(id,'papel',2000));return resultados.map(r=>r.sucesso);},user.id);
+      const primeira=page.evaluate(async id=>{const resultados=[];for(let i=0;i<10;i++)resultados.push(await registrarColetaFixture(id,'papel',1001));return resultados.map(r=>r.sucesso);},user.id);
+      const segunda=outra.evaluate(async id=>{const resultados=[];for(let i=0;i<10;i++)resultados.push(await registrarColetaFixture(id,'papel',2000));return resultados.map(r=>r.sucesso);},user.id);
       await page.waitForFunction(async()=> (await navigator.locks.query()).pending.filter(l=>l.name==='recynet:contas:v1').length===2);
       await page.evaluate(()=>window.__release());
       assert((await primeira).every(Boolean));assert((await segunda).every(Boolean));
@@ -1133,14 +1149,14 @@ async function main() {
       const outra=await context.newPage();await outra.goto(base);for(const file of ['assets/js/database.js','assets/js/auth.js']) await outra.addScriptTag({url:new URL(file,base).href});
       const user=await page.evaluate(async senha=>(await RecyNetAuth.cadastrar('Pessoa Teste','teste@example.test',senha,senha)).usuario,senha);
       await page.evaluate(id=>{window.__snapshot=RecyNetDB.getUsuarioPorId(id);window.__base=RecyNetDB.getUsuarios();},user.id);
-      assert.equal((await outra.evaluate(id=>RecyNetDB.registrarColeta(id,'papel',1000),user.id)).sucesso,true);
+      assert.equal((await outra.evaluate(id=>registrarColetaFixture(id,'papel',1000),user.id)).sucesso,true);
       const rejeitados=await page.evaluate(async()=>{const erros=[];for(const fn of [()=>RecyNetDB.salvarUsuario(__snapshot),()=>RecyNetDB.gravarUsuarios(__base)]){try{await fn();erros.push(false);}catch{erros.push(true);}}return erros;});assert.deepEqual(rejeitados,[true,true]);
       await page.evaluate(()=>RecyNetAuth.login('admin@fortes.com.br','123456'));
       const texto=await page.evaluate(()=>JSON.stringify(RecyNetDB.getUsuarios()));
       await page.evaluate(()=>{window.__gate=new Promise(r=>window.__release=r);window.__lock=navigator.locks.request('recynet:contas:v1',()=>{window.__held=true;return __gate;});});await page.waitForFunction(()=>window.__held);
       const restaurando=page.evaluate(texto=>RecyNetDB.restaurarBackup(texto),texto);
       await page.waitForFunction(async()=> (await navigator.locks.query()).pending.length===1);
-      const coleta=outra.evaluate(id=>RecyNetDB.registrarColeta(id,'papel',2000),user.id);
+      const coleta=outra.evaluate(id=>registrarColetaFixture(id,'papel',2000),user.id);
       await page.waitForFunction(async()=> (await navigator.locks.query()).pending.length===2);
       await page.evaluate(()=>window.__release());assert.equal((await restaurando).sucesso,true);assert.equal((await coleta).sucesso,false);
       assert.equal(await page.evaluate(id=>RecyNetDB.getUsuarioPorId(id).totalKg,user.id),1);
@@ -1164,13 +1180,13 @@ async function main() {
         const antes=snapshot(),confirmado=await RecyNetDB.persistencia.ler();
         const gravar=RecyNetDB.persistencia.gravar;
         RecyNetDB.persistencia.gravar=async()=>{throw new Error('Falha de confirmação simulada');};
-        const coleta=await RecyNetDB.registrarColetaParaUsuario(id,'papel',1.001);
+        const coleta=await RecyNetDB.registrarColetaParaUsuario(id,'papel',1.001,undefined,crypto.randomUUID());
         const coletaPreservada=JSON.stringify(snapshot())===JSON.stringify(antes);
         const restauracao=await RecyNetDB.restaurarBackup('[]');
         const restauracaoPreservada=JSON.stringify(snapshot())===JSON.stringify(antes);
         const confirmadoPreservado=JSON.stringify(await RecyNetDB.persistencia.ler())===JSON.stringify(confirmado);
         RecyNetDB.persistencia.gravar=gravar;
-        const tentativa=await RecyNetDB.registrarColetaParaUsuario(id,'papel',1.001);
+        const tentativa=await RecyNetDB.registrarColetaParaUsuario(id,'papel',1.001,undefined,crypto.randomUUID());
         return {coleta,restauracao,coletaPreservada,restauracaoPreservada,confirmadoPreservado,tentativa};
       },user.id);
       assert.equal(resultado.coleta.sucesso,false);assert.equal(resultado.restauracao.sucesso,false);
@@ -1186,7 +1202,7 @@ async function main() {
     });
 
     await check('resgate pela interface usa ID e preço do catálogo mesmo com argumento adulterado', async ({ page, go, cadastrar }) => {
-      const user=await cadastrar();await page.evaluate(id=>RecyNetDB.registrarColeta(id,'papel',20000),user.id);
+      const user=await cadastrar();await page.evaluate(id=>registrarColetaFixture(id,'papel',20000),user.id);
       await go('recompensas.html');await page.locator('#rewardsGrid button').first().click();
       await page.waitForFunction(()=>document.getElementById('userBalance').textContent==='50 pontos');
       assert.equal(await page.evaluate(id=>RecyNetDB.getUsuarioPorId(id).historico[0].custo,user.id),50);
@@ -1202,7 +1218,7 @@ async function main() {
       const outra=await context.newPage();await outra.goto(`${base}/api-docs.html`);
       for(const file of ['assets/js/database.js','assets/js/auth.js']) await outra.addScriptTag({url:`${base}/${file}`});
       await outra.evaluate(()=>RecyNetAuth.atualizarPerfil('Nome da outra aba','outra@example.test'));
-      await outra.evaluate(id=>RecyNetDB.registrarColeta(id,'papel',1000),user.id);
+      await outra.evaluate(id=>registrarColetaFixture(id,'papel',1000),user.id);
       await page.waitForFunction(()=>document.getElementById('userName').textContent==='Nome da outra aba');
       assert.equal(await page.locator('#editarPerfilDialog').evaluate(el=>el.open),true);
       assert.equal(await page.locator('#editarNome').inputValue(),'Nome no rascunho');
@@ -1230,10 +1246,10 @@ async function main() {
 
     await check('sincronização administrativa atualiza dados preservando usuário, peso, data e motivo em edição', async ({ page, context, go, cadastrar, admin }) => {
       const user=await cadastrar();await admin();await go('admin.html');
-      await page.locator('#selectUsuario').selectOption(user.id);await page.locator('#selectMaterial').selectOption('papel');await page.locator('#inputPeso').fill('1.001');
+      await page.locator('#selectUsuario').selectOption(user.id);await page.locator('#selectMaterial').selectOption('papel');await page.locator('#inputPeso').fill('1.001'); await page.locator('#codigoEntrega').fill('TEST-' + Math.random().toString(36).slice(2));
       const data=await page.locator('#inputData').inputValue();
       const outra=await context.newPage();await outra.goto(`${base}/api-docs.html`);await outra.addScriptTag({url:`${base}/assets/js/database.js`});
-      assert.equal((await outra.evaluate(id=>RecyNetDB.registrarColetaParaUsuario(id,'papel',2),user.id)).sucesso,true);
+      assert.equal((await outra.evaluate(id=>RecyNetDB.registrarColetaParaUsuario(id,'papel',2,undefined,crypto.randomUUID()),user.id)).sucesso,true);
       await page.waitForFunction(()=>document.getElementById('adminRecentes').textContent.includes('2,00'));
       assert.equal(await page.locator('#selectUsuario').inputValue(),user.id);assert.equal(await page.locator('#selectMaterial').inputValue(),'papel');assert.equal(await page.locator('#inputPeso').inputValue(),'1.001');assert.equal(await page.locator('#inputData').inputValue(),data);
       await go('utilidades-admin.html');await page.locator('#userSelectKg').selectOption(user.id);await page.locator('#materialSelectKg').selectOption('papel');await page.locator('#kgValue').fill('0.1');await page.locator('#kgReason').fill('Motivo ainda não enviado');
@@ -1250,7 +1266,7 @@ async function main() {
       await go('recuperar-dados.html');
       assert((await page.locator('#recynet-storage-error').innerText()).includes('histórico 1'));
       assert.equal(await page.evaluate(id=>RecyNetDB.getEstatisticasUsuario(id),user.id),null);
-      assert.equal((await page.evaluate(id=>RecyNetDB.registrarColeta(id,'papel',1000),user.id)).sucesso,false);
+      assert.equal((await page.evaluate(id=>registrarColetaFixture(id,'papel',1000),user.id)).sucesso,false);
       assert.equal(await page.evaluate(()=>localStorage.getItem('recynet_usuarios')),raw);
       assert(!(await page.locator('body').innerText()).includes('NaN'));
     });
@@ -1359,17 +1375,17 @@ async function main() {
       assert.equal(await page.locator('#btnRegistrar').isDisabled(),true);assert.equal(await page.locator('#quantityInput').isDisabled(),true);
       assert((await page.locator('#btnRegistrar').textContent()).includes('Gravando'));
       await page.evaluate(()=>window.__release());
-      await page.waitForFunction(id=>RecyNetDB.getUsuarioPorId(id).totalKg===1&&!document.getElementById('btnRegistrar').disabled,user.id);
-      assert.equal(await page.evaluate(id=>RecyNetDB.getUsuarioPorId(id).historico.length,user.id),1);
+      await page.waitForFunction(id=>RecyNetDB.getUsuarioPorId(id).coletasPendentes?.length===1&&!document.getElementById('btnRegistrar').disabled,user.id);
+      assert.equal(await page.evaluate(id=>RecyNetDB.getUsuarioPorId(id).historico.length,user.id),0);
       const antes=await page.evaluate(()=>localStorage.getItem('recynet_usuarios'));
-      await page.evaluate(()=>{window.__registrarOriginal=RecyNetDB.registrarColeta;RecyNetDB.registrarColeta=async()=>{throw new Error('Falha simulada');};});
+      await page.evaluate(()=>{window.__registrarOriginal=RecyNetDB.solicitarColeta;RecyNetDB.solicitarColeta=async()=>{throw new Error('Falha simulada');};});
       await page.locator('#quantityInput').fill('0.5');await page.locator('#btnRegistrar').click();
       await page.waitForFunction(()=>!document.getElementById('btnRegistrar').disabled&&Boolean(document.querySelector('.recynet-toast.alert-error')));
       assert.equal(await page.locator('#quantityInput').inputValue(),'0.5');assert.equal(await page.locator('#quantityInput').isDisabled(),false);
       assert.equal(await page.evaluate(()=>localStorage.getItem('recynet_usuarios')),antes);
-      await page.evaluate(()=>RecyNetDB.registrarColeta=__registrarOriginal);await page.locator('#btnRegistrar').click();
-      await page.waitForFunction(id=>RecyNetDB.getUsuarioPorId(id).totalKg===1.5&&!document.getElementById('btnRegistrar').disabled,user.id);
-      assert.equal(await page.evaluate(id=>RecyNetDB.getUsuarioPorId(id).historico.length,user.id),2);
+      await page.evaluate(()=>RecyNetDB.solicitarColeta=__registrarOriginal);await page.locator('#btnRegistrar').click();
+      await page.waitForFunction(id=>RecyNetDB.getUsuarioPorId(id).coletasPendentes?.length===2&&!document.getElementById('btnRegistrar').disabled,user.id);
+      assert.equal(await page.evaluate(id=>RecyNetDB.getUsuarioPorId(id).historico.length,user.id),0);
     });
 
     await check('coleta administrativa, ajustes e resgate processam somente um envio pendente', async ({ page, go, cadastrar, admin }) => {
@@ -1384,7 +1400,7 @@ async function main() {
         assert.equal(await page.locator(`#${id}`).getAttribute('aria-busy'),'true');
         await page.evaluate(()=>window.__release());await page.waitForFunction(id=>!document.getElementById(id).hasAttribute('aria-busy'),id);
       };
-      await go('admin.html');await page.locator('#selectUsuario').selectOption(user.id);await page.locator('#selectMaterial').selectOption('papel');await page.locator('#inputPeso').fill('1.001');
+      await go('admin.html');await page.locator('#selectUsuario').selectOption(user.id);await page.locator('#selectMaterial').selectOption('papel');await page.locator('#inputPeso').fill('1.001'); await page.locator('#codigoEntrega').fill('TEST-' + Math.random().toString(36).slice(2));
       await segurar();await enviarDuasVezes('formRegistrarColeta');
       assert.equal(await page.evaluate(id=>RecyNetDB.getUsuarioPorId(id).historico.length,user.id),1);
       await go('utilidades-admin.html');await page.locator('#userSelectKg').selectOption(user.id);await page.locator('#materialSelectKg').selectOption('papel');await page.locator('#kgValue').fill('0.1');await page.locator('#kgReason').fill('Uma correção de peso');

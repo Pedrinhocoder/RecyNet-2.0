@@ -17,7 +17,14 @@
       verificar((await RecyNetAuth.login(usuario.email, senha)).sucesso, 'Login falhou');
     }],
     ['Coletas, precisão e níveis', async () => {
-      for (let i = 0; i < 20; i++) verificar((await RecyNetDB.registrarColeta(usuario.id, 'papel', 100)).sucesso, 'Coleta falhou');
+      const pedido = await RecyNetDB.solicitarColeta(usuario.id, 'papel', 2000);
+      verificar(pedido.sucesso, 'Solicitação falhou');
+      verificar(RecyNetDB.getUsuarioPorId(usuario.id).pontosDisponiveis === 0, 'Pontos antes da conferência');
+      verificar(!(await RecyNetDB.confirmarColeta(usuario.id, pedido.solicitacao.id, 'papel', 2000, 'TESTE-01')).sucesso, 'Cooperado confirmou coleta');
+      verificar((await RecyNetAuth.login('admin@fortes.com.br', '123456')).sucesso, 'Login administrativo falhou');
+      verificar((await RecyNetDB.confirmarColeta(usuario.id, pedido.solicitacao.id, 'papel', 2000, 'TESTE-01')).sucesso, 'Confirmação falhou');
+      verificar(!(await RecyNetDB.confirmarColeta(usuario.id, pedido.solicitacao.id, 'papel', 2000, 'TESTE-02')).sucesso, 'Coleta duplicada');
+      verificar((await RecyNetAuth.login(usuario.email, senha)).sucesso, 'Login de cooperado falhou');
       const u = RecyNetDB.getUsuarioPorId(usuario.id);
       verificar(u.totalKg === 2 && u.nivel === 2 && u.pontosDisponiveis === 10, 'Acúmulo incorreto');
       verificar(LevelBar.calcularNivel(2) === 2, 'Barra diverge do nível');
@@ -25,7 +32,7 @@
     ['Permissões administrativas', async () => {
       verificar(!(await RecyNetDB.limparUsuarios()).sucesso, 'Usuário comum autorizado');
       verificar((await RecyNetAuth.login('admin@fortes.com.br', '123456')).sucesso, 'Login administrativo falhou');
-      verificar((await RecyNetDB.registrarColetaParaUsuario(usuario.id, 'vidro', 1)).sucesso, 'Coleta administrativa falhou');
+      verificar((await RecyNetDB.registrarColetaParaUsuario(usuario.id, 'vidro', 1, undefined, 'TESTE-03')).sucesso, 'Coleta administrativa falhou');
       verificar(RecyNetDB.getUsuarioLogado().id === 'admin_123', 'Sessão foi trocada');
     }],
     ['Ranking e progressão', async () => {

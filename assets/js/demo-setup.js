@@ -23,7 +23,7 @@ const RecyNetDemo = {
       onStep(2, 'done');
 
       onStep(3, 'running');
-      const coleta = await RecyNetDB.registrarColeta(usuarioCriado.id, 'plastico', 1000);
+      const coleta = await RecyNetDB.solicitarColeta(usuarioCriado.id, 'plastico', 1000);
       if (!coleta.sucesso) throw new Error(coleta.erro);
       onStep(3, 'done');
 

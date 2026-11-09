@@ -27,7 +27,7 @@ function app(storage = new Map()) {
     }
   });
   context.window = context;
-  for (const file of ['assets/js/database.js', 'assets/js/auth.js', 'assets/js/utils.js', 'assets/js/demo-setup.js']) {
+  for (const file of ['assets/js/database.js', 'assets/js/auth.js', 'assets/js/utils.js', 'assets/js/demo-setup.js', 'tests/fixture-coleta.js']) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), context, { filename: file });
   }
   context.RecyNetDB.persistencia = {
@@ -124,7 +124,7 @@ test('usuário comum e visitante não podem alterar outras contas nem executar a
   const antes = dados(a);
   a.storage.set('outra-aplicacao', 'preservar');
   const actions = [
-    async () => (await a.db.registrarColeta(outro.id, 'plastico', 1000)),
+    async () => (await a.context.registrarColetaFixture(outro.id, 'plastico', 1000)),
     async () => (await a.db.resgatarRecompensa(outro.id, 'Recompensa', 1)),
     async () => (await a.db.registrarColetaParaUsuario(outro.id, 'plastico', 1)),
     async () => (await a.db.ajustarPontosUsuario(outro.id, 100)),
@@ -147,9 +147,9 @@ test('admin registra duas coletas e resgate para beneficiário sem trocar a pró
   const a = app();
   const user = await cadastrar(a);
   await admin(a);
-  assert.equal((await a.db.registrarColeta(user.id, 'plastico', 2500)).sucesso, true);
-  assert.equal((await a.db.registrarColetaParaUsuario(user.id, 'papel', 1)).sucesso, true);
-  assert.equal((await a.db.registrarColeta(user.id, 'papel', 10000)).sucesso,true);
+  assert.equal((await a.context.registrarColetaFixture(user.id, 'plastico', 2500)).sucesso, true);
+  assert.equal((await a.db.registrarColetaParaUsuario(user.id, 'papel', 1, undefined, a.context.crypto.randomUUID())).sucesso, true);
+  assert.equal((await a.context.registrarColetaFixture(user.id, 'papel', 10000)).sucesso,true);
   assert.equal((await a.db.resgatarRecompensa(user.id, 1)).sucesso, true);
   assert.equal(a.db.getUsuarioLogado().id, a.db.ADMIN_ESTATICO.id);
   assert.equal(a.auth.protegerAdmin().tipo, 'admin');
@@ -162,9 +162,9 @@ test('admin registra duas coletas e resgate para beneficiário sem trocar a pró
 test('coleta e resgate próprios continuam sincronizando a sessão sem guardar hash da senha', async () => {
   const a = app();
   const user = await cadastrar(a);
-  assert.equal((await a.db.registrarColeta(user.id, 'plastico', 2500)).sucesso, true);
+  assert.equal((await a.context.registrarColetaFixture(user.id, 'plastico', 2500)).sucesso, true);
   assert.equal(a.db.getUsuarioLogado().totalKg, 2.5);
-  assert.equal((await a.db.registrarColeta(user.id, 'papel', 10000)).sucesso,true);
+  assert.equal((await a.context.registrarColetaFixture(user.id, 'papel', 10000)).sucesso,true);
   assert.equal((await a.db.resgatarRecompensa(user.id, 1)).sucesso, true);
   assert.equal(a.db.getUsuarioLogado().pontosDisponiveis, 20);
   assert.equal(Object.hasOwn(a.db.getUsuarioLogado(), 'senha'), false);
@@ -192,20 +192,21 @@ test('admin pode ajustar e excluir usuários; limpeza preserva administradores e
 test('demonstração preserva contas, históricos e outras chaves, usa senha válida e pode ser repetida', async () => {
   const a = app();
   const existente = await cadastrar(a, 'teste@recynet.com');
-  (await a.db.registrarColeta(existente.id, 'metal', 1500));
+  (await a.context.registrarColetaFixture(existente.id, 'metal', 1500));
   const antes = JSON.parse(JSON.stringify(a.db.getUsuarioPorId(existente.id)));
   a.storage.set('outra-aplicacao', 'preservar');
   const result = await a.demo.configurar();
   assert.equal(result.sucesso, true, result.erro);
   assert.equal(a.auth.validarSenha(result.senha).valido, true);
-  assert.equal(result.usuario.totalKg, 1);
-  assert.equal(result.usuario.pontosDisponiveis, 8);
+  assert.equal(result.usuario.totalKg, 0);
+  assert.equal(result.usuario.pontosDisponiveis, 0);
+  assert.equal(result.usuario.coletasPendentes.length, 1);
   assert.deepEqual(JSON.parse(JSON.stringify(a.db.getUsuarioPorId(existente.id))), antes);
   assert.equal(a.storage.get('outra-aplicacao'), 'preservar');
   const repetido = await a.demo.configurar();
   assert.equal(repetido.sucesso, true, repetido.erro);
   assert.notEqual(repetido.email, result.email);
-  assert.equal(a.db.getUsuarioPorId(result.usuario.id).totalKg, 1);
+  assert.equal(a.db.getUsuarioPorId(result.usuario.id).totalKg, 0);
   a.db.logout();
   assert.equal((await a.auth.login(result.email, result.senha)).sucesso, true);
 });
@@ -222,12 +223,12 @@ test('demonstração valida configuração antes de escrever dados', async () =>
 test('falha na coleta de demonstração remove só a conta nova e restaura sessão anterior', async () => {
   const a = app();
   const user = await cadastrar(a);
-  (await a.db.registrarColeta(user.id, 'metal', 1000));
+  (await a.context.registrarColetaFixture(user.id, 'metal', 1000));
   await admin(a);
   a.storage.set('outra-aplicacao', 'preservar');
   const antes = dados(a);
   const sessaoAntes = a.storage.get('recynet_sessao');
-  a.db.registrarColeta = () => ({ sucesso: false, erro: 'Falha simulada' });
+  a.db.solicitarColeta = () => ({ sucesso: false, erro: 'Falha simulada' });
   const result = await a.demo.configurar();
   assert.equal(result.sucesso, false);
   assert.deepEqual(dados(a), antes);
@@ -237,7 +238,7 @@ test('falha na coleta de demonstração remove só a conta nova e restaura sess�
 
 test('falha da demonstração sem sessão anterior encerra a sessão criada', async () => {
   const a = app();
-  a.db.registrarColeta = () => ({ sucesso: false, erro: 'Falha simulada' });
+  a.db.solicitarColeta = () => ({ sucesso: false, erro: 'Falha simulada' });
   assert.equal((await a.demo.configurar()).sucesso, false);
   assert.equal(a.db.getUsuarios().filter(u => u.tipo === 'user').length, 0);
   assert.equal(a.db.getUsuarioLogado(), null);
@@ -247,15 +248,15 @@ test('falha da demonstração sem sessão anterior encerra a sessão criada', as
 test('entradas numéricas inválidas não alteram saldos, histórico nem sessão', async () => {
   const a = app();
   const user = await cadastrar(a);
-  (await a.db.registrarColeta(user.id, 'metal', 1000));
+  (await a.context.registrarColetaFixture(user.id, 'metal', 1000));
   const antes = [...a.storage];
   for (const valor of [NaN, Infinity, -Infinity, undefined, null, '1000', {}, -1, 0]) {
-    assert.equal((await a.db.registrarColeta(user.id, 'papel', valor)).sucesso, false);
+    assert.equal((await a.context.registrarColetaFixture(user.id, 'papel', valor)).sucesso, false);
     assert.equal((await a.db.resgatarRecompensa(user.id, 'Teste', valor)).sucesso, false);
     assert.deepEqual([...a.storage], antes);
   }
   for (const material of [null, undefined, {}, 'toString', '__proto__']) {
-    assert.equal((await a.db.registrarColeta(user.id, material, 1000)).sucesso, false);
+    assert.equal((await a.context.registrarColetaFixture(user.id, material, 1000)).sucesso, false);
     assert.deepEqual([...a.storage], antes);
   }
   await admin(a);
@@ -270,10 +271,10 @@ test('entradas numéricas inválidas não alteram saldos, histórico nem sessão
 test('data administrativa válida é preservada e histórico continua em ordem decrescente', async () => {
   const a = app();
   const user = await cadastrar(a);
-  assert.equal((await a.db.registrarColeta(user.id, 'papel', 1000)).sucesso, true);
+  assert.equal((await a.context.registrarColetaFixture(user.id, 'papel', 1000)).sucesso, true);
   await admin(a);
   for (const data of ['2020-03-01', '2020-02-29', '2020-03-02']) {
-    const result = (await a.db.registrarColetaParaUsuario(user.id, 'papel', 1, data));
+    const result = (await a.db.registrarColetaParaUsuario(user.id, 'papel', 1, data, a.context.crypto.randomUUID()));
     assert.equal(result.sucesso, true, result.erro);
     assert.equal(a.db.getUsuarioLogado().id, 'admin_123');
   }
@@ -287,17 +288,17 @@ test('datas futuras, inexistentes ou malformadas não alteram os dados', async (
   const a = app();
   const user = await cadastrar(a);
   const antesUsuario = [...a.storage];
-  assert.equal((await a.db.registrarColeta(user.id, 'papel', 1000, '2020-01-01')).sucesso, false);
+  assert.equal((await a.context.registrarColetaFixture(user.id, 'papel', 1000, '2020-01-01')).sucesso, false);
   assert.deepEqual([...a.storage], antesUsuario);
   await admin(a);
   const antes = [...a.storage];
   const amanha = new Date();
   amanha.setDate(amanha.getDate() + 1);
   for (const data of [a.db.formatarDataLocal(amanha), '2021-02-29', '2020-04-31', '', null, 123, '01/01/2020', '2020-01-01T00:00:00Z']) {
-    assert.equal((await a.db.registrarColetaParaUsuario(user.id, 'papel', 1, data)).sucesso, false);
+    assert.equal((await a.db.registrarColetaParaUsuario(user.id, 'papel', 1, data, a.context.crypto.randomUUID())).sucesso, false);
     assert.deepEqual([...a.storage], antes);
   }
-  assert.equal((await a.db.registrarColetaParaUsuario(user.id, 'papel', 1, a.db.formatarDataLocal())).sucesso, true);
+  assert.equal((await a.db.registrarColetaParaUsuario(user.id, 'papel', 1, a.db.formatarDataLocal(), a.context.crypto.randomUUID())).sucesso, true);
 });
 
 test('ranking e posição têm a mesma regra para contas zeradas, empates e mais de mil usuários', () => {
@@ -350,7 +351,7 @@ test('armazenamento inválido não derruba leituras nem permite sobrescrever as 
     assert.equal(a.db.getUsuarios().length, 0);
     assert.equal(a.db.getRanking().length, 0);
     assert.equal(a.db.getEstatisticasGerais(), null);
-    assert.equal((await a.db.registrarColeta(user.id, 'papel', 1000)).sucesso, false);
+    assert.equal((await a.context.registrarColetaFixture(user.id, 'papel', 1000)).sucesso, false);
     assert.equal((await a.db.resgatarRecompensa(user.id, 'Teste', 1)).sucesso, false);
     assert.equal((await a.db.limparUsuarios()).sucesso, false);
     assert.equal((await a.db.deletarUsuario(user.id)).sucesso, false);
@@ -421,10 +422,10 @@ test('desfazer demonstração não sobrescreve dados que se tornaram ilegíveis 
 
 test('coletas pequenas mantêm gramas, pontos fracionários e nível sem erro de acumulação', async () => {
   const a = app(); const user = await cadastrar(a);
-  for (let i=0; i<20; i++) assert.equal((await a.db.registrarColeta(user.id,'plastico',100)).sucesso,true);
+  for (let i=0; i<20; i++) assert.equal((await a.context.registrarColetaFixture(user.id,'plastico',100)).sucesso,true);
   let u=a.db.getUsuarioPorId(user.id);
   assert.equal(u.totalKg,2); assert.equal(u.nivel,2); assert.equal(u.pontosDisponiveis,16);
-  assert.equal((await a.db.registrarColeta(user.id,'papel',101)).sucesso,true);
+  assert.equal((await a.context.registrarColetaFixture(user.id,'papel',101)).sucesso,true);
   u=a.db.getUsuarioPorId(user.id); assert.equal(u.totalKg,2.101); assert.equal(u.pontosDisponiveis,16.505);
   assert.equal((await a.db.resgatarRecompensa(user.id,'Teste',0.505)).sucesso,false);
   assert.equal(a.db.getUsuarioPorId(user.id).pontosDisponiveis,16.505);
@@ -432,7 +433,7 @@ test('coletas pequenas mantêm gramas, pontos fracionários e nível sem erro de
 });
 
 test('ajustes rejeitam saldos negativos e material inválido sem registrar deltas falsos', async () => {
-  const a=app(); const user=await cadastrar(a); (await a.db.registrarColeta(user.id,'papel',2000)); await admin(a);
+  const a=app(); const user=await cadastrar(a); (await a.context.registrarColetaFixture(user.id,'papel',2000)); await admin(a);
   const antes=dados(a);
   for(const fn of [async ()=>(await a.db.ajustarKgUsuario(user.id,-3,'papel')),async ()=>(await a.db.ajustarKgUsuario(user.id,1,'')),async ()=>(await a.db.ajustarKgUsuario(user.id,-1,'vidro')),async ()=>(await a.db.ajustarPontosUsuario(user.id,-11))]) {
     assert.equal((await fn()).sucesso,false);assert.deepEqual(dados(a),antes);
@@ -443,10 +444,10 @@ test('ajustes rejeitam saldos negativos e material inválido sem registrar delta
 });
 
 test('falhas de gravação não confirmam coleta, resgate ou limpeza nem modificam os dados', async () => {
-  const a=app();const user=await cadastrar(a);(await a.db.registrarColeta(user.id,'papel',2000));
+  const a=app();const user=await cadastrar(a);(await a.context.registrarColetaFixture(user.id,'papel',2000));
   const antes=[...a.storage];const set=a.context.localStorage.setItem;
   a.context.localStorage.setItem=(key,value)=>{if(key==='recynet_usuarios') throw new Error('QuotaExceededError');return set(key,value);};
-  assert.equal((await a.db.registrarColeta(user.id,'papel',1000)).sucesso,false);
+  assert.equal((await a.context.registrarColetaFixture(user.id,'papel',1000)).sucesso,false);
   assert.equal((await a.db.resgatarRecompensa(user.id,'Teste',1)).sucesso,false);assert.deepEqual([...a.storage],antes);
   await admin(a); const antesAdmin=[...a.storage];
   assert.equal((await a.db.limparUsuarios()).sucesso,false);assert.equal((await a.db.deletarUsuario(user.id)).sucesso,false);
@@ -463,7 +464,7 @@ test('falha ao salvar sessão não informa sucesso no login ou deixa conta parci
 });
 
 test('perfil valida email e senha, preserva histórico e permite login com a nova credencial', async () => {
-  const a=app();const user=await cadastrar(a);(await a.db.registrarColeta(user.id,'papel',1000));
+  const a=app();const user=await cadastrar(a);(await a.context.registrarColetaFixture(user.id,'papel',1000));
   const antes=dados(a);
   assert.equal((await a.auth.atualizarPerfil('Pessoa',' ADMIN@FORTES.COM.BR ')).sucesso,false);assert.deepEqual(dados(a),antes);
   assert.equal((await a.auth.atualizarPerfil('Pessoa Editada',' NOVO@EXAMPLE.TEST ')).sucesso,true);
@@ -510,8 +511,8 @@ test('componente de nível usa a mesma progressão e mantém títulos entre marc
 test('backups incompletos ou com tipos inválidos são rejeitados sem alterar contas, sessão ou cópia anterior', async () => {
   const a = app();
   const user = await cadastrar(a);
-  (await a.db.registrarColeta(user.id, 'papel', 1001));
-  (await a.db.registrarColeta(user.id, 'papel', 20000));
+  (await a.context.registrarColetaFixture(user.id, 'papel', 1001));
+  (await a.context.registrarColetaFixture(user.id, 'papel', 20000));
   assert.equal((await a.db.resgatarRecompensa(user.id, 1)).sucesso,true);
   await admin(a);
   (await a.db.ajustarPontosUsuario(user.id, 0.5, 'Correção'));
@@ -557,8 +558,8 @@ test('backups incompletos ou com tipos inválidos são rejeitados sem alterar co
 
 test('backup exportado completo restaura coletas, resgates e ajustes sem perder precisão ou criar NaN', async () => {
   const a = app(); const user = await cadastrar(a);
-  (await a.db.registrarColeta(user.id, 'papel', 1001));
-  (await a.db.registrarColeta(user.id, 'papel', 20000));
+  (await a.context.registrarColetaFixture(user.id, 'papel', 1001));
+  (await a.context.registrarColetaFixture(user.id, 'papel', 20000));
   assert.equal((await a.db.resgatarRecompensa(user.id, 1)).sucesso,true);
   await admin(a);
   (await a.db.ajustarPontosUsuario(user.id, 0.5, 'Correção'));
@@ -642,7 +643,7 @@ test('resumo semanal conta segunda a domingo no calendário local e exclui o fut
 test('pesos administrativos com três casas geram gramas inteiros e backup restaurável', async () => {
   const a=app(),user=await cadastrar(a);await admin(a);
   for(const kg of [0.101,0.123,1.001,1.003,2.007,9.999]) {
-    const r=await a.db.registrarColetaParaUsuario(user.id,'papel',kg);
+    const r=await a.db.registrarColetaParaUsuario(user.id,'papel',kg, undefined, a.context.crypto.randomUUID());
     assert.equal(r.sucesso,true,r.erro);
     assert(Number.isSafeInteger(r.usuario.historico[0].gramas));
     assert.equal(r.usuario.historico[0].gramas,Math.round(kg*1000));
@@ -657,7 +658,7 @@ test('pesos administrativos com três casas geram gramas inteiros e backup resta
 
 test('backup legado normaliza somente ruído numérico explícito sem modificar o original', async () => {
   const a=app(),user=await cadastrar(a);await admin(a);
-  await a.db.registrarColetaParaUsuario(user.id,'papel',1.001);
+  await a.db.registrarColetaParaUsuario(user.id,'papel',1.001, undefined, a.context.crypto.randomUUID());
   const dados=a.db.getUsuarios().filter(u=>u.tipo==='user');
   dados[0].historico[0].gramas=1.001*1000;
   const texto=JSON.stringify(dados),antes=[...a.storage];
@@ -678,7 +679,7 @@ test('duas instâncias compartilham a trava e preservam todas as coletas e ajust
   const a=app(),user=await cadastrar(a);const b=app(a.storage);
   const ops=[];
   for(let i=0;i<20;i++) {
-    ops.push(a.db.registrarColeta(user.id,'papel',1001),b.db.registrarColeta(user.id,'papel',2000));
+    ops.push(a.context.registrarColetaFixture(user.id,'papel',1001),b.context.registrarColetaFixture(user.id,'papel',2000));
   }
   const respostas=await Promise.all(ops);assert(respostas.every(r=>r.sucesso));
   const atual=a.db.getUsuarioPorId(user.id);
@@ -694,7 +695,7 @@ test('salvar snapshots antigos de conta ou base é recusado sem apagar dados nov
   const a=app(),user=await cadastrar(a),b=app(a.storage);
   const snapshot=a.db.getUsuarioPorId(user.id),base=a.db.getUsuarios();
   snapshot.nome='Nome antigo';
-  assert.equal((await b.db.registrarColeta(user.id,'papel',1000)).sucesso,true);
+  assert.equal((await b.context.registrarColetaFixture(user.id,'papel',1000)).sucesso,true);
   const antes=[...a.storage];
   await assert.rejects(a.db.salvarUsuario(snapshot),/mudaram/);
   await assert.rejects(a.db.gravarUsuarios(base),/base mudou/i);
@@ -707,7 +708,7 @@ test('salvar snapshots antigos de conta ou base é recusado sem apagar dados nov
 test('sem Web Locks todas as mutações falham sem alterar armazenamento', async () => {
   const a=app(),user=await cadastrar(a);const antes=[...a.storage];
   delete a.context.navigator.locks;
-  for(const chamada of [()=>a.db.registrarColeta(user.id,'papel',1000),()=>a.db.restaurarBackup('[]'),()=>a.db.limparUsuarios()]) {
+  for(const chamada of [()=>a.context.registrarColetaFixture(user.id,'papel',1000),()=>a.db.restaurarBackup('[]'),()=>a.db.limparUsuarios()]) {
     const r=await chamada();assert.equal(r.sucesso,false);assert.match(r.erro,/gravação segura entre abas/);
   }
   const cadastro=await a.auth.cadastrar('Outra Pessoa','outra@example.test',senha,senha);
@@ -720,16 +721,16 @@ test('permissões são verificadas depois da espera e falhas liberam a trava', a
   let liberar,iniciou;
   const pronto=new Promise(r=>iniciou=r),gate=new Promise(r=>liberar=r);
   const segurando=a.db.transacao(()=>{iniciou();return gate;});await pronto;
-  const pendente=b.db.registrarColeta(user.id,'papel',1000);
+  const pendente=b.context.registrarColetaFixture(user.id,'papel',1000);
   a.db.logout();liberar();await segurando;
   assert.equal((await pendente).sucesso,false);
   assert.equal(a.db.getUsuarioPorId(user.id).totalKg,0);
   await a.auth.login(user.email,senha);
   const set=a.context.localStorage.setItem;
   a.context.localStorage.setItem=(key,v)=>{if(key==='recynet_usuarios')throw new Error('Quota');return set(key,v);};
-  assert.equal((await a.db.registrarColeta(user.id,'papel',1000)).sucesso,false);
+  assert.equal((await a.context.registrarColetaFixture(user.id,'papel',1000)).sucesso,false);
   a.context.localStorage.setItem=set;
-  assert.equal((await b.db.registrarColeta(user.id,'papel',2000)).sucesso,true);
+  assert.equal((await b.context.registrarColetaFixture(user.id,'papel',2000)).sucesso,true);
   assert.equal(a.db.getUsuarioPorId(user.id).totalKg,2);
 });
 
@@ -751,18 +752,18 @@ test('falha ao confirmar armazenamento desfaz contas, sessão e backup e permite
   const antes=[...a.storage],texto=JSON.stringify(a.db.getUsuarios());
   const persistencia=a.db.persistencia;
   a.db.persistencia={async ler(){return {existe:true,dados:a.storage.get('recynet_usuarios')??null};},async gravar(){throw new Error('Confirmação indisponível');}};
-  for(const fn of [()=>a.db.registrarColetaParaUsuario(user.id,'papel',1.001),()=>a.db.restaurarBackup('[]')]) {
+  for(const fn of [()=>a.db.registrarColetaParaUsuario(user.id,'papel',1.001, undefined, a.context.crypto.randomUUID()),()=>a.db.restaurarBackup('[]')]) {
     const r=await fn();assert.equal(r.sucesso,false);assert.match(r.erro,/Confirmação indisponível/);
     assert.deepEqual([...a.storage].sort(),[...antes].sort());
   }
   a.db.persistencia=persistencia;
-  assert.equal((await a.db.registrarColetaParaUsuario(user.id,'papel',1.001)).sucesso,true);
+  assert.equal((await a.db.registrarColetaParaUsuario(user.id,'papel',1.001, undefined, a.context.crypto.randomUUID())).sucesso,true);
   assert.equal(a.db.getUsuarioPorId(user.id).totalKg,1.001);
   assert.equal(a.db.validarBackup(texto).sucesso,true);
 });
 
 test('resgate resolve nome e custo pelo ID do catálogo e ignora preço fornecido pelo chamador', async () => {
-  const a=app(),u=await cadastrar(a);await a.db.registrarColeta(u.id,'papel',20000);
+  const a=app(),u=await cadastrar(a);await a.context.registrarColetaFixture(u.id,'papel',20000);
   const antes=[...a.storage];
   for(const id of ['Garrafa Reutilizável','1',null,{},999]) {
     assert.equal((await a.db.resgatarRecompensa(u.id,id,0.001)).sucesso,false);
@@ -776,7 +777,7 @@ test('resgate resolve nome e custo pelo ID do catálogo e ignora preço fornecid
 });
 
 test('leitura, gravação e backup recusam inconsistências sem corrigir saldos silenciosamente', async () => {
-  const a=app(),user=await cadastrar(a);await a.db.registrarColeta(user.id,'papel',1001);
+  const a=app(),user=await cadastrar(a);await a.context.registrarColetaFixture(user.id,'papel',1001);
   const valido=JSON.parse(JSON.stringify(a.db.getUsuarioPorId(user.id))),antes=[...a.storage];
   for(const alterar of [u=>u.totalKg=900,u=>u.nivel=999,u=>u.pontosDisponiveis=0,u=>u.pontosGastos=2,u=>u.materiais.papel=8,
     u=>u.historico[0].kg=800,u=>u.historico[0].gramas=1000,u=>u.historico[0].pontosGanhos=900,
@@ -787,7 +788,7 @@ test('leitura, gravação e backup recusam inconsistências sem corrigir saldos 
     assert.deepEqual([...a.storage],antes);
     a.storage.set('recynet_usuarios',raw);
     assert(a.db.lerUsuarios().erro);assert.equal(a.db.getEstatisticasUsuario(user.id),null);
-    assert.equal((await a.db.registrarColeta(user.id,'papel',1000)).sucesso,false);
+    assert.equal((await a.context.registrarColetaFixture(user.id,'papel',1000)).sucesso,false);
     assert.equal(a.storage.get('recynet_usuarios'),raw);
     a.storage.set('recynet_usuarios',antes.find(([k])=>k==='recynet_usuarios')[1]);
   }
@@ -810,7 +811,7 @@ test('motivos inválidos são recusados e todos os ajustes válidos mantêm back
 });
 
 test('legados íntegros sem versão são aceitos e versionados na próxima gravação sem mudar valores', async () => {
-  const a=app(),user=await cadastrar(a);await a.db.registrarColeta(user.id,'papel',1001);await admin(a);
+  const a=app(),user=await cadastrar(a);await a.context.registrarColetaFixture(user.id,'papel',1001);await admin(a);
   const legado=JSON.parse(JSON.stringify(a.db.getUsuarioPorId(user.id)));delete legado.versaoDados;
   assert.equal(a.db.validarBackup(JSON.stringify([legado])).sucesso,true);
   assert.equal((await a.db.restaurarBackup(JSON.stringify([legado]))).sucesso,true);
@@ -879,7 +880,7 @@ test('progresso linear usa peso adicional, zera no marco e não mostra 100% ante
 });
 
 test('contas antigas têm nível recalibrado sem escrita na leitura nem perda de dados', async () => {
-  const a=app(),user=await cadastrar(a);await a.db.registrarColeta(user.id,'papel',10000);
+  const a=app(),user=await cadastrar(a);await a.context.registrarColetaFixture(user.id,'papel',10000);
   const antigo=JSON.parse(JSON.stringify(a.db.getUsuarioPorId(user.id)));
   delete antigo.versaoProgressao;antigo.nivel=6;
   const raw=JSON.stringify([antigo]);a.storage.set('recynet_usuarios',raw);
@@ -888,14 +889,14 @@ test('contas antigas têm nível recalibrado sem escrita na leitura nem perda de
   assert.equal(a.storage.get('recynet_usuarios'),raw);
   const comparavel=JSON.parse(JSON.stringify(atual));delete comparavel.versaoProgressao;comparavel.nivel=6;
   assert.deepEqual(comparavel,antigo);
-  assert.equal((await a.db.registrarColeta(user.id,'papel',2250)).sucesso,true);
+  assert.equal((await a.context.registrarColetaFixture(user.id,'papel',2250)).sucesso,true);
   const gravado=JSON.parse(a.storage.get('recynet_usuarios')).find(u=>u.id===user.id);
   assert.equal(gravado.nivel,8);assert.equal(gravado.versaoProgressao,3);
   assert.equal(gravado.totalKg,12.25);assert.equal(gravado.totalPontosGanhos,61.25);
 });
 
 test('backup antigo recalcula níveis só depois de validar e mantém o arquivo original', async () => {
-  const a=app(),user=await cadastrar(a);await a.db.registrarColeta(user.id,'papel',10000);await admin(a);
+  const a=app(),user=await cadastrar(a);await a.context.registrarColetaFixture(user.id,'papel',10000);await admin(a);
   const antigo=JSON.parse(JSON.stringify(a.db.getUsuarioPorId(user.id)));
   delete antigo.versaoProgressao;antigo.nivel=6;
   const raw=JSON.stringify([antigo]),antes=[...a.storage];
@@ -915,11 +916,11 @@ test('backup antigo recalcula níveis só depois de validar e mantém o arquivo 
 
 test('100 gramas, salto de múltiplos níveis e resgate preservam pontos e classificação por peso', async () => {
   const a=app(),user=await cadastrar(a);
-  assert.equal((await a.db.registrarColeta(user.id,'papel',99)).sucesso,false);
-  for(let i=0;i<10;i++) assert.equal((await a.db.registrarColeta(user.id,'papel',100)).sucesso,true);
+  assert.equal((await a.context.registrarColetaFixture(user.id,'papel',99)).sucesso,false);
+  for(let i=0;i<10;i++) assert.equal((await a.context.registrarColetaFixture(user.id,'papel',100)).sucesso,true);
   let u=a.db.getUsuarioPorId(user.id);
   assert.equal(u.nivel,2);assert.equal(u.totalKg,1);assert.equal(u.pontosDisponiveis,5);
-  const r=await a.db.registrarColeta(user.id,'papel',1336500);
+  const r=await a.context.registrarColetaFixture(user.id,'papel',1336500);
   assert.equal(r.sucesso,true);assert.equal(r.novoNivel,101);
   u=a.db.getUsuarioPorId(user.id);
   assert.equal(u.totalKg,1337.5);assert.equal(u.nivel,101);assert.equal(u.pontosDisponiveis,6687.5);
@@ -931,7 +932,7 @@ test('100 gramas, salto de múltiplos níveis e resgate preservam pontos e class
 });
 
 test('contas da prévia exponencial versão 2 migram somente após validação integral', async () => {
-  const a=app(),user=await cadastrar(a);await a.db.registrarColeta(user.id,'papel',10000);
+  const a=app(),user=await cadastrar(a);await a.context.registrarColetaFixture(user.id,'papel',10000);
   const anterior=JSON.parse(JSON.stringify(a.db.getUsuarioPorId(user.id)));
   anterior.versaoProgressao=2;anterior.nivel=4;
   const raw=JSON.stringify([anterior]);
@@ -941,4 +942,50 @@ test('contas da prévia exponencial versão 2 migram somente após validação i
   assert.equal(atual.nivel,7);assert.equal(atual.versaoProgressao,3);
   assert.equal(atual.totalPontosGanhos,50);assert.equal(a.storage.get('recynet_usuarios'),raw);
   anterior.nivel=8;assert.equal(a.db.validarBackup(JSON.stringify([anterior])).sucesso,false);
+});
+
+test('conferência é administrativa, usa peso medido e credita uma única vez entre abas', async () => {
+  const a = app(), user = await cadastrar(a);
+  const outro = await cadastrar(a, 'outra@example.test');
+  await a.auth.login(user.email, senha);
+  assert.equal((await a.db.solicitarColeta(outro.id, 'papel', 1000)).sucesso, false);
+  assert.equal((await a.db.solicitarColeta(user.id, 'papel', 99)).sucesso, false);
+  assert.equal((await a.db.registrarColeta(user.id, 'papel', 1000, undefined, 'REC-01')).sucesso, false);
+  const { solicitacao } = await a.db.solicitarColeta(user.id, 'papel', 1000);
+  assert(solicitacao);
+  assert.equal(a.db.getUsuarioPorId(user.id).pontosDisponiveis, 0);
+  assert.equal(a.db.getRanking()[0]?.totalKg ?? 0, 0);
+  assert.equal(a.db.listarColetasPendentes().length, 0);
+  assert.equal((await a.db.confirmarColeta(user.id, solicitacao.id, 'metal', 500, 'REC-01')).sucesso, false);
+  await admin(a);
+  const b = app(a.storage);
+  assert.equal(a.db.listarColetasPendentes().length, 1);
+  const resultados = await Promise.all([
+    a.db.confirmarColeta(user.id, solicitacao.id, 'metal', 500, ' rec-01 '),
+    b.db.confirmarColeta(user.id, solicitacao.id, 'metal', 500, 'REC-02')
+  ]);
+  assert.equal(resultados.filter(r => r.sucesso).length, 1);
+  const confirmado = a.db.getUsuarioPorId(user.id);
+  assert.equal(confirmado.totalKg, 0.5);
+  assert.equal(confirmado.pontosDisponiveis, 6);
+  assert.equal(confirmado.historico.length, 1);
+  assert.equal(confirmado.historico[0].solicitacaoId, solicitacao.id);
+  assert.equal(confirmado.coletasPendentes.length, 0);
+  assert.equal((await b.db.registrarColeta(outro.id, 'metal', 500, undefined, confirmado.historico[0].codigoEntrega.toLowerCase())).sucesso, false);
+  assert.equal(a.db.getUsuarioPorId(outro.id).pontosDisponiveis, 0);
+  assert.equal(a.db.validarBackup(JSON.stringify(a.db.getUsuarios())).sucesso, true);
+});
+
+test('código repetido em pedidos diferentes não gera crédito; recusa não muda o saldo', async () => {
+  const a = app(), user = await cadastrar(a);
+  const primeiro = (await a.db.solicitarColeta(user.id, 'papel', 1000)).solicitacao;
+  const segundo = (await a.db.solicitarColeta(user.id, 'papel', 1000)).solicitacao;
+  await admin(a);
+  assert.equal((await a.db.confirmarColeta(user.id, primeiro.id, 'papel', 1000, '')).sucesso, false);
+  assert.equal((await a.db.confirmarColeta(user.id, primeiro.id, 'papel', 1000, 'REC-1')).sucesso, true);
+  assert.equal((await a.db.confirmarColeta(user.id, segundo.id, 'papel', 1000, 'rec-1')).sucesso, false);
+  assert.equal(a.db.listarColetasPendentes().length, 1);
+  assert.equal((await a.db.recusarColeta(user.id, segundo.id)).sucesso, true);
+  assert.equal(a.db.getUsuarioPorId(user.id).pontosDisponiveis, 5);
+  assert.equal(a.db.listarColetasPendentes().length, 0);
 });

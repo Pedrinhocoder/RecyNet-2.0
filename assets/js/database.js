@@ -78,7 +78,10 @@ const RecyNetDB = {
       switch (h.tipo) {
         case 'coleta':
           return material(h.material) && Number.isSafeInteger(h.gramas) && h.gramas >= 100 && this.valorValido(h.gramas) &&
-            numero(h.kg) && h.kg >= 0.1 && numero(h.pontosGanhos);
+            numero(h.kg) && h.kg >= 0.1 && numero(h.pontosGanhos) &&
+            (h.codigoEntrega === undefined ? h.confirmadoPor === undefined && h.solicitacaoId === undefined :
+              typeof h.codigoEntrega === 'string' && h.codigoEntrega === this.normalizarCodigoEntrega(h.codigoEntrega) && h.confirmadoPor === this.ADMIN_ESTATICO.id &&
+              (h.solicitacaoId === undefined || texto(h.solicitacaoId)));
         case 'resgate':
           return texto(h.recompensa) && numero(h.custo) && h.custo > 0;
         case 'ajuste_pontos':
@@ -94,7 +97,12 @@ const RecyNetDB = {
           return false;
       }
     };
-    return objeto(usuario) && (usuario.versaoDados === undefined || usuario.versaoDados === 1) &&
+    const pendentes = usuario?.coletasPendentes;
+    const pendentesValidas = pendentes === undefined || (Array.isArray(pendentes) && pendentes.length <= 20 &&
+      pendentes.every(s => objeto(s) && texto(s.id) && data(s.data) && material(s.material) &&
+        Number.isSafeInteger(s.gramas) && s.gramas >= 100 && this.valorValido(s.gramas)) &&
+      new Set(pendentes.map(s => s.id)).size === pendentes.length);
+    return pendentesValidas && objeto(usuario) && (usuario.versaoDados === undefined || usuario.versaoDados === 1) &&
       (usuario.versaoProgressao === undefined || [1, 2, 3].includes(usuario.versaoProgressao)) && texto(usuario.id) && texto(usuario.nome) &&
       ['totalKg', 'totalPontosGanhos', 'pontosDisponiveis', 'pontosGastos'].every(campo => numero(usuario[campo])) &&
       Number.isSafeInteger(usuario.nivel) && usuario.nivel >= 1 && usuario.nivel <= this.MAX_VALOR &&
@@ -149,7 +157,7 @@ const RecyNetDB = {
 
   validarBaseUsuarios(usuarios) {
     if (!Array.isArray(usuarios)) return 'A base precisa ser uma lista de contas.';
-    const ids = new Set(), emails = new Set();
+    const ids = new Set(), emails = new Set(), codigos = new Set(), solicitacoes = new Set();
     for (const [i,u] of usuarios.entries()) {
       if (!u || typeof u !== 'object' || typeof u.id !== 'string' || ids.has(u.id)) return `Conta ${i + 1}: identificação inválida ou duplicada.`;
       ids.add(u.id);
@@ -162,6 +170,14 @@ const RecyNetDB = {
         const atividade = Array.isArray(u.historico) ? u.historico.findIndex(h => !h || !h.id || !h.tipo || !h.data ||
           (h.tipo === 'coleta' && !['kg','gramas','pontosGanhos'].every(c => Number.isFinite(h[c])))) : -1;
         return `Conta ${i + 1}${atividade >= 0 ? `, histórico ${atividade + 1}` : ''}: dados incompletos, versão desconhecida ou totais incompatíveis com o histórico.`;
+      }
+      for (const id of [...(u.coletasPendentes ?? []).map(s => s.id), ...u.historico.map(h => h.solicitacaoId).filter(Boolean)]) {
+        if (solicitacoes.has(id)) return 'A base contém uma solicitação de coleta duplicada.';
+        solicitacoes.add(id);
+      }
+      for (const h of u.historico) if (h.codigoEntrega !== undefined) {
+        if (codigos.has(h.codigoEntrega)) return 'A base contém um código de entrega duplicado.';
+        codigos.add(h.codigoEntrega);
       }
     }
     return null;
@@ -411,14 +427,76 @@ const RecyNetDB = {
     return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, '0')}-${String(data.getDate()).padStart(2, '0')}`;
   },
 
-  // === REGISTRO DE COLETA ===
-  registrarColeta(usuarioId, material, gramas, dataColeta) {
+  // === SOLICITAÇÃO E CONFERÊNCIA DE COLETA ===
+  normalizarCodigoEntrega(codigo) {
+    if (typeof codigo !== 'string') return null;
+    const limpo = codigo.trim().toUpperCase();
+    return /^[A-Z0-9_-]{3,64}$/.test(limpo) ? limpo : null;
+  },
+
+  solicitarColeta(usuarioId, material, gramas) {
+    const sessao = this.getUsuarioAutenticado();
+    if (!sessao || sessao.tipo !== 'user' || sessao.id !== usuarioId) {
+      return { sucesso: false, erro: 'Somente o titular pode solicitar sua coleta.' };
+    }
+    if ((typeof material !== 'string' || !Object.hasOwn(this.PONTOS_POR_KG, material)) ||
+        !Number.isSafeInteger(gramas) || gramas < 100 || !this.valorValido(gramas)) {
+      return { sucesso: false, erro: 'Informe um material válido e ao menos 100 g, com precisão de gramas.' };
+    }
+    const usuario = this.getUsuarioPorId(usuarioId);
+    const lista = usuario.coletasPendentes ??= [];
+    if (lista.length >= 20) return { sucesso: false, erro: 'Você já tem 20 solicitações pendentes. Aguarde a conferência.' };
+    const solicitacao = { id: crypto.randomUUID(), material, gramas, data: new Date().toISOString() };
+    lista.push(solicitacao);
+    this.salvarUsuario(usuario);
+    return { sucesso: true, solicitacao };
+  },
+
+  listarColetasPendentes() {
+    if (!this.isAdmin()) return [];
+    return this.getUsuarios().filter(u => u.tipo === 'user').flatMap(u =>
+      (u.coletasPendentes ?? []).map(s => ({ ...s, usuarioId: u.id, nome: u.nome })))
+      .sort((a, b) => a.data.localeCompare(b.data));
+  },
+
+  confirmarColeta(usuarioId, solicitacaoId, material, gramas, codigoEntrega) {
+    if (!this.isAdmin()) return { sucesso: false, erro: 'Acesso restrito ao administrador.' };
+    return this.registrarColeta(usuarioId, material, gramas, undefined, codigoEntrega, solicitacaoId);
+  },
+
+  recusarColeta(usuarioId, solicitacaoId) {
+    if (!this.isAdmin()) return { sucesso: false, erro: 'Acesso restrito ao administrador.' };
+    const usuario = this.getUsuarioPorId(usuarioId);
+    const lista = usuario?.coletasPendentes;
+    const indice = lista?.findIndex(s => s.id === solicitacaoId) ?? -1;
+    if (indice < 0) return { sucesso: false, erro: 'Esta solicitação já foi processada ou não existe.' };
+    lista.splice(indice, 1);
+    this.salvarUsuario(usuario);
+    return { sucesso: true };
+  },
+
+  // === REGISTRO DE COLETA CONFIRMADA ===
+  registrarColeta(usuarioId, material, gramas, dataColeta, codigoEntrega, solicitacaoId) {
     if (!this.podeAlterarUsuario(usuarioId)) {
       return { sucesso: false, erro: 'Acesso não autorizado' };
     }
     const usuario = this.getUsuarioPorId(usuarioId);
     if (!usuario) return { sucesso: false, erro: 'Usuário não encontrado' };
     if (usuario.tipo !== 'user') return { sucesso: false, erro: 'Esta operação é exclusiva de cooperados' };
+
+    let codigo;
+    if (codigoEntrega !== undefined || solicitacaoId !== undefined) {
+      codigo = this.normalizarCodigoEntrega(codigoEntrega);
+      if (!codigo) return { sucesso: false, erro: 'Use o código do comprovante da entrega (3 a 64 letras, números, hífen ou sublinhado).' };
+      if (this.getUsuarios().some(u => u.historico.some(h => h.tipo === 'coleta' && h.codigoEntrega === codigo))) {
+        return { sucesso: false, erro: 'Este código de entrega já foi creditado.' };
+      }
+    }
+    const pendentes = usuario.coletasPendentes ?? [];
+    const indicePendente = solicitacaoId === undefined ? -1 : pendentes.findIndex(s => s.id === solicitacaoId);
+    if (solicitacaoId !== undefined && indicePendente < 0) {
+      return { sucesso: false, erro: 'Esta solicitação já foi processada ou não existe.' };
+    }
 
     // Validações
     if (!this.valorValido(gramas) || gramas < 100 || Math.abs(gramas - Math.round(gramas)) > 0.000001) {
@@ -474,8 +552,11 @@ const RecyNetDB = {
       gramas,
       kg,
       pontosGanhos,
-      data: dataRegistro.toISOString()
+      data: dataRegistro.toISOString(),
+      ...(codigo ? { codigoEntrega: codigo, confirmadoPor: this.getUsuarioAutenticado().id } : {}),
+      ...(solicitacaoId !== undefined ? { solicitacaoId } : {})
     };
+    if (indicePendente >= 0) pendentes.splice(indicePendente, 1);
     usuario.historico.unshift(registro);
     usuario.historico.sort((a, b) => new Date(b.data) - new Date(a.data));
 
@@ -716,7 +797,7 @@ const RecyNetDB = {
   // === FUNÇÕES ADMINISTRATIVAS ===
 
   // Registrar coleta para um usuário (admin)
-  registrarColetaParaUsuario(usuarioId, material, kg, dataColeta) {
+  registrarColetaParaUsuario(usuarioId, material, kg, dataColeta, codigoEntrega) {
     if (!this.isAdmin()) return { sucesso: false, erro: 'Acesso restrito ao administrador' };
     const usuario = this.getUsuarioPorId(usuarioId);
     if (!usuario) return { sucesso: false, erro: 'Usuário não encontrado' };
@@ -724,7 +805,7 @@ const RecyNetDB = {
 
     // Função recebe kg, mas o registrador principal trabalha em gramas
     const gramas = kg * 1000;
-    return this.registrarColeta(usuarioId, material, gramas, dataColeta);
+    return this.registrarColeta(usuarioId, material, gramas, dataColeta, codigoEntrega);
   },
 
   // === GERENCIAMENTO DE USUÁRIOS (ADMIN) ===
@@ -1219,7 +1300,7 @@ const RecyNetDB = {
 // O escopo interno mantém métodos síncronos: todas as leituras e escritas de uma
 // mutação acontecem depois de obter a mesma trava entre abas e Workers.
 const nomesMutacoes = ['gravarUsuarios', 'salvarUsuario', 'registrarColeta',
-  'registrarColetaParaUsuario', 'resgatarRecompensa', 'ajustarPontosUsuario',
+  'registrarColetaParaUsuario', 'solicitarColeta', 'confirmarColeta', 'recusarColeta', 'resgatarRecompensa', 'ajustarPontosUsuario',
   'ajustarKgUsuario', 'deletarUsuario', 'limparUsuarios', 'restaurarBackup'];
 const bancoAtomico = Object.create(RecyNetDB);
 nomesMutacoes.forEach(nome => { bancoAtomico[nome] = RecyNetDB[nome]; });
@@ -1309,6 +1390,10 @@ nomesMutacoes.forEach(nome => {
         const atual = helper ? null : db.getUsuarioAutenticado();
         if (!helper && (solicitante?.id !== atual?.id || solicitante?.tipo !== atual?.tipo)) {
           return { sucesso: false, erro: 'A sessão mudou enquanto a operação aguardava outra aba. Tente novamente.' };
+        }
+        if (['registrarColeta', 'registrarColetaParaUsuario'].includes(nome)) {
+          if (atual?.tipo !== 'admin') return { sucesso: false, erro: 'Envie uma solicitação. Apenas o administrador pode confirmar o crédito.' };
+          if (!bancoAtomico.normalizarCodigoEntrega(args[4])) return { sucesso: false, erro: 'Informe um código de entrega válido.' };
         }
         if (nome === 'gravarUsuarios' && (!versoesBases.has(args[0]) ||
             versoesBases.get(args[0]) !== localStorage.getItem('recynet_usuarios'))) {

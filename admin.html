@@ -73,10 +73,19 @@
             </div>
         </div>
 
+        <section class="card" aria-labelledby="tituloConferencia">
+            <div class="card-header"><h2 id="tituloConferencia" tabindex="-1">Coletas aguardando conferência</h2></div>
+            <div class="card-body">
+                <p>Confira o material e o peso da entrega física. Use o mesmo código do comprovante se a entrega aparecer mais de uma vez.</p>
+                <p id="filaVazia">Nenhuma solicitação pendente.</p>
+                <div id="filaColetas"></div>
+            </div>
+        </section>
+
         <!-- Formulário de Registro de Coleta -->
         <div class="card fade-in-up">
             <div class="card-header">
-                <h2>♻️ Registrar Coleta para Usuário</h2>
+                <h2>♻️ Registrar entrega presencial sem solicitação</h2>
             </div>
             <div class="card-body">
                 <form id="formRegistrarColeta">
@@ -108,6 +117,12 @@
                     <div class="form-group">
                         <label for="inputData">Data da Coleta</label>
                         <input class="form-input" type="date" id="inputData" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="codigoEntrega">Código do comprovante</label>
+                        <input class="form-input" id="codigoEntrega" required minlength="3" maxlength="64" pattern="[A-Za-z0-9_\-]{3,64}">
+                        <small>Se já existe uma solicitação, confirme pela fila acima. Reutilize o código em caso de nova tentativa da mesma entrega.</small>
                     </div>
 
                     <div id="previewColeta" style="display:none;">
@@ -177,6 +192,7 @@
             carregarStats();
             carregarUsuarios();
             configurarFormulario();
+            carregarFilaColetas();
             carregarRecentes();
         });
 
@@ -247,6 +263,69 @@
           }
         }
 
+        function carregarFilaColetas() {
+            const fila = document.getElementById('filaColetas');
+            const pendentes = RecyNetDB.listarColetasPendentes();
+            const ids = new Set(pendentes.map(s => s.id));
+            for (const form of Array.from(fila.children)) {
+                if (!ids.has(form.dataset.solicitacao)) form.remove();
+            }
+            for (const item of pendentes) {
+                if (Array.from(fila.children).some(form => form.dataset.solicitacao === item.id)) continue;
+                const form = document.createElement('form');
+                form.className = 'card-body';
+                form.dataset.solicitacao = item.id;
+                form.innerHTML = `
+                    <h3></h3>
+                    <p class="peso-informado"></p>
+                    <label>Material conferido <select class="form-select" name="material" required></select></label>
+                    <label>Peso conferido (kg) <input class="form-input" name="peso" type="number" min="0.1" step="0.001" required></label>
+                    <label>Código do comprovante <input class="form-input" name="codigo" required minlength="3" maxlength="64" pattern="[A-Za-z0-9_\\-]{3,64}"></label>
+                    <button class="btn btn-primary" type="submit">Confirmar e creditar</button>
+                    <button class="btn btn-secondary" type="button">Recusar solicitação</button>
+                `;
+                form.querySelector('h3').textContent = item.nome;
+                const select = form.elements.material;
+                select.replaceChildren(...Array.from(document.getElementById('selectMaterial').options).filter(o => o.value).map(o => o.cloneNode(true)));
+                select.value = item.material;
+                form.elements.peso.value = item.gramas / 1000;
+                form.querySelector('.peso-informado').textContent = 'Informado: ' +
+                    select.selectedOptions[0].textContent.split(' - ')[0] + ' · ' +
+                    RecyNetDB.formatarKg(item.gramas / 1000) + ' · ' + new Date(item.data).toLocaleString('pt-BR');
+                async function processar(acao, mensagem) {
+                    await RecyNetUtils.executarEnvioUnico(form, async () => {
+                        const resultado = await acao();
+                        if (!resultado.sucesso) {
+                            RecyNetUtils.showToast(resultado.erro, 'error');
+                            carregarFilaColetas();
+                            return;
+                        }
+                        RecyNetUtils.showToast(mensagem(resultado), 'success');
+                        carregarFilaColetas();
+                        carregarStats();
+                        carregarUsuarios();
+                        carregarRecentes();
+                        (fila.querySelector('select') || document.getElementById('tituloConferencia')).focus();
+                    });
+                }
+                form.addEventListener('submit', event => {
+                    event.preventDefault();
+                    const material = select.value;
+                    const gramas = Math.round(Number(form.elements.peso.value) * 1000);
+                    const codigo = form.elements.codigo.value;
+                    return processar(() => RecyNetDB.confirmarColeta(item.usuarioId, item.id, material, gramas, codigo),
+                        r => 'Coleta confirmada! +' + RecyNetDB.formatarPontos(r.pontosGanhos) + ' pontos.');
+                });
+                form.querySelector('button[type=button]').addEventListener('click', () => {
+                    if (!confirm('Recusar esta solicitação sem creditar pontos?')) return;
+                    return processar(() => RecyNetDB.recusarColeta(item.usuarioId, item.id),
+                        () => 'Solicitação recusada. Nenhum ponto foi creditado.');
+                });
+                fila.append(form);
+            }
+            document.getElementById('filaVazia').hidden = pendentes.length > 0;
+        }
+
         function configurarFormulario() {
             const form = document.getElementById('formRegistrarColeta');
             const materialSelect = document.getElementById('selectMaterial');
@@ -263,12 +342,12 @@
                 const peso = parseFloat(pesoInput.value) || 0;
 
                 if (material && peso >= 0.1) {
-                    const PONTOS = { papel: 5, vidro: 6, plastico: 8, metal: 12, eletronico: 20 };
+                    const PONTOS = RecyNetDB.PONTOS_POR_KG;
                     const pontos = peso * PONTOS[material];
 
                     document.getElementById('previewMaterial').textContent = material;
                     document.getElementById('previewPeso').textContent = peso + ' kg';
-                    document.getElementById('previewPontos').textContent = pontos.toFixed(1) + ' pts';
+                    document.getElementById('previewPontos').textContent = RecyNetDB.formatarPontos(pontos) + ' pts';
                     document.getElementById('previewColeta').style.display = 'block';
                 } else {
                     document.getElementById('previewColeta').style.display = 'none';
@@ -293,7 +372,7 @@
 
                 const gramas = kg * 1000;
                 return await RecyNetUtils.executarEnvioUnico(form, async () => {
-                    const resultado = (await RecyNetDB.registrarColeta(usuarioId, material, gramas, dataInput.value));
+                    const resultado = (await RecyNetDB.registrarColeta(usuarioId, material, gramas, dataInput.value, document.getElementById('codigoEntrega').value));
 
                     if (resultado.sucesso) {
                         alert(`Coleta registrada com sucesso! +${resultado.pontosGanhos} pontos`);
@@ -386,7 +465,7 @@
           container.innerHTML = html;
         }
 
-RecyNetUtils.aoAtualizarDados(u => { carregarStats(); carregarUsuarios(); carregarRecentes(); });
+RecyNetUtils.aoAtualizarDados(u => { carregarStats(); carregarUsuarios(); carregarRecentes(); carregarFilaColetas(); });
 </script>
 </body>
 </html>

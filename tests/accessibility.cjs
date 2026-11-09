@@ -14,6 +14,7 @@ const server = require('../scripts/serve.cjs').createServer();
     browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, args: ['--no-sandbox'] });
     const base = `http://127.0.0.1:${server.address().port}`;
     const context = await browser.newContext();
+    await context.addInitScript({ path: path.join(__dirname, 'fixture-coleta.js') });
     const page = await context.newPage();
     page.on('dialog', d => d.accept());
     // Mapas externos não fazem parte do código do protótipo.
@@ -21,7 +22,7 @@ const server = require('../scripts/serve.cjs').createServer();
     await page.goto(`${base}/cadastro.html`);
     const usuario = await page.evaluate(async () => {
       const r = await RecyNetAuth.cadastrar('Pessoa Auditoria', 'auditoria@example.test', 'Teste@RecyNet123', 'Teste@RecyNet123');
-      (await RecyNetDB.registrarColeta(r.usuario.id, 'papel', 2000));
+      (await registrarColetaFixture(r.usuario.id, 'papel', 2000));
       return RecyNetDB.getUsuarioPorId(r.usuario.id);
     });
     const admins = ['admin.html','perfil-admin.html','utilidades-admin.html','diagnostico-completo.html','limpar-dados.html'];
