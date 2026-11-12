@@ -27,7 +27,7 @@ function app(storage = new Map()) {
     }
   });
   context.window = context;
-  for (const file of ['assets/js/database.js', 'assets/js/auth.js', 'assets/js/utils.js', 'assets/js/demo-setup.js', 'tests/fixture-coleta.js']) {
+  for (const file of ['assets/js/database.js', 'assets/js/auth.js', 'assets/js/utils.js', 'tests/fixture-coleta.js']) {
     vm.runInContext(fs.readFileSync(path.join(__dirname, '..', file), 'utf8'), context, { filename: file });
   }
   context.RecyNetDB.persistencia = {
@@ -36,7 +36,7 @@ function app(storage = new Map()) {
   };
   // As notificações visuais não fazem parte dos testes do modelo.
   context.RecyNetUtils.showToast = () => {};
-  return { db: context.RecyNetDB, auth: context.RecyNetAuth, demo: context.RecyNetDemo, context, storage };
+  return { db: context.RecyNetDB, auth: context.RecyNetAuth, context, storage };
 }
 
 const senha = 'Teste@RecyNet123';
@@ -189,61 +189,6 @@ test('admin pode ajustar e excluir usuários; limpeza preserva administradores e
   assert.equal(a.storage.get('outra-aplicacao'), 'preservar');
 });
 
-test('demonstração preserva contas, históricos e outras chaves, usa senha válida e pode ser repetida', async () => {
-  const a = app();
-  const existente = await cadastrar(a, 'teste@recynet.com');
-  (await a.context.registrarColetaFixture(existente.id, 'metal', 1500));
-  const antes = JSON.parse(JSON.stringify(a.db.getUsuarioPorId(existente.id)));
-  a.storage.set('outra-aplicacao', 'preservar');
-  const result = await a.demo.configurar();
-  assert.equal(result.sucesso, true, result.erro);
-  assert.equal(a.auth.validarSenha(result.senha).valido, true);
-  assert.equal(result.usuario.totalKg, 0);
-  assert.equal(result.usuario.pontosDisponiveis, 0);
-  assert.equal(result.usuario.coletasPendentes.length, 1);
-  assert.deepEqual(JSON.parse(JSON.stringify(a.db.getUsuarioPorId(existente.id))), antes);
-  assert.equal(a.storage.get('outra-aplicacao'), 'preservar');
-  const repetido = await a.demo.configurar();
-  assert.equal(repetido.sucesso, true, repetido.erro);
-  assert.notEqual(repetido.email, result.email);
-  assert.equal(a.db.getUsuarioPorId(result.usuario.id).totalKg, 0);
-  a.db.logout();
-  assert.equal((await a.auth.login(result.email, result.senha)).sucesso, true);
-});
-
-test('demonstração valida configuração antes de escrever dados', async () => {
-  const a = app();
-  await cadastrar(a);
-  const antes = [...a.storage];
-  a.auth.validarSenha = () => ({ valido: false, erro: 'Senha inválida de teste' });
-  assert.equal((await a.demo.configurar()).sucesso, false);
-  assert.deepEqual([...a.storage], antes);
-});
-
-test('falha na coleta de demonstração remove só a conta nova e restaura sessão anterior', async () => {
-  const a = app();
-  const user = await cadastrar(a);
-  (await a.context.registrarColetaFixture(user.id, 'metal', 1000));
-  await admin(a);
-  a.storage.set('outra-aplicacao', 'preservar');
-  const antes = dados(a);
-  const sessaoAntes = a.storage.get('recynet_sessao');
-  a.db.solicitarColeta = () => ({ sucesso: false, erro: 'Falha simulada' });
-  const result = await a.demo.configurar();
-  assert.equal(result.sucesso, false);
-  assert.deepEqual(dados(a), antes);
-  assert.equal(a.storage.get('recynet_sessao'), sessaoAntes);
-  assert.equal(a.storage.get('outra-aplicacao'), 'preservar');
-});
-
-test('falha da demonstração sem sessão anterior encerra a sessão criada', async () => {
-  const a = app();
-  a.db.solicitarColeta = () => ({ sucesso: false, erro: 'Falha simulada' });
-  assert.equal((await a.demo.configurar()).sucesso, false);
-  assert.equal(a.db.getUsuarios().filter(u => u.tipo === 'user').length, 0);
-  assert.equal(a.db.getUsuarioLogado(), null);
-});
-
 
 test('entradas numéricas inválidas não alteram saldos, histórico nem sessão', async () => {
   const a = app();
@@ -358,7 +303,6 @@ test('armazenamento inválido não derruba leituras nem permite sobrescrever as 
     await assert.rejects(async () => (await a.db.salvarUsuario(user)), /dados foram preservados/i);
     assert.equal((await a.auth.login('admin@fortes.com.br', '123456')).sucesso, false);
     assert.equal((await a.auth.cadastrar('Outra Pessoa', 'outra@example.test', senha, senha)).sucesso, false);
-    assert.equal((await a.demo.configurar()).sucesso, false);
     assert.deepEqual([...a.storage], antes);
   }
   a.storage.set('recynet_usuarios', valido);
@@ -406,18 +350,6 @@ test('estatísticas mensais usam início do mês e excluem registros futuros, in
     assert.equal(stats.kgEsteMes, 5);
     assert.equal(stats.pontosEsteMes, 25);
   }
-});
-
-test('desfazer demonstração não sobrescreve dados que se tornaram ilegíveis durante a execução', async () => {
-  const a = app();
-  await cadastrar(a);
-  const raw = '{dados interrompidos';
-  const result = await a.demo.configurar((etapa, estado) => {
-    if (etapa === 3 && estado === 'running') a.storage.set('recynet_usuarios', raw);
-  });
-  assert.equal(result.sucesso, false);
-  assert.equal(a.storage.get('recynet_usuarios'), raw);
-  assert.equal(a.auth.verificarSessao().logado, false);
 });
 
 test('coletas pequenas mantêm gramas, pontos fracionários e nível sem erro de acumulação', async () => {

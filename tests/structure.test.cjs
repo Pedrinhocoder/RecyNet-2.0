@@ -14,7 +14,6 @@ function walk(dir) {
 }
 function recursoLocal(file, ref) {
   const pathname = decodeURIComponent(new URL(ref, 'http://local/' + path.relative(publicRoot,file).split(path.sep).join('/')).pathname);
-  if (pathname === '/tests/isolated-checks.js') return path.join(root,'tests/isolated-checks.js');
   if (pathname.startsWith('/docs/')) return path.join(root,'docs',pathname.slice(6));
   return path.join(publicRoot,pathname);
 }

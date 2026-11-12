@@ -30,7 +30,7 @@ Crie uma conta em `cadastro.html`. A senha exige oito caracteres ou mais, maiús
 ## Organização
 
 ```text
-*.html                      22 páginas, incluindo a página de erro; URLs preservadas no GitHub Pages
+*.html                      19 páginas, incluindo a página de erro
 api-spec.yaml               fonte da API planejada
 api-spec.json               versão gerada para a documentação
 assets/
@@ -45,7 +45,7 @@ docs/                       estado atual, revisões e relatórios históricos
 .github/                    automação de testes e modelo de pull request
 ```
 
-O servidor Node local expõe somente as páginas HTML, recursos em `assets/`, especificação da API, documentos em `/docs/` e o script isolado necessário ao Worker de diagnóstico. `node_modules/`, configuração do projeto e os demais testes não são arquivos públicos. A estrutura detalhada e o mapa de migração estão em [docs/ORGANIZACAO.md](docs/ORGANIZACAO.md).
+O servidor Node local expõe somente as páginas HTML, recursos em `assets/`, especificação da API e documentos em `/docs/`. `node_modules/`, configuração do projeto e os testes não são servidos pelo Node. A estrutura detalhada e o mapa de migração estão em [docs/ORGANIZACAO.md](docs/ORGANIZACAO.md).
 
 O GitHub Pages existente continua usando as páginas da raiz, com os mesmos endereços. A pasta `assets/` concentra os recursos, e `.nojekyll` conserva a publicação estática.
 
@@ -61,12 +61,11 @@ O GitHub Pages existente continua usando as páginas da raiz, com os mesmos ende
 - Histórico, ranking e relatórios, com Chart.js distribuído localmente e resumo textual.
 - Gravações coordenadas entre abas; envios repetidos bloqueados durante a operação; rascunhos de perfil preservados e conflitos tratados por campo.
 - Exportação e restauração de backup, validação de dados, cópia anterior e tratamento de falhas de gravação/download.
-- Demonstração que preserva contas existentes; diagnóstico em Worker isolado, com cancelamento e limite de 30 segundos.
 - Navegação por teclado, responsividade, mensagens acessíveis, contraste e respeito a movimento reduzido.
 
 Os locais, horários, mapas, notícias e recompensas são demonstrativos. Pontos e resgates não geram benefícios reais. Não existe módulo de IA nem backend implementado.
 
-## Conferência de entregas na demonstração
+## Conferência de entregas
 
 1. Como cooperado, abra **Pontuação**, informe material e peso e clique em **Solicitar conferência**.
 2. No mesmo navegador e endereço, entre como administrador de demonstração e abra **Coletas aguardando conferência**. Confira e ajuste o material e o peso medido.
@@ -97,7 +96,7 @@ npm run test:browser
 npm run test:accessibility
 ```
 
-A suíte reúne **58 testes do modelo, 3 estruturais, 1 teste real do servidor, 68 cenários no Chromium e 44 auditorias de acessibilidade/layout**. Para Chromium já instalado, defina `CHROMIUM_PATH`. Os testes usam dados fictícios e contextos isolados; evidências temporárias ficam em `work/`, fora do versionamento.
+A suíte reúne **53 testes do modelo, 3 estruturais, 1 teste real do servidor, 63 cenários no Chromium e 38 auditorias de acessibilidade/layout**. Para Chromium já instalado, defina `CHROMIUM_PATH`. Os testes usam dados fictícios e contextos isolados; evidências temporárias ficam em `work/`, fora do versionamento.
 
 O workflow [Validar projeto](.github/workflows/ci.yml) executa os testes em pushes e pull requests. A definição do workflow está incluída; sua execução remota depende da publicação e da configuração de Actions no GitHub.
 

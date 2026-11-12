@@ -4,7 +4,6 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const publicRoot = root;
 const docsRoot = path.join(root, 'docs');
-const workerChecks = path.join(root, 'tests/isolated-checks.js');
 const mime = {
   '.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8',
   '.css':'text/css; charset=utf-8', '.json':'application/json; charset=utf-8',
@@ -21,19 +20,13 @@ function createServer() {
     }
     const publico = pathname === '/' || /^\/[^/]+\.html$/.test(pathname) ||
       pathname.startsWith('/assets/') || pathname.startsWith('/docs/') ||
-      ['/api-spec.yaml','/api-spec.json','/tests/isolated-checks.js'].includes(pathname);
+      ['/api-spec.yaml','/api-spec.json'].includes(pathname);
     if (!publico) { res.writeHead(404).end(); return; }
     let base = publicRoot;
     let relative = pathname === '/' ? 'index.html' : pathname.slice(1);
-    let file;
-    if (pathname === '/tests/isolated-checks.js') {
-      // Único script de testes publicado: executado em memória pelo Worker.
-      file = workerChecks;
-    } else {
-      if (pathname.startsWith('/docs/')) { base = docsRoot; relative = pathname.slice('/docs/'.length); }
-      file = path.resolve(base, relative);
-      if (!file.startsWith(base + path.sep)) { res.writeHead(403).end(); return; }
-    }
+    if (pathname.startsWith('/docs/')) { base = docsRoot; relative = pathname.slice('/docs/'.length); }
+    const file = path.resolve(base, relative);
+    if (!file.startsWith(base + path.sep)) { res.writeHead(403).end(); return; }
     const type = mime[path.extname(file)];
     if (!type) { res.writeHead(404).end(); return; }
     fs.readFile(file, (err, data) => {
