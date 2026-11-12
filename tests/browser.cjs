@@ -202,45 +202,6 @@ async function main() {
       assert.equal(await page.locator('#navbarMenu').evaluate(el => el.classList.contains('active')), true);
     });
 
-    await check('demonstração pela interface preserva dados e funciona em duas execuções', async ({ page, go, cadastrar }) => {
-      const user = await cadastrar('Pessoa Existente', 'teste@recynet.com');
-      const antes = await page.evaluate(async id => {
-        (await registrarColetaFixture(id, 'metal', 1000));
-        localStorage.setItem('outra-aplicacao', 'preservar');
-        return RecyNetDB.getUsuarioPorId(id);
-      }, user.id);
-      const demos = [];
-      for (let i = 0; i < 2; i++) {
-        await go('setup-automatico.html');
-        await page.locator('#btnStart').click();
-        await page.waitForURL('**/relatorio.html', { waitUntil: 'load' });
-        const atual = await page.evaluate(id => ({
-          original: RecyNetDB.getUsuarioPorId(id),
-          sessao: RecyNetDB.getUsuarioLogado(),
-          outra: localStorage.getItem('outra-aplicacao')
-        }), user.id);
-        assert.deepEqual(atual.original, antes);
-        assert.equal(atual.outra, 'preservar');
-        assert.equal(atual.sessao.totalKg, 0);
-        assert.equal(atual.sessao.pontosDisponiveis, 0);
-        demos.push(atual.sessao.id);
-      }
-      assert.notEqual(demos[0], demos[1]);
-      assert.equal(await page.evaluate(() => RecyNetDB.getUsuarios().filter(u => u.tipo === 'user').length), 3);
-    });
-
-    await check('falha na demonstração pela interface mantém dados e restaura sessão', async ({ page, go, cadastrar }) => {
-      await cadastrar();
-      const antes = await page.evaluate(() => ({ usuarios: localStorage.getItem('recynet_usuarios'), sessao: localStorage.getItem('recynet_sessao') }));
-      await go('setup-automatico.html');
-      await page.evaluate(() => { RecyNetDB.solicitarColeta = () => ({ sucesso: false, erro: 'Falha simulada de coleta' }); });
-      await page.locator('#btnStart').click();
-      await page.waitForFunction(() => document.getElementById('btnStart').textContent === 'Tentar Novamente');
-      assert.equal(await page.locator('#btnStart').isEnabled(), true);
-      assert((await page.locator('#console').innerText()).includes('Falha simulada de coleta'));
-      assert.deepEqual(await page.evaluate(() => ({ usuarios: localStorage.getItem('recynet_usuarios'), sessao: localStorage.getItem('recynet_sessao') })), antes);
-    });
-
     await check('históricos mostram registros recentes e relatório funciona sem CDN', async ({ page, go, cadastrar }) => {
       const user = await cadastrar();
       await page.evaluate(async id => {
@@ -546,14 +507,6 @@ async function main() {
       await page.locator('#btnRegistrar').click();await page.waitForFunction(()=>document.getElementById('minhasSolicitacoes').textContent.includes('101'));assert.equal(await page.locator('#totalPoints').innerText(),'0');
       await page.locator('#quantityInput').fill('0.05');await page.locator('#btnRegistrar').click();
       assert((await page.getByRole('status').last().innerText()).includes('0,1 kg'));
-    });
-
-    await check('diagnóstico executa seis testes em memória sem alterar contas nem sessão', async ({page,go,cadastrar})=>{
-      await cadastrar();const antes=await page.evaluate(()=>JSON.stringify({...localStorage}));
-      await go('teste-debug-completo.html');await page.locator('#runTests').click();
-      await page.waitForFunction(()=>document.getElementById('testSummary').textContent.includes('falhas.'));
-      assert.equal(await page.locator('#testSummary').innerText(),'6 aprovações; 0 falhas.');
-      assert.equal(await page.evaluate(()=>JSON.stringify({...localStorage})),antes);
     });
 
     await check('documentação da API filtra endpoints e gráficos carregam da cópia local', async ({page,go,cadastrar})=>{
@@ -1271,43 +1224,6 @@ async function main() {
       assert(!(await page.locator('body').innerText()).includes('NaN'));
     });
 
-    await check('diagnóstico encerra Worker sem resposta no prazo, libera recursos e permite nova execução', async ({ page, go }) => {
-      await go('teste-debug-completo.html');await page.clock.install();
-      await page.route('**/tests/isolated-checks.js',route=>route.fulfill({contentType:'application/javascript',body:'setInterval(()=>{},1000);'}));
-      await page.evaluate(()=>{
-        window.__criados=0;window.__terminados=0;window.__revogados=0;
-        const Original=Worker;window.Worker=class extends Original{constructor(...args){super(...args);__criados++;}terminate(){__terminados++;return super.terminate();}};
-        const revogar=URL.revokeObjectURL.bind(URL);URL.revokeObjectURL=u=>{__revogados++;revogar(u);};
-      });
-      await page.locator('#runTests').click();await page.waitForFunction(()=>__criados===1);
-      assert((await page.locator('#testSummary').innerText()).includes('Executando'));
-      await page.clock.fastForward(31000);
-      assert((await page.locator('#testSummary').innerText()).includes('excedeu 30 segundos'));
-      assert.equal(await page.locator('#runTests').isDisabled(),false);
-      assert.deepEqual(await page.evaluate(()=>[__terminados,__revogados]),[1,1]);
-      await page.unroute('**/tests/isolated-checks.js');await page.locator('#runTests').click();
-      await page.waitForFunction(()=>document.getElementById('testSummary').textContent==='6 aprovações; 0 falhas.');
-    });
-
-    await check('diagnóstico permite cancelar, aborta download travado e recusa mensagens inválidas', async ({ page, go }) => {
-      await go('teste-debug-completo.html');await page.clock.install();
-      await page.evaluate(()=>{
-        const fetchOriginal=fetch;window.__fetchOriginal=fetchOriginal;
-        window.fetch=(url,options)=>String(url).includes('isolated-checks') ? new Promise((resolve,reject)=>{
-          window.__signal=options.signal;options.signal.addEventListener('abort',()=>reject(new DOMException('Abortado','AbortError')));
-        }) : fetchOriginal(url,options);
-      });
-      await page.locator('#runTests').click();await page.waitForFunction(()=>Boolean(window.__signal));
-      await page.clock.fastForward(31000);
-      assert.equal(await page.evaluate(()=>__signal.aborted),true);assert.equal(await page.locator('#runTests').isDisabled(),false);
-      await page.locator('#runTests').click();await page.locator('#cancelTests').click();
-      assert((await page.locator('#testSummary').innerText()).includes('cancelado'));assert.equal(await page.locator('#runTests').isDisabled(),false);
-      await page.evaluate(()=>window.fetch=__fetchOriginal);
-      await page.route('**/tests/isolated-checks.js',route=>route.fulfill({contentType:'application/javascript',body:'postMessage({nome:42,sucesso:"sim"});'}));
-      await page.locator('#runTests').click();await page.waitForFunction(()=>document.getElementById('testSummary').textContent.includes('mensagem inválida'));
-      assert.equal(await page.locator('#runTests').isDisabled(),false);assert.equal(await page.locator('#testResults li').count(),0);
-    });
-
     await check('download de recuperação informa falhas e ausência de dados e libera URL após erro', async ({ page, go, cadastrar, admin }) => {
       await cadastrar();await admin();await go('recuperar-dados.html');await page.clock.install();
       await page.evaluate(()=>{
@@ -1436,6 +1352,59 @@ async function main() {
         assert.equal(await page.locator('#syncDraftNotice').count(),0);await page.keyboard.press('Escape');
         await page.waitForFunction(()=>document.getElementById('editarNome').value==='');
       }
+    });
+
+    await check('primeira dobra móvel tem acesso, coleta e lista de materiais sem corte', async ({page,go,cadastrar}) => {
+      await page.setViewportSize({width:390,height:844});
+      const cabeNaTela = el => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && Number(getComputedStyle(el).opacity) > 0; };
+      await go('index.html');
+      assert.equal(await page.locator('a[href="setup-automatico.html"]').count(), 0);
+      assert(await page.getByRole('link',{name:'Entrar na minha conta',exact:true}).evaluate(cabeNaTela));
+      await go('recynet.html');
+      assert(await page.getByRole('textbox',{name:'Email',exact:true}).evaluate(el => parseFloat(getComputedStyle(el).fontSize) >= 16));
+      await cadastrar();
+      await go('cooperado.html');
+      const cta = page.locator('.welcome-actions').getByRole('link',{name:'Solicitar conferência',exact:true});
+      assert(await cta.evaluate(cabeNaTela));
+      await cta.click();
+      await page.waitForURL('**/pontuacao.html#solicitar-coleta');
+      const botao = page.locator('#btnRegistrar');
+      assert(await botao.evaluate(el=>el.getBoundingClientRect().top + scrollY < innerHeight));
+      assert(await page.locator('.taxas-materiais').evaluate(el=>el.scrollWidth <= el.clientWidth));
+      assert(await page.locator('#quantityInput').evaluate(el=>parseFloat(getComputedStyle(el).fontSize)>=16));
+    });
+
+    await check('mesmo protocolo mostra pedido pendente, confirmado ou recusado após recarregar', async ({page,go,cadastrar,admin}) => {
+      const usuario = await cadastrar();
+      await go('pontuacao.html');
+      const enviar = async (kg) => {
+        await page.locator('#quantityInput').fill(kg);
+        await page.locator('#btnRegistrar').click();
+        await page.waitForFunction(()=>document.getElementById('quantityInput').value==='');
+      };
+      await enviar('1');
+      const primeiro = await page.locator('#minhasSolicitacoes code').first().innerText();
+      assert((await page.locator('#resultadoSolicitacao').innerText()).includes(primeiro));
+      await enviar('2');
+      const segundo = await page.locator('#minhasSolicitacoes code').last().innerText();
+      assert.notEqual(primeiro,segundo);
+      assert.equal(await page.locator('#totalPoints').innerText(),'0');
+      await admin();
+      await go('admin.html');
+      const aprovar = page.locator('#filaColetas form').filter({hasText:primeiro});
+      await aprovar.locator('[name=codigo]').fill('PROTOCOLO-01');
+      await aprovar.getByRole('button',{name:'Confirmar e creditar'}).click();
+      await aprovar.waitFor({state:'detached'});
+      const recusar = page.locator('#filaColetas form').filter({hasText:segundo});
+      await recusar.getByRole('button',{name:'Recusar solicitação'}).click();
+      await recusar.waitFor({state:'detached'});
+      await page.evaluate(({email, senha}) => RecyNetAuth.login(email, senha), {email:usuario.email, senha});
+      await go('pontuacao.html');
+      await page.reload();
+      const lista = page.locator('#minhasSolicitacoes li');
+      assert.match(await lista.filter({hasText:primeiro}).innerText(), /Confirmada.*\+20 pontos/s);
+      assert.match(await lista.filter({hasText:segundo}).innerText(), /Recusada.*Nenhum ponto creditado/s);
+      assert.equal(await page.locator('#totalPoints').innerText(),'20');
     });
 
     console.log(`\n${passed} aprovados; ${failed} falhas.`);

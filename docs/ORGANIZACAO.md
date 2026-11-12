@@ -21,7 +21,7 @@ Os 90 arquivos da cópia de origem estão relacionados em `TRANSFERENCIA-ARQUIVO
 
 O GitHub Pages já está ativo no repositório. As páginas continuam em `/index.html`, `/cooperado.html`, `/perfil.html` e nos demais caminhos originais. Os recursos passaram a usar `assets/css/` e `assets/js/`. `.nojekyll` mantém a publicação estática, sem necessidade de construir a aplicação.
 
-O servidor Node local usa uma lista de rotas públicas: páginas HTML, `assets/`, especificação da API, `docs/` e exatamente `tests/isolated-checks.js`. Os demais testes, dependências e configuração não são publicados pelo servidor Node. Essa restrição do servidor local não é uma regra de acesso do GitHub Pages; o repositório e os arquivos da hospedagem estática são públicos.
+O servidor Node local usa uma lista de rotas públicas: páginas HTML, `assets/`, especificação da API e `docs/`. Os testes, dependências e configuração não são publicados pelo servidor Node. Essa restrição do servidor local não é uma regra de acesso do GitHub Pages; o repositório e os arquivos da hospedagem estática são públicos.
 
 Continue usando `npm start` ou os atalhos Windows. A organização não altera configurações de domínio, identidade ou credenciais do GitHub.
 

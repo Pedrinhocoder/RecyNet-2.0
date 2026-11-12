@@ -43,21 +43,25 @@
 
   <!-- Conteúdo Principal -->
   <main id="conteudo-principal" tabindex="-1" class="main-content">
-    <div class="container fade-in-up">
-
-      <!-- Barra de Nível (DESTAQUE) -->
-      <div id="level-bar-container" class="level-bar-highlight-container"></div>
+    <div class="container">
 
       <!-- Bem-vindo -->
       <section class="welcome-section">
         <div class="card">
           <div class="card-body">
             <h1 class="welcome-title">Bem-vindo, <span id="userName">Usuário</span>!</h1>
+            <div class="welcome-actions">
+              <a href="pontuacao.html#solicitar-coleta" class="btn btn-primary">Solicitar conferência</a>
+              <a href="pontuacao.html#solicitacoes" class="btn btn-outline">Ver minhas solicitações</a>
+            </div>
             <p class="welcome-text">Você reciclou <strong id="weeklyKg">0 kg</strong> de material essa semana!</p>
             <p class="welcome-congrats">🎉 Parabéns pelo seu impacto positivo!</p>
           </div>
         </div>
       </section>
+
+      <!-- Barra de Nível (DESTAQUE) -->
+      <div id="level-bar-container" class="level-bar-highlight-container"></div>
 
       <!-- Grid de Conteúdo -->
       <div class="content-grid">
@@ -142,9 +146,9 @@
       <section class="quick-actions">
         <h2 class="section-title">Ações Rápidas</h2>
         <div class="actions-grid">
-          <a href="pontuacao.html" class="action-card">
+          <a href="pontuacao.html#solicitar-coleta" class="action-card">
             <span class="action-icon">📝</span>
-            <span class="action-title">Registrar Coleta</span>
+            <span class="action-title">Solicitar conferência</span>
           </a>
 
           <a href="recompensas.html" class="action-card">

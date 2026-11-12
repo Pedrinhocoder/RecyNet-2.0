@@ -278,6 +278,7 @@
                 form.innerHTML = `
                     <h3></h3>
                     <p class="peso-informado"></p>
+                    <p class="fila-protocolo">Protocolo: <code></code></p>
                     <label>Material conferido <select class="form-select" name="material" required></select></label>
                     <label>Peso conferido (kg) <input class="form-input" name="peso" type="number" min="0.1" step="0.001" required></label>
                     <label>Código do comprovante <input class="form-input" name="codigo" required minlength="3" maxlength="64" pattern="[A-Za-z0-9_\\-]{3,64}"></label>
@@ -285,6 +286,7 @@
                     <button class="btn btn-secondary" type="button">Recusar solicitação</button>
                 `;
                 form.querySelector('h3').textContent = item.nome;
+                form.querySelector('code').textContent = item.id;
                 const select = form.elements.material;
                 select.replaceChildren(...Array.from(document.getElementById('selectMaterial').options).filter(o => o.value).map(o => o.cloneNode(true)));
                 select.value = item.material;

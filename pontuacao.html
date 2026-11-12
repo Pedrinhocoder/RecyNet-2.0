@@ -42,13 +42,57 @@
 
   <!-- Conteúdo Principal -->
   <main id="conteudo-principal" tabindex="-1" class="main-content">
-    <div class="container fade-in-up">
+    <div class="container">
 
       <!-- Header -->
-      <div class="page-header fade-in-up">
-        <h1 class="page-title">⭐ Sistema de Pontuação</h1>
-        <p class="page-subtitle">Veja quanto vale cada material reciclado</p>
+      <div class="page-header coleta-cabecalho">
+        <h1 class="page-title">Coleta e pontuação</h1>
+        <p class="page-subtitle">Solicite a conferência e acompanhe seus pontos.</p>
       </div>
+
+      <section id="solicitar-coleta" class="coleta-formulario" aria-labelledby="tituloFormulario" tabindex="-1">
+          <div class="calculator-box">
+            <h2 class="calculator-title" id="tituloFormulario">Material e peso</h2>
+
+            <div class="calculator-form">
+              <div class="form-group">
+                <label for="materialSelect" class="form-label">Escolha o material:</label>
+                <select id="materialSelect" class="form-select">
+                  <option value="eletronico">Eletrônico (20 pts/kg)</option>
+                  <option value="metal">Metal (12 pts/kg)</option>
+                  <option value="plastico">Plástico (8 pts/kg)</option>
+                  <option value="vidro">Vidro (6 pts/kg)</option>
+                  <option value="papel">Papel (5 pts/kg)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="quantityInput" class="form-label">Quantidade (kg):</label>
+                <input type="number" id="quantityInput" class="form-input" placeholder="Ex: 10" min="0.1" step="0.001">
+              </div>
+
+              <button type="button" class="btn btn-outline btn-full" onclick="calcularPontos()">Calcular</button>
+
+              <div class="calculator-result" id="calculatorResult">
+                <span class="result-icon">✨</span>
+                <span class="result-text">Estimativa após confirmação: <strong id="resultPoints">0</strong> pontos</span>
+              </div>
+            </div>
+
+            <p id="registroAjuda">Mínimo de 100 g. Os pontos só entram após a conferência.</p>
+            <div class="solicitacao-acao">
+              <button class="btn btn-primary btn-full" aria-describedby="registroAjuda" onclick="registrarColeta()" id="btnRegistrar">
+                📦 Solicitar conferência
+              </button>
+            </div>
+            <p id="resultadoSolicitacao" class="solicitacao-feedback" role="status"></p>
+          </div>
+      </section>
+
+      <section id="solicitacoes" class="card" aria-labelledby="tituloSolicitacoes" tabindex="-1">
+        <div class="card-header"><h2 id="tituloSolicitacoes" class="card-title">Minhas solicitações de coleta</h2></div>
+        <div class="card-body" id="minhasSolicitacoes"></div>
+      </section>
 
       <!-- Barra de Nível (compacta) -->
       <div id="level-bar-container" class="mb-md"></div>
@@ -80,95 +124,17 @@
         </div>
       </div>
 
-      <!-- Tabela de Pontuação -->
-      <div class="card fade-in-up">
-        <div class="card-header">
-          <h2 class="card-title">💰 Tabela de Pontos por Material</h2>
-        </div>
+      <section class="card" aria-labelledby="tituloTaxas">
+        <div class="card-header"><h2 class="card-title" id="tituloTaxas">Pontos por material</h2></div>
         <div class="card-body">
-          <div class="table-container">
-            <table tabindex="0" aria-label="Pontos por material" class="table">
-              <thead>
-                <tr>
-                  <th>Material</th>
-                  <th>Pontos por kg</th>
-                  <th>Ícone</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><strong>Eletrônico</strong></td>
-                  <td><span class="points-badge points-high">20 pontos</span></td>
-                  <td><span class="material-icon">📱</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Metal</strong></td>
-                  <td><span class="points-badge points-medium">12 pontos</span></td>
-                  <td><span class="material-icon">🥫</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Plástico</strong></td>
-                  <td><span class="points-badge points-medium">8 pontos</span></td>
-                  <td><span class="material-icon">🥤</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Vidro</strong></td>
-                  <td><span class="points-badge points-low">6 pontos</span></td>
-                  <td><span class="material-icon">🍾</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Papel</strong></td>
-                  <td><span class="points-badge points-low">5 pontos</span></td>
-                  <td><span class="material-icon">📄</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Calculadora -->
-          <div class="calculator-box">
-            <h3 class="calculator-title">🧮 Calculadora de Pontos</h3>
-            <p class="calculator-subtitle">Calcule quantos pontos você vai ganhar</p>
-
-            <div class="calculator-form">
-              <div class="form-group">
-                <label for="materialSelect" class="form-label">Escolha o material:</label>
-                <select id="materialSelect" class="form-select">
-                  <option value="eletronico">Eletrônico (20 pts/kg)</option>
-                  <option value="metal">Metal (12 pts/kg)</option>
-                  <option value="plastico">Plástico (8 pts/kg)</option>
-                  <option value="vidro">Vidro (6 pts/kg)</option>
-                  <option value="papel">Papel (5 pts/kg)</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label for="quantityInput" class="form-label">Quantidade (kg):</label>
-                <input type="number" id="quantityInput" class="form-input" placeholder="Ex: 10" min="0.1" step="0.001">
-              </div>
-
-              <button class="btn btn-primary btn-full" onclick="calcularPontos()">Calcular</button>
-
-              <div class="calculator-result" id="calculatorResult">
-                <span class="result-icon">✨</span>
-                <span class="result-text">Estimativa após confirmação: <strong id="resultPoints">0</strong> pontos</span>
-              </div>
-            </div>
-
-            <p id="registroAjuda">Informe o material e ao menos 100 g (0,1 kg) para enviar a solicitação. Os pontos só entram após o administrador conferir a entrega.</p>
-            <!-- Botão para Registrar Coleta -->
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
-              <button class="btn btn-primary btn-full" aria-describedby="registroAjuda" onclick="registrarColeta()" id="btnRegistrar">
-                📦 Solicitar conferência
-              </button>
-            </div>
-          </div>
+          <dl class="taxas-materiais">
+            <div><dt>Eletrônico</dt><dd><span class="points-badge points-high">20 pontos/kg</span></dd></div>
+            <div><dt>Metal</dt><dd><span class="points-badge points-medium">12 pontos/kg</span></dd></div>
+            <div><dt>Plástico</dt><dd><span class="points-badge points-medium">8 pontos/kg</span></dd></div>
+            <div><dt>Vidro</dt><dd><span class="points-badge points-low">6 pontos/kg</span></dd></div>
+            <div><dt>Papel</dt><dd><span class="points-badge points-low">5 pontos/kg</span></dd></div>
+          </dl>
         </div>
-      </div>
-
-      <section class="card" aria-labelledby="tituloSolicitacoes">
-        <div class="card-header"><h2 id="tituloSolicitacoes" class="card-title">Minhas solicitações de coleta</h2></div>
-        <div class="card-body" id="minhasSolicitacoes"></div>
       </section>
 
       <!-- Dicas -->
@@ -327,10 +293,8 @@
           ));
 
           if (resultado.sucesso) {
-            RecyNetUtils.showToast(
-              `Solicitação enviada. Os pontos aguardam a conferência da entrega.`,
-              'success'
-            );
+            document.getElementById('resultadoSolicitacao').textContent =
+              'Solicitação enviada. Protocolo: ' + resultado.solicitacao.id + '. Acompanhe o estado em Minhas solicitações.';
 
             carregarDadosUsuario();
             renderizarSolicitacoes();
@@ -348,23 +312,51 @@
 
     function renderizarSolicitacoes() {
       const painel = document.getElementById('minhasSolicitacoes');
-      const pendentes = usuarioLogado?.coletasPendentes ?? [];
-      const confirmadas = (usuarioLogado?.historico ?? []).filter(h => h.solicitacaoId).slice(0, 5);
+      const pendentes = (usuarioLogado?.coletasPendentes ?? []).map(h => ({...h, estado: 'pendente'}));
+      const confirmadas = (usuarioLogado?.historico ?? []).filter(h => h.solicitacaoId)
+        .map(h => ({...h, id: h.solicitacaoId, estado: 'confirmada'}));
+      const recusadas = (usuarioLogado?.coletasRecusadas ?? [])
+        .map(h => ({...h, data: h.recusadaEm, estado: 'recusada'}));
+      const finalizadas = [...confirmadas, ...recusadas].sort((a, b) => b.data.localeCompare(a.data));
       painel.replaceChildren();
-      if (!pendentes.length && !confirmadas.length) {
+      if (!pendentes.length && !finalizadas.length) {
         painel.textContent = 'Nenhuma solicitação enviada.';
         return;
       }
-      const lista = document.createElement('ul');
-      for (const item of [...pendentes, ...confirmadas]) {
-        const linha = document.createElement('li');
-        const status = item.solicitacaoId ? 'Confirmada' : 'Aguardando conferência';
-        const material = document.querySelector('#materialSelect option[value="' + item.material + '"]')?.textContent;
-        linha.textContent = status + ' — ' + (material?.split(' (')[0] || item.material) + ' · ' +
-          RecyNetDB.formatarKg(item.gramas / 1000) + ' · ' + new Date(item.data).toLocaleDateString('pt-BR');
-        lista.append(linha);
+      const estados = {pendente: 'Aguardando conferência', confirmada: 'Confirmada', recusada: 'Recusada'};
+      const nomes = Object.fromEntries([...document.getElementById('materialSelect').options]
+        .map(o => [o.value, o.textContent.split(' (')[0]]));
+      function listaDe(itens) {
+        const lista = document.createElement('ul');
+        lista.className = 'solicitacoes-lista';
+        for (const item of itens) {
+          const linha = document.createElement('li');
+          const selo = document.createElement('strong');
+          selo.className = 'solicitacao-estado estado-' + item.estado;
+          selo.textContent = estados[item.estado];
+          const detalhes = document.createElement('p');
+          detalhes.textContent = nomes[item.material] + ' · ' + RecyNetDB.formatarKg(item.gramas / 1000) +
+            ' · ' + new Date(item.data).toLocaleDateString('pt-BR');
+          if (item.estado === 'confirmada') detalhes.textContent += ' · +' + RecyNetDB.formatarPontos(item.pontosGanhos) + ' pontos';
+          if (item.estado === 'recusada') detalhes.textContent += ' · Nenhum ponto creditado';
+          const protocolo = document.createElement('p');
+          protocolo.className = 'solicitacao-protocolo';
+          const codigo = document.createElement('code');
+          codigo.textContent = item.id;
+          protocolo.append('Protocolo: ', codigo);
+          linha.append(selo, detalhes, protocolo);
+          lista.append(linha);
+        }
+        return lista;
       }
-      painel.append(lista);
+      painel.append(listaDe([...pendentes, ...finalizadas.slice(0, 5)]));
+      if (finalizadas.length > 5) {
+        const historico = document.createElement('details');
+        const resumo = document.createElement('summary');
+        resumo.textContent = 'Ver solicitações anteriores';
+        historico.append(resumo, listaDe(finalizadas.slice(5)));
+        painel.append(historico);
+      }
     }
 
     // Inicialização

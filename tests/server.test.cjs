@@ -23,9 +23,8 @@ test('servidor compartilhado inicia fora da pasta do projeto e serve a documenta
     assert.equal(resposta.status,200);assert.match(await resposta.text(),/API planejada do RecyNet/);
     assert.equal(resposta.headers.get('x-content-type-options'),'nosniff');
     assert.equal((await fetch(`http://127.0.0.1:${porta}/.git/config`)).status,403);
-    for (const route of ['/node_modules/js-yaml/package.json','/package.json','/tests/core.test.cjs']) {
+    for (const route of ['/node_modules/js-yaml/package.json','/package.json','/tests/core.test.cjs', '/tests/isolated-checks.js', '/setup-automatico.html', '/teste-sistemas.html', '/teste-debug-completo.html', '/assets/js/demo-setup.js', '/assets/js/diagnostico-isolado.js']) {
       assert.equal((await fetch(`http://127.0.0.1:${porta}${route}`)).status,404);
     }
-    assert.equal((await fetch(`http://127.0.0.1:${porta}/tests/isolated-checks.js`)).status,200);
   } finally { filho.kill();await terminou; }
 });
