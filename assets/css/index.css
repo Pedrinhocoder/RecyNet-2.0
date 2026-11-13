@@ -154,19 +154,3 @@ html {
     font-size: var(--font-size-2xl);
   }
 }
-.hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--spacing-sm);
-  margin-block: var(--spacing-lg) var(--spacing-sm);
-}
-
-.hero-note {
-  color: var(--color-gray-700);
-  font-size: var(--font-size-sm);
-}
-
-@media (max-width: 480px) {
-  .hero-actions { flex-direction: column; }
-}

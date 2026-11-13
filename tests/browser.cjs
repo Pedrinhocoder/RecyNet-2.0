@@ -1354,13 +1354,15 @@ async function main() {
       }
     });
 
-    await check('primeira dobra móvel tem acesso, coleta e lista de materiais sem corte', async ({page,go,cadastrar}) => {
+    await check('login fica no menu da home e a coleta cabe na primeira dobra móvel', async ({page,go,cadastrar}) => {
       await page.setViewportSize({width:390,height:844});
       const cabeNaTela = el => { const r = el.getBoundingClientRect(); return r.top >= 0 && r.bottom <= innerHeight && Number(getComputedStyle(el).opacity) > 0; };
       await go('index.html');
       assert.equal(await page.locator('a[href="setup-automatico.html"]').count(), 0);
-      assert(await page.getByRole('link',{name:'Entrar na minha conta',exact:true}).evaluate(cabeNaTela));
-      await go('recynet.html');
+      assert.equal(await page.locator('.hero-section a, .hero-section button, .hero-note').count(), 0);
+      await page.locator('#navbarToggle').click();
+      await page.getByRole('link',{name:'Entrar',exact:true}).click();
+      await page.waitForURL('**/recynet.html');
       assert(await page.getByRole('textbox',{name:'Email',exact:true}).evaluate(el => parseFloat(getComputedStyle(el).fontSize) >= 16));
       await cadastrar();
       await go('cooperado.html');
